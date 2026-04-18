@@ -1,0 +1,77 @@
+# Reviewed Sprint Workflow
+# Full pipeline: preflight → design review gate → coding sprint → PR shepherd.
+# Uses parallel specialist reviewers and reviewer-gated commits.
+
+name: reviewed-sprint
+description: >
+  Four-phase sprint: preflight validation checks the plan, parallel specialist
+  reviewers evaluate it (architect, security, UX, PM), coders implement on an
+  isolated branch, then a PR shepherd monitors CI, reviews, and merges.
+
+phases:
+  - name: preflight
+    type: preflight
+    routingProfile: verification
+    description: >
+      Lightweight validation checklist: architecture fit, dependency audit,
+      API contract check, security scan, scope verification.
+
+  - name: design-review
+    type: review-gate
+    routingProfile: verification
+    parallel: true
+    depends_on:
+      - preflight
+    agents:
+      - role: review-architect
+        model: claude-sonnet-4-6
+        description: Elias Morgan — Architecture Reviewer
+      - role: review-security
+        model: claude-sonnet-4-6
+        description: Nadia Chen — Security Reviewer
+      - role: review-ux
+        model: claude-sonnet-4-6
+        description: Tomás Rivera — UX & API Design Reviewer
+      - role: review-pm
+        model: claude-sonnet-4-6
+        description: Priya Kapoor — Product & Scope Reviewer
+
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    depends_on:
+      - design-review
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: Ava Park — Backend Engineer
+      - role: coder-runtime
+        model: claude-sonnet-4-6
+        description: Marco Ibarra — Runtime Reliability Engineer
+      - role: coder-frontend
+        model: claude-sonnet-4-6
+        description: Lena Kovacs — Frontend + DX Engineer
+
+  - name: evaluate
+    type: evaluate
+    routingProfile: verification
+    depends_on:
+      - sprint
+    description: >
+      LLM-as-judge evaluation of sprint output against acceptance criteria.
+      Uses a skeptical Sonnet rubric (correctness, completeness, code_quality,
+      edge_cases). Passes if average rubric score >= 7.0. On failure, triggers
+      a retry of the sprint phase (up to maxIterations). On exhaustion, marks
+      the phase failed with evaluator feedback appended to the trace.
+    maxIterations: 3
+    passingScore: 7.0
+
+  - name: pr-shepherd
+    type: pr-shepherd
+    depends_on:
+      - evaluate
+    description: >
+      Monitors CI status on the PR, auto-responds to review comments,
+      and fixes CI failures. Runs until CI is green and reviews are resolved.

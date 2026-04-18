@@ -1,0 +1,38 @@
+# Design Review Workflow
+# Lightweight pipeline: preflight validation + parallel design review gate.
+# Used for complexity 2-3 ideas that need review before coding.
+# On completion, the executor creates an enriched card in "unassigned".
+
+name: design-review
+description: >
+  Two-phase design review: preflight validation checks the plan,
+  then parallel specialist reviewers evaluate it. No coding phase.
+  On completion, produces a refined plan card for implementation.
+
+phases:
+  - name: preflight
+    type: preflight
+    routingProfile: verification
+    description: >
+      Lightweight validation checklist: architecture fit, dependency audit,
+      API contract check, security scan, scope verification.
+
+  - name: design-review
+    type: review-gate
+    routingProfile: verification
+    parallel: true
+    depends_on:
+      - preflight
+    agents:
+      - role: review-architect
+        model: claude-sonnet-4-6
+        description: Elias Morgan — Architecture Reviewer
+      - role: review-security
+        model: claude-sonnet-4-6
+        description: Nadia Chen — Security Reviewer
+      - role: review-ux
+        model: claude-sonnet-4-6
+        description: Tomás Rivera — UX & API Design Reviewer
+      - role: review-pm
+        model: claude-sonnet-4-6
+        description: Priya Kapoor — Product & Scope Reviewer

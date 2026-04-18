@@ -1,0 +1,24 @@
+{
+  // NOTE: strict mode is intentionally relaxed for the initial Crucible port.
+  // The bridge was lifted verbatim from the upstream infra repo; a handful of
+  // its sibling helpers still reference types that lived in adjacent modules.
+  // See bridge/README.md "TODO" — switch strict back on once those helpers
+  // are re-homed or replaced.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": false,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "declaration": false,
+    "sourceMap": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

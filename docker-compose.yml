@@ -1,0 +1,48 @@
+# Crucible local development / self-hosted stack.
+# Usage: docker compose up
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: crucible
+      POSTGRES_PASSWORD: crucible
+      POSTGRES_DB: crucible
+    ports:
+      # Host :55432 avoids collisions with a local Postgres on :5432.
+      # Override via POSTGRES_HOST_PORT env var.
+      - "${POSTGRES_HOST_PORT:-55432}:5432"
+    volumes:
+      - crucible_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crucible"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  crucible:
+    build:
+      context: .
+    image: crucible/core:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://crucible:crucible@postgres:5432/crucible
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PORT: ${PORT:-4801}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      MINIMAX_API_KEY: ${MINIMAX_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      DAILY_BUDGET_LIMIT_USD: ${DAILY_BUDGET_LIMIT_USD:-100}
+      SELF_IMPROVE_ENABLED: ${SELF_IMPROVE_ENABLED:-true}
+    ports:
+      - "4801:4801"
+    volumes:
+      - crucible_state:/app/.crucible
+
+volumes:
+  crucible_pg:
+  crucible_state:

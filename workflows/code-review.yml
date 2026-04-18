@@ -1,0 +1,25 @@
+# Code Review Workflow
+# Single team phase: reviewer identifies issues, coder applies fixes, reviewer re-validates and commits.
+
+name: code-review
+description: >
+  Single-phase code review: reviewer performs holistic review across correctness,
+  security, performance, and test coverage. Coder applies fixes. Reviewer
+  re-validates and commits.
+
+phases:
+  - name: review
+    type: team
+    routingProfile: verification
+    parallel: true
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: >
+          Ava Park — Backend Engineer. Apply fixes identified by the reviewer.
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: >
+          Sofia Reyes — Principal Reviewer. Holistic review across correctness,
+          security posture, performance hotspots, and regression test coverage.
+          Validates fixes and commits.

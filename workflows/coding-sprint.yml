@@ -1,0 +1,35 @@
+# Coding Sprint Workflow
+# Orchestrator spawns parallel worktree-isolated coder subagents.
+# Each coder commits, pushes, and opens a PR independently.
+# PR shepherd reviews each PR against the plan and merges.
+
+name: coding-sprint
+description: >
+  Orchestrator spawns parallel coder subagents, each in an isolated worktree.
+  Coders implement, commit, push, and open PRs. The PR shepherd reviews
+  each PR against the plan, checks for bugs, and merges when clean.
+
+phases:
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: Ava Park — Backend Engineer
+      - role: coder-runtime
+        model: claude-sonnet-4-6
+        description: Marco Ibarra — Runtime Reliability Engineer
+      - role: coder-frontend
+        model: claude-sonnet-4-6
+        description: Lena Kovacs — Frontend + DX Engineer
+
+  - name: pr-shepherd
+    type: pr-shepherd
+    depends_on:
+      - sprint
+    description: >
+      Monitors CI status on the PR, auto-responds to review comments,
+      and fixes CI failures. Runs until CI is green and reviews are resolved.

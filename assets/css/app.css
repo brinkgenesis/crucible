@@ -1,0 +1,322 @@
+/* Tailwind + Plugins */
+@import "tailwindcss" source(none);
+@source "../css";
+@source "../js";
+@source "../../lib/crucible_web";
+
+@plugin "../vendor/heroicons";
+@plugin "../vendor/daisyui";
+
+/* ═══════════════════════════════════════════════════════
+   NERV COMMAND OS — Tactical HUD Theme
+   ═══════════════════════════════════════════════════════ */
+
+/* Force dark-only theme — NERV palette */
+:root,
+[data-theme="dark"],
+[data-theme="light"] {
+  color-scheme: dark;
+
+  /* Surface hierarchy (void → elevated) */
+  --color-base-100: #0e0e0e;
+  --color-base-200: #131313;
+  --color-base-300: #1a1919;
+  --color-base-content: #ffffff;
+
+  /* Primary: NERV Orange */
+  --color-primary: #ffa44c;
+  --color-primary-content: #1e0c00;
+
+  /* Secondary: Tactical Cyan */
+  --color-secondary: #00eefc;
+  --color-secondary-content: #003f43;
+
+  /* Accent: same as primary for consistency */
+  --color-accent: #fd9000;
+  --color-accent-content: #1e0c00;
+
+  /* Neutral: dark grey for borders/subtle elements */
+  --color-neutral: #262626;
+  --color-neutral-content: #adaaaa;
+
+  /* Semantic */
+  --color-info: #00eefc;
+  --color-info-content: #003f43;
+  --color-success: #00FF41;
+  --color-success-content: #002b0e;
+  --color-warning: #ffa44c;
+  --color-warning-content: #1e0c00;
+  --color-error: #ff725e;
+  --color-error-content: #3a0000;
+
+  /* Zero border-radius: tactical rigidity */
+  --radius-selector: 0;
+  --radius-field: 0;
+  --radius-box: 0;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+/* Auto dark mode override */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-base-100: #0e0e0e;
+    --color-base-200: #131313;
+    --color-base-300: #1a1919;
+    --color-base-content: #ffffff;
+    --color-primary: #ffa44c;
+    --color-primary-content: #1e0c00;
+    --color-secondary: #00eefc;
+    --color-secondary-content: #003f43;
+    --color-accent: #fd9000;
+    --color-accent-content: #1e0c00;
+    --color-neutral: #262626;
+    --color-neutral-content: #adaaaa;
+    --color-info: #00eefc;
+    --color-info-content: #003f43;
+    --color-success: #00FF41;
+    --color-success-content: #002b0e;
+    --color-warning: #ffa44c;
+    --color-warning-content: #1e0c00;
+    --color-error: #ff725e;
+    --color-error-content: #3a0000;
+    --radius-selector: 0;
+    --radius-field: 0;
+    --radius-box: 0;
+    --size-selector: 0.21875rem;
+    --size-field: 0.21875rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+  }
+}
+
+/* ═══ Typography ═══ */
+.font-headline { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.font-body { font-family: 'Inter', system-ui, sans-serif; }
+.font-label { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* ═══ HUD Surface Colors (custom Tailwind utilities) ═══ */
+.bg-surface { background-color: #0e0e0e; }
+.bg-surface-container-lowest { background-color: #000000; }
+.bg-surface-container-low { background-color: #131313; }
+.bg-surface-container { background-color: #1a1919; }
+.bg-surface-container-high { background-color: #201f1f; }
+.bg-surface-container-highest { background-color: #262626; }
+.bg-surface-bright { background-color: #2c2c2c; }
+
+/* Text colors */
+.text-on-surface { color: #ffffff; }
+.text-on-surface-variant { color: #adaaaa; }
+.text-primary { color: #ffa44c; }
+.text-primary-dim { color: #ea8400; }
+.text-secondary { color: #00eefc; }
+.text-secondary-dim { color: #00deec; }
+.text-tertiary { color: #ff725e; }
+.text-error { color: #ff7351; }
+
+/* Border colors */
+.border-outline { border-color: #777575; }
+.border-outline-variant { border-color: #494847; }
+
+/* ═══ HUD Component Classes ═══ */
+.hud-border {
+  border: 1px solid rgba(255, 164, 76, 0.15);
+}
+
+.hud-border-cyan {
+  border: 1px solid rgba(0, 238, 252, 0.15);
+}
+
+.tactical-corner {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
+}
+
+.scanline-overlay {
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}
+
+/* Ghost border (15% opacity outline-variant) */
+.ghost-border {
+  border: 1px solid rgba(73, 72, 71, 0.15);
+}
+
+/* Glow effects */
+.glow-primary { box-shadow: 0 0 15px rgba(255, 164, 76, 0.15); }
+.glow-secondary { box-shadow: 0 0 15px rgba(0, 238, 252, 0.15); }
+.glow-error { box-shadow: 0 0 15px rgba(255, 114, 94, 0.15); }
+.text-glow-primary { text-shadow: 0 0 8px rgba(255, 164, 76, 0.4); }
+.text-glow-secondary { text-shadow: 0 0 8px rgba(0, 238, 252, 0.4); }
+
+/* Progress bar glow */
+.progress-glow-primary { box-shadow: 0 0 8px #ffa44c; }
+.progress-glow-secondary { box-shadow: 0 0 8px #00eefc; }
+.progress-glow-error { box-shadow: 0 0 8px #ff725e; }
+
+/* Data refresh pulse — brief cyan flash on PubSub update */
+@keyframes data-refresh-pulse {
+  0% { box-shadow: inset 0 0 0 1px rgba(0, 238, 252, 0.4); }
+  100% { box-shadow: inset 0 0 0 1px transparent; }
+}
+.data-refresh-pulse {
+  animation: data-refresh-pulse 1.5s ease-out;
+}
+
+/* ═══ Material Symbols ═══ */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ═══ DaisyUI Overrides for NERV ═══ */
+
+/* Force all border-radius to 0 */
+.btn, .card, .badge, .alert, .input, .select, .textarea,
+.toggle, .checkbox, .radio, .tabs, .tab, .menu, .modal,
+.drawer, .dropdown, .collapse, .tooltip, .avatar {
+  border-radius: 0 !important;
+}
+
+/* Buttons — tactical style */
+.btn-primary {
+  background: linear-gradient(135deg, #ffa44c, #fd9000);
+  color: #1e0c00;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: none;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 20px rgba(0, 238, 252, 0.3);
+  background: linear-gradient(135deg, #ffa44c, #fd9000);
+}
+
+.btn-ghost {
+  color: #ffa44c;
+  opacity: 0.7;
+}
+.btn-ghost:hover {
+  background: rgba(0, 238, 252, 0.1);
+  color: #00eefc;
+}
+
+/* Badge — tactical colors */
+.badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.badge-info { background: rgba(0, 238, 252, 0.15); color: #00eefc; border: none; }
+.badge-success { background: rgba(0, 255, 65, 0.15); color: #00FF41; border: none; }
+.badge-warning { background: rgba(255, 164, 76, 0.15); color: #ffa44c; border: none; }
+.badge-error { background: rgba(255, 114, 94, 0.15); color: #ff725e; border: none; }
+.badge-ghost { background: rgba(173, 170, 170, 0.15); color: #adaaaa; border: none; }
+.badge-secondary { background: rgba(0, 238, 252, 0.15); color: #00eefc; border: none; }
+
+/* Table — HUD styling (applies to .table and all tables inside main) */
+.table, main table { border-color: rgba(255, 164, 76, 0.08); }
+.table th, main table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 164, 76, 0.6);
+  background: #131313;
+  border-bottom: 1px solid rgba(255, 164, 76, 0.1);
+  padding: 0.5rem 0.75rem;
+  font-weight: 400;
+}
+.table td, main table td {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  border-bottom: 1px solid rgba(255, 164, 76, 0.05);
+  color: #adaaaa;
+  padding: 0.5rem 0.75rem;
+}
+.table tr:hover td, main table tr:hover td {
+  background: rgba(0, 238, 252, 0.03);
+}
+.table-zebra tbody tr:nth-child(even) td {
+  background: rgba(255, 164, 76, 0.02);
+}
+
+/* Tabs — NERV style */
+.tabs-boxed {
+  background: #131313;
+  border: 1px solid rgba(255, 164, 76, 0.1);
+}
+.tab {
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  color: rgba(255, 164, 76, 0.5);
+}
+.tab-active, .tab:is(input:checked) {
+  color: #00eefc !important;
+  border-bottom: 2px solid #00eefc;
+  background: rgba(0, 238, 252, 0.05) !important;
+}
+
+/* Select / Input — underline style */
+.select, .input, .textarea {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #777575;
+  font-family: 'JetBrains Mono', monospace;
+  color: #ffffff;
+}
+.select:focus, .input:focus, .textarea:focus {
+  border-bottom-color: #00eefc;
+  box-shadow: 0 1px 0 0 #00eefc;
+  outline: none;
+}
+
+/* Menu (sidebar) */
+.menu li > a, .menu li > button {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(255, 164, 76, 0.7);
+  padding: 0.5rem 1rem;
+}
+.menu li > a:hover, .menu li > button:hover {
+  background: rgba(0, 238, 252, 0.1);
+  color: #00eefc;
+}
+.menu li > a.active, .menu li > button.active {
+  background: #ffa44c;
+  color: #000000;
+  font-weight: 700;
+}
+
+/* Modal / Drawer */
+.modal-box, .drawer-side aside {
+  background: #000000;
+}
+
+/* ═══ Scrollbar ═══ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0e0e0e; }
+::-webkit-scrollbar-thumb { background: rgba(255, 164, 76, 0.3); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 164, 76, 0.5); }
+
+/* ═══ LiveView Utilities ═══ */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/* Selection color */
+::selection {
+  background: #ffa44c;
+  color: #000000;
+}

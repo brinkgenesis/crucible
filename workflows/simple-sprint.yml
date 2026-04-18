@@ -1,0 +1,29 @@
+# Simple Sprint Workflow
+# Lightweight two-phase pipeline: single coder on branch, PR shepherd merges.
+# Used for small tasks and E2E testing where 3 coders is overkill.
+
+name: simple-sprint
+description: >
+  Single-coder sprint with branch isolation: team lead reads vault plan,
+  spawns 1 coder on a dedicated branch. Coder commits directly on the branch.
+  After the sprint, the executor creates a PR. The PR shepherd then monitors
+  CI status and merges when green.
+
+phases:
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    agents:
+      - role: coder
+        model: claude-sonnet-4-6
+        description: Solo coder — implements the full task
+
+  - name: pr-shepherd
+    type: pr-shepherd
+    depends_on:
+      - sprint
+    description: >
+      Monitors CI status on the PR, auto-responds to review comments,
+      and fixes CI failures. Runs until CI is green and reviews are resolved.

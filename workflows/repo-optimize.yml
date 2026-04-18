@@ -1,0 +1,29 @@
+# Repo Optimization Workflow
+# Single team phase: architect analyzes + strategizes, routing-optimizer implements, reviewer validates.
+
+name: repo-optimize
+description: >
+  Single-phase optimization sprint: architect analyzes cost/token patterns and
+  defines optimization strategy, routing-optimizer implements changes, reviewer
+  validates and commits.
+
+phases:
+  - name: optimize
+    type: team
+    routingProfile: throughput
+    parallel: true
+    agents:
+      - role: architect
+        model: claude-sonnet-4-6
+        description: >
+          Analyze cost event logs, token usage patterns, and model selection
+          distribution. Define optimization strategy, priority, success criteria,
+          and rollout safeguards.
+      - role: routing-optimizer
+        model: claude-sonnet-4-6
+        description: >
+          Review model routing decisions. Implement changes that safely downgrade
+          tasks to cheaper models without quality loss.
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: Sofia Reyes — Principal Reviewer, validates and commits

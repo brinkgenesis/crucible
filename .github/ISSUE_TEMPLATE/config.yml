@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Quickstart
+    url: https://github.com/brinkgenesis/crucible/blob/main/docs/quickstart.md
+    about: Get up and running before opening an issue — common snags are covered.
+  - name: Troubleshooting
+    url: https://github.com/brinkgenesis/crucible/blob/main/README.md#troubleshooting
+    about: Check the troubleshooting section for known symptoms + fixes.

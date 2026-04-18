@@ -1,0 +1,137 @@
+<!-- SKIP LINK -->
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[200] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-[#ffa44c] focus:text-black focus:font-label focus:text-xs focus:tracking-widest">
+  SKIP_TO_CONTENT
+</a>
+
+<!-- SCANLINE OVERLAY -->
+<div class="fixed inset-0 z-[100] scanline-overlay opacity-20 pointer-events-none" aria-hidden="true"></div>
+
+<!-- TOP BAR -->
+<header role="banner" class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-14 bg-[#0e0e0e]/80 backdrop-blur-xl border-b border-[#ffa44c]/10">
+  <div class="flex items-center gap-3 md:gap-6">
+    <button
+      id="sidebar-toggle"
+      class="md:hidden p-1.5 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="sidebar"
+      onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
+    >
+      <span class="material-symbols-outlined text-xl">menu</span>
+    </button>
+    <a href="/" class="text-xl font-black text-[#ffa44c] tracking-widest font-headline">CRUCIBLE</a>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="hidden md:flex bg-surface-container-low px-3 py-1 hud-border gap-4 items-center">
+      <div class="text-[10px] font-label text-[#ffa44c]/50 tracking-widest">
+        SYSTEM_ONLINE
+      </div>
+      <div class="w-2 h-2 bg-[#00FF41] animate-pulse"></div>
+    </div>
+    <div class="flex gap-1">
+      <a href="/settings" class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors" aria-label="Settings">
+        <span class="material-symbols-outlined text-lg" aria-hidden="true">settings_input_component</span>
+      </a>
+      <a href="/router" class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors" aria-label="Router health">
+        <span class="material-symbols-outlined text-lg" aria-hidden="true">monitor_heart</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div
+  id="sidebar-overlay"
+  class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"
+  onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
+  aria-hidden="true"
+></div>
+
+<!-- SIDEBAR -->
+<aside
+  id="sidebar"
+  phx-hook="MobileSidebar"
+  class="fixed left-0 top-0 h-full flex-col pt-16 pb-4 overflow-y-auto bg-[#000000] w-56 border-r border-[#ffa44c]/10 z-40 hidden md:flex"
+>
+  <div class="px-4 py-4 mb-4">
+    <div class="text-sm font-bold text-[#ffa44c] font-headline tracking-widest">CRUCIBLE</div>
+    <div class="text-[9px] text-[#00eefc] font-label tracking-widest mt-1">LEVEL_A_ACCESS</div>
+  </div>
+
+  <nav aria-label="Main navigation" class="flex-1 px-2 space-y-0.5 overflow-y-auto">
+    <.nerv_nav_link path="/" icon="dashboard" label="DASHBOARD" current={@current_path} />
+    <.nerv_nav_link path="/control" icon="terminal" label="CONTROL" current={@current_path} />
+    <.nerv_nav_link path="/runs" icon="play_circle" label="RUNS" current={@current_path} />
+    <.nerv_nav_link path="/kanban" icon="view_kanban" label="WORKFLOWS" current={@current_path} />
+    <.nerv_nav_link path="/agents" icon="memory" label="AGENTS" current={@current_path} />
+    <.nerv_nav_link path="/teams" icon="group" label="ACTIVITY" current={@current_path} />
+    <.nerv_nav_link path="/budget" icon="payments" label="BUDGET" current={@current_path} />
+    <.nerv_nav_link path="/cost" icon="token" label="TOKENS" current={@current_path} />
+    <.nerv_nav_link path="/logs" icon="description" label="LOGS" current={@current_path} />
+    <.nerv_nav_link path="/traces" icon="timeline" label="TRACES" current={@current_path} />
+    <.nerv_nav_link path="/visual" icon="music_note" label="VISUAL" current={@current_path} />
+    <.nerv_nav_link path="/remote" icon="dns" label="REMOTE" current={@current_path} />
+    <.nerv_nav_link path="/codebase" icon="code" label="CODEBASE" current={@current_path} />
+
+    <!-- Settings divider -->
+    <div class="my-3 border-t border-[#ffa44c]/10"></div>
+
+    <.nerv_nav_link path="/config" icon="tune" label="CONFIG" current={@current_path} />
+    <.nerv_nav_link path="/router" icon="swap_horiz" label="ROUTER" current={@current_path} />
+    <.nerv_nav_link path="/settings" icon="settings" label="SETTINGS" current={@current_path} />
+    <.nerv_nav_link path="/workspaces" icon="workspaces" label="WORKSPACES" current={@current_path} />
+    <.nerv_nav_link path="/audit" icon="shield" label="AUDIT" current={@current_path} />
+    <.nerv_nav_link path="/policies" icon="policy" label="POLICIES" current={@current_path} />
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="mt-auto px-3 pt-3 border-t border-[#ffa44c]/10">
+    <div
+      id="execution-mode-toggle"
+      phx-hook="ExecutionModeToggle"
+      phx-update="ignore"
+    >
+      <div class="text-[9px] font-label text-[#ffa44c]/50 tracking-widest mb-2">EXECUTION_MODE</div>
+      <div class="flex w-full execution-mode-group">
+        <button
+          type="button"
+          data-execution-mode="subscription"
+          data-active="false"
+          class="exec-mode-btn flex-1 py-1.5 text-[10px] font-label tracking-widest transition-all"
+          aria-pressed="false"
+        >
+          TMUX
+        </button>
+        <button
+          type="button"
+          data-execution-mode="sdk"
+          data-active="true"
+          class="exec-mode-btn flex-1 py-1.5 text-[10px] font-label tracking-widest transition-all"
+          aria-pressed="true"
+        >
+          SDK
+        </button>
+        <button
+          type="button"
+          data-execution-mode="api"
+          data-active="false"
+          class="exec-mode-btn flex-1 py-1.5 text-[10px] font-label tracking-widest transition-all"
+          aria-pressed="false"
+        >
+          API
+        </button>
+      </div>
+      <style>
+        .exec-mode-btn { color: rgba(255, 164, 76, 0.5); }
+        .exec-mode-btn:hover { color: #00eefc; background: rgba(0, 238, 252, 0.1); }
+        .exec-mode-btn[data-active="true"] { background: #ffa44c; color: black; font-weight: 700; }
+      </style>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main id="main-content" role="main" class="md:ml-56 pt-20 px-4 md:px-6 pb-12 min-h-screen bg-[#0e0e0e]">
+  <.flash_group flash={@flash} />
+  {render_slot(@inner_block)}
+</main>
