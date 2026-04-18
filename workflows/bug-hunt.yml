@@ -1,0 +1,41 @@
+# Bug Hunt Workflow
+# Two-phase pipeline: researcher investigates on a session phase,
+# then coder + reviewer fix & commit on an isolated branch.
+#
+# Phase 1 (investigate): session-type researcher reads vault plan,
+#   explores the codebase, produces a ranked hypothesis report.
+# Phase 2 (fix): team-type coder-backend implements the fix based
+#   on the hypothesis report, reviewer validates and commits.
+#
+# NOTE: No pr-shepherd phase — the executor auto-creates a PR after
+# the fix phase, but merge requires human review. This is intentional:
+# bug fixes should be reviewed before merging to main.
+
+name: bug-hunt
+description: >
+  Two-phase bug hunt: researcher investigates root causes and writes
+  a hypothesis report, then coder implements the fix on an isolated
+  branch while the reviewer validates and commits.
+
+phases:
+  - name: investigate
+    type: session
+    routingProfile: deep-reasoning
+    agent: researcher
+
+  - name: fix
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    depends_on:
+      - investigate
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: >
+          Ava Park — Backend Engineer. Implement the fix based on the
+          researcher's hypothesis report from the investigate phase.
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: Sofia Reyes — Principal Reviewer, validates and commits

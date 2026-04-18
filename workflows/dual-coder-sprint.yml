@@ -1,0 +1,33 @@
+# Dual-Coder Sprint Workflow
+# Two coders with file partitioning, then PR shepherd merges.
+# Used for moderate-complexity tasks that benefit from parallel coding.
+
+name: dual-coder-sprint
+description: >
+  Dual-coder sprint with branch isolation: team lead reads vault plan,
+  spawns 2 coders (backend + runtime) with strict file ownership.
+  Each coder commits their assigned files on the shared branch.
+  After the sprint, the executor creates a PR. The PR shepherd monitors
+  CI status and merges when green.
+
+phases:
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: Backend coder — documents the main module, adds @moduledoc, @doc, and typespecs to existing code
+      - role: coder-runtime
+        model: claude-sonnet-4-6
+        description: Runtime coder — extracts helper modules, adds formatting/filtering utilities, writes supporting code
+
+  - name: pr-shepherd
+    type: pr-shepherd
+    depends_on:
+      - sprint
+    description: >
+      Monitors CI status on the PR, auto-responds to review comments,
+      and fixes CI failures. Runs until CI is green and reviews are resolved.

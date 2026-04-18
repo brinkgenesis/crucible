@@ -1,0 +1,23 @@
+## VM args for production releases
+
+## Max processes (default 262144, raise for high concurrency)
++P 1048576
+
+## Enable kernel poll (epoll/kqueue) for better I/O performance
++K true
+
+## Enable heart — auto-restarts VM if it becomes unresponsive
+-heart
+
+## Multi time warp mode — prevents monotonic time jumps
++C multi_time_warp
+
+## Increase async thread pool (default 1, good for NIF-heavy workloads)
++A 32
+
+## Scheduler flags
++sbt db
++sbwt none
+
+## Crash dump location
+-env ERL_CRASH_DUMP /tmp/erl_crash_${RELEASE_NAME}.dump

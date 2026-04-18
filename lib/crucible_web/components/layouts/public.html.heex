@@ -1,0 +1,48 @@
+<div class="min-h-screen bg-[#0e0e0e]">
+  <header class="border-b border-[#ffa44c]/10 bg-[#0e0e0e]/90 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 lg:px-6">
+      <div class="space-y-1">
+        <a href="/lab" class="inline-flex items-center gap-3">
+          <div class="flex size-10 items-center justify-center bg-[#ffa44c]">
+            <span class="material-symbols-outlined text-xl text-[#1e0c00]">science</span>
+          </div>
+          <div>
+            <div class="text-[9px] font-label uppercase tracking-widest text-[#00eefc]">
+              PUBLICATION_LAYER
+            </div>
+            <div class="text-lg font-headline font-bold text-[#ffa44c] tracking-tight">BENCHMARK_LAB</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a
+          href="/lab"
+          class={[
+            "px-3 py-1.5 font-label text-[10px] tracking-widest uppercase transition-all",
+            if(@current_path == "/lab", do: "bg-[#ffa44c] text-[#1e0c00] font-bold", else: "text-[#ffa44c]/60 hover:text-[#00eefc] hover:bg-[#00eefc]/10")
+          ]}
+        >
+          CATALOG
+        </a>
+        <a
+          href="/lab/snapshots"
+          class={[
+            "px-3 py-1.5 font-label text-[10px] tracking-widest uppercase transition-all",
+            if(String.starts_with?(@current_path || "", "/lab/snapshots"),
+              do: "bg-[#ffa44c] text-[#1e0c00] font-bold",
+              else: "text-[#ffa44c]/60 hover:text-[#00eefc] hover:bg-[#00eefc]/10"
+            )
+          ]}
+        >
+          SNAPSHOTS
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 py-6 lg:px-6 lg:py-8">
+    <.flash_group flash={@flash} />
+    {render_slot(@inner_block)}
+  </main>
+</div>

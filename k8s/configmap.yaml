@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: infra-orchestrator-config
+data:
+  phx-host: "orchestrator.internal"
+  pool-size: "10"
+  log-level: "info"

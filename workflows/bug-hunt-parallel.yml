@@ -1,0 +1,66 @@
+# Bug Hunt Parallel Workflow
+# Three-phase pipeline with parallel hypothesis investigation.
+#
+# Phase 1 (investigate): team-type with 3 researcher variants,
+#   each exploring a different hypothesis class in parallel.
+#   - researcher-code: logic errors, race conditions, wrong assumptions
+#   - researcher-infra: config, deps, environment, networking
+#   - researcher-data: data flow, missing validation, corrupt state
+#
+# Phase 2 (consolidate): session-type that reads all 3 hypothesis
+#   reports and produces a ranked, consolidated analysis.
+#
+# Phase 3 (fix): team-type coder implements the fix based on the
+#   consolidated analysis, reviewer validates and commits.
+
+name: bug-hunt-parallel
+description: >
+  Parallel bug hunt: three researchers investigate different hypothesis
+  classes simultaneously (code, infrastructure, data flow), a session
+  phase consolidates their findings into a ranked analysis, then a coder
+  implements the fix while the reviewer validates and commits.
+
+phases:
+  - name: investigate
+    type: team
+    parallel: true
+    routingProfile: deep-reasoning
+    agents:
+      - role: researcher-code
+        model: claude-sonnet-4-6
+        description: >
+          Code-level hypothesis investigator. Focus on logic errors,
+          race conditions, wrong assumptions, and incorrect control flow.
+      - role: researcher-infra
+        model: claude-sonnet-4-6
+        description: >
+          Infrastructure hypothesis investigator. Focus on configuration
+          issues, dependency problems, environment mismatches, and networking.
+      - role: researcher-data
+        model: claude-sonnet-4-6
+        description: >
+          Data flow hypothesis investigator. Focus on wrong data shapes,
+          missing validation, corrupt state, and transformation errors.
+
+  - name: consolidate
+    type: session
+    routingProfile: deep-reasoning
+    depends_on:
+      - investigate
+
+  - name: fix
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    depends_on:
+      - consolidate
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: >
+          Ava Park — Backend Engineer. Implement the fix based on the
+          consolidated hypothesis analysis from the investigate phase.
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: Sofia Reyes — Principal Reviewer, validates and commits
