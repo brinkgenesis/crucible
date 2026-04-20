@@ -26,6 +26,7 @@ defmodule CrucibleWeb.ControlLive do
     slots = ControlSession.list_slots()
     models = ControlSession.available_models()
     codebases = safe_call(fn -> ControlSession.list_codebases() end, [])
+    host_status = ControlSession.host_status()
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Crucible.PubSub, "voice:events")
@@ -39,8 +40,9 @@ defmodule CrucibleWeb.ControlLive do
        slots: slots,
        models: models,
        codebases: codebases,
+       host_status: host_status,
        show_spawn_modal: false,
-       spawn_model: "claude-sonnet-4-6",
+       spawn_model: ControlSession.default_model(),
        browse_mode: false,
        browse_path: home_dir(),
        browse_entries: [],
@@ -93,7 +95,7 @@ defmodule CrucibleWeb.ControlLive do
        browse_mode: false,
        browse_path: home_dir(),
        browse_entries: [],
-       spawn_model: "claude-sonnet-4-6"
+       spawn_model: ControlSession.default_model()
      )}
   end
 
@@ -233,6 +235,29 @@ defmodule CrucibleWeb.ControlLive do
               <span :if={@active_count > 0}>Active Terminal Instances: {String.pad_leading(to_string(@active_count), 2, "0")}/{String.pad_leading(to_string(@max_slots), 2, "0")}</span>
               <span :if={@active_count == 0}>NO_ACTIVE_SESSIONS // CAPACITY: {@max_slots} UNITS</span>
             </p>
+          </div>
+        </div>
+
+        <%!-- Host-binary warning --%>
+        <div
+          :if={not (@host_status.tmux and @host_status.claude)}
+          class="border border-[#ff725e]/40 bg-[#ff725e]/5 p-4 flex items-start gap-3"
+        >
+          <span class="material-symbols-outlined text-[#ff725e] text-lg mt-0.5">warning</span>
+          <div class="space-y-2 flex-1">
+            <div class="font-label text-xs text-[#ff725e] uppercase tracking-widest font-bold">
+              CONTROL_UNAVAILABLE // HOST_BINARIES_MISSING
+            </div>
+            <div class="font-label text-[11px] text-white/70 leading-relaxed">
+              Control spawns Claude Code in tmux panes on the <b>Crucible process's host</b>.
+              <span :if={not @host_status.tmux}>
+                <code class="text-[#ffa44c]">tmux</code> is not installed.
+              </span>
+              <span :if={not @host_status.claude}>
+                <code class="text-[#ffa44c]">claude</code> CLI is not on <code>PATH</code>.
+              </span>
+              If you're running Crucible via <code>docker compose</code>, the container can't spawn terminals you can see — run natively with <code class="text-[#00eefc]">mix phx.server</code> after installing <code>tmux</code> and the <code>claude</code> CLI.
+            </div>
           </div>
         </div>
 

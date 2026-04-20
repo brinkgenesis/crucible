@@ -228,7 +228,6 @@ defmodule Crucible.WorkflowPersistence do
 
   defp parse_type("session"), do: :session
   defp parse_type("team"), do: :team
-  defp parse_type("api"), do: :api
   defp parse_type("review_gate"), do: :review_gate
   defp parse_type("pr_shepherd"), do: :pr_shepherd
   defp parse_type("preflight"), do: :preflight

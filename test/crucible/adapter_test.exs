@@ -1,7 +1,7 @@
 defmodule Crucible.AdapterTest do
   use ExUnit.Case, async: true
 
-  alias Crucible.Adapter.{ClaudeApi, ClaudeHook}
+  alias Crucible.Adapter.ClaudeHook
   alias Crucible.Types.{Run, Phase}
 
   @tmp_dir System.tmp_dir!()
@@ -24,27 +24,6 @@ defmodule Crucible.AdapterTest do
     }
 
     {:ok, dir: test_dir, run: run, phase: phase}
-  end
-
-  describe "ClaudeApi" do
-    test "returns error when router unreachable", %{run: run, phase: phase} do
-      result =
-        ClaudeApi.execute_phase(run, phase, "test prompt",
-          router_url: "http://localhost:19999",
-          runs_dir: Path.join(@tmp_dir, "runs")
-        )
-
-      assert {:error, _} = result
-    end
-
-    test "cleanup_artifacts removes checkpoint files", %{dir: dir, run: run, phase: phase} do
-      # Create a checkpoint file
-      checkpoint = Path.join(dir, "#{run.id}-#{phase.id}.checkpoint.json")
-      File.write!(checkpoint, Jason.encode!(%{turn: 5, messages: []}))
-
-      # cleanup_artifacts uses hardcoded path, but we verify the function exists
-      assert :ok = ClaudeApi.cleanup_artifacts(run, phase)
-    end
   end
 
   describe "ClaudeHook" do

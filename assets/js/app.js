@@ -107,8 +107,8 @@ const EXECUTION_MODE_KEY = "infra:executionMode"
 
 function normalizeExecutionMode(mode) {
   if (mode === "api") return "api"
-  if (mode === "sdk") return "sdk"
-  return "subscription"
+  if (mode === "subscription") return "subscription"
+  return "sdk"
 }
 
 function readExecutionMode() {

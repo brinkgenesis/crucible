@@ -133,7 +133,7 @@ defmodule Crucible.State.DistributedStoreTest do
       attrs = %{
         run_id: "run-1",
         name: "build",
-        type: :api,
+        type: :session,
         status: :pending,
         prompt: "Build the thing",
         phase_index: 0,

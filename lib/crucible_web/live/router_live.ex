@@ -151,7 +151,7 @@ defmodule CrucibleWeb.RouterLive do
           <span class="material-symbols-outlined text-sm">warning</span>
           <div>
             <span class="font-bold">ROUTER UNREACHABLE</span>
-            <span class="text-[#ffa44c]/60 ml-2">Cannot connect to model router on port 4800</span>
+            <span class="text-[#ffa44c]/60 ml-2">ModelRegistry returned no data</span>
           </div>
         </div>
 

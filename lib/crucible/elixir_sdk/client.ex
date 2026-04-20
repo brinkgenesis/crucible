@@ -148,7 +148,45 @@ defmodule Crucible.ElixirSdk.Client do
         )
 
       {:ok, %Req.Response{status: status, body: body}} ->
-        send(subscriber, {:crucible_sdk, :error, {:http_error, status, summarize(body)}})
+        raw_buf =
+          try do
+            Agent.get(buffer_agent, & &1, 5_000)
+          catch
+            _, _ -> ""
+          end
+
+        detail =
+          cond do
+            is_binary(raw_buf) and raw_buf != "" -> raw_buf
+            is_binary(body) and body != "" -> body
+            true -> inspect(body)
+          end
+
+        req_body = build_body(opts)
+
+        msg_shapes =
+          req_body
+          |> Map.get(:messages, [])
+          |> Enum.with_index()
+          |> Enum.map(fn {m, i} ->
+            role = m[:role] || m["role"]
+
+            types =
+              case m[:content] || m["content"] do
+                c when is_binary(c) -> ["text"]
+                c when is_list(c) -> Enum.map(c, &(&1["type"] || &1[:type]))
+                _ -> ["?"]
+              end
+
+            "#{i}:#{role}=#{Enum.join(types, ",")}"
+          end)
+          |> Enum.join(" | ")
+
+        Logger.error(
+          "ElixirSdk.Client: HTTP #{status} response=#{summarize(detail)} msgs=[#{msg_shapes}]"
+        )
+
+        send(subscriber, {:crucible_sdk, :error, {:http_error, status, summarize(detail)}})
 
       {:error, %{reason: :timeout}} ->
         handle_retry(opts, subscriber, ref, api_key, attempt, max_retries,

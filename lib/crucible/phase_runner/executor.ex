@@ -278,17 +278,33 @@ defmodule Crucible.PhaseRunner.Executor do
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, val), do: Map.put(map, key, val)
 
-  defp adapter_for(:session), do: sdk_or_port()
-  defp adapter_for(:team), do: sdk_or_port()
-  defp adapter_for(:api), do: Adapter.ClaudeApi
-  defp adapter_for(:review_gate), do: sdk_or_port()
-  defp adapter_for(:pr_shepherd), do: sdk_or_port()
-  defp adapter_for(:preflight), do: Adapter.ClaudeHook
-  defp adapter_for(_), do: sdk_or_port()
+  defp adapter_for(:session), do: default_sdk_adapter()
+  defp adapter_for(:team), do: default_sdk_adapter()
+  defp adapter_for(:review_gate), do: default_sdk_adapter()
+  defp adapter_for(:pr_shepherd), do: default_sdk_adapter()
+  defp adapter_for(:preflight), do: maybe_override(Adapter.ClaudeHook)
+  defp adapter_for(_), do: default_sdk_adapter()
 
-  defp sdk_or_port do
-    if Crucible.FeatureFlags.enabled?(:sdk_port_adapter),
-      do: Adapter.ClaudeSdk,
-      else: Adapter.ClaudePort
+  # Native-Elixir SDK is the canonical adapter. The Node-bridge (ClaudeSdk) and
+  # tmux-CLI (ClaudePort) paths are retained as opt-in escape hatches only.
+  defp default_sdk_adapter do
+    maybe_override(
+      cond do
+        Crucible.FeatureFlags.enabled?(:sdk_port_adapter) -> Adapter.ClaudeSdk
+        Crucible.FeatureFlags.enabled?(:tmux_port_adapter) -> Adapter.ClaudePort
+        true -> Adapter.ElixirSdk
+      end
+    )
+  end
+
+  # Harness escape hatch: when `:crucible, :adapter_override` is set to a module,
+  # every phase runs through that adapter instead. Used by concurrency-harness
+  # scripts to exercise the full orchestrator → run-server → phase path without
+  # hitting real LLM APIs. Nil-safe — absence means "use the real adapter".
+  defp maybe_override(default) do
+    case Application.get_env(:crucible, :adapter_override) do
+      nil -> default
+      module when is_atom(module) -> module
+    end
   end
 end

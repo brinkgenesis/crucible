@@ -2,7 +2,7 @@ defmodule Crucible.Adapter.ClaudeSdk do
   @moduledoc """
   SDK Port adapter: wraps the Claude Agent SDK via an Erlang Port to a Node.js subprocess.
 
-  Instead of tmux (ClaudePort) or HTTP (ClaudeApi), this adapter spawns `sdk-port-bridge.ts`
+  Instead of tmux (ClaudePort), this adapter spawns `bridge/src/sdk-port-bridge.ts`
   which calls `@anthropic-ai/claude-agent-sdk` query() and streams results as JSON.
 
   OTP guarantees:

@@ -73,8 +73,8 @@ defmodule Crucible.WorkflowRunnerTest do
     end
 
     test "parses all valid phase types" do
-      types = ~w(session team api review-gate pr-shepherd preflight)
-      expected = [:session, :team, :api, :review_gate, :pr_shepherd, :preflight]
+      types = ~w(session team review-gate pr-shepherd preflight)
+      expected = [:session, :team, :review_gate, :pr_shepherd, :preflight]
 
       for {type, expected_type} <- Enum.zip(types, expected) do
         config = %{"name" => "t", "phases" => [%{"type" => type}]}

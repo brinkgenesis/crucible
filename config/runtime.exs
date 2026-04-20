@@ -1,7 +1,24 @@
 import Config
 
+# Dev/local convenience: hydrate System env from project `.env` before the
+# secrets provider reads it. Skipped in :test so fixtures stay hermetic.
+# Existing env wins — CI / containers / launchd are never overwritten.
+if config_env() != :test do
+  Crucible.DotenvLoader.load(Path.join(File.cwd!(), ".env"))
+end
+
 # Bootstrap secrets provider (env vars by default, AWS Secrets Manager via SECRETS_PROVIDER=aws)
 Crucible.Secrets.init!()
+
+# config/dev.exs pins the Repo URL at compile time, which happens before
+# DotenvLoader has had a chance to hydrate `DATABASE_URL`. Re-read it here so
+# `mix run` scripts (and iex) land on the same database the user has in `.env`
+# instead of the `infra:infra` compile-time fallback.
+if config_env() == :dev do
+  if database_url = System.get_env("DATABASE_URL") do
+    config :crucible, Crucible.Repo, url: database_url
+  end
+end
 
 # -- Feature flags (env-var overrides for runtime-tunable defaults) --
 # SANDBOX_ENABLED: "true" (default) enables sandbox code path; set "false" to disable.
@@ -154,7 +171,6 @@ config :crucible, :sandbox,
        "permissive" -> :permissive
        _ -> :standard
      end),
-  router_host: System.get_env("SANDBOX_ROUTER_HOST", "host.docker.internal:4800"),
   network_allowlist: System.get_env("SANDBOX_NETWORK_ALLOWLIST")
 
 # -- Distributed RPC --

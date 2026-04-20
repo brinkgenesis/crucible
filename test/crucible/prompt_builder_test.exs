@@ -147,13 +147,6 @@ defmodule Crucible.PromptBuilderTest do
       assert result =~ "Do NOT use TeamCreate"
     end
 
-    test "api type produces api instructions" do
-      result = PromptBuilder.build(make_run(), make_phase(:api), infra_home: "/tmp/nonexistent")
-      assert result =~ "## Phase: implement-feature (api)"
-      assert result =~ "API-driven team phase"
-      assert result =~ "## API Context"
-    end
-
     test "review_gate type produces review gate instructions" do
       result =
         PromptBuilder.build(make_run(), make_phase(:review_gate), infra_home: "/tmp/nonexistent")
@@ -290,21 +283,6 @@ defmodule Crucible.PromptBuilderTest do
     end
   end
 
-  describe "api prompt sections" do
-    test "includes budget in API context" do
-      run = make_run(%{budget_usd: 42.0})
-      result = PromptBuilder.build(run, make_phase(:api), infra_home: "/tmp/nonexistent")
-      assert result =~ "Budget: $42.0"
-    end
-
-    test "explicitly prohibits tmux/CLI operations" do
-      result = PromptBuilder.build(make_run(), make_phase(:api), infra_home: "/tmp/nonexistent")
-      assert result =~ "No tmux or CLI-specific operations"
-      # Should not contain tmux spawn instructions (positive tmux usage)
-      refute result =~ "tmux new-session"
-    end
-  end
-
   describe "review gate prompt sections" do
     test "includes files changed section" do
       result =
@@ -414,18 +392,6 @@ defmodule Crucible.PromptBuilderTest do
 
       result =
         PromptBuilder.build(make_run(), make_phase(:team),
-          infra_home: "/tmp/nonexistent",
-          client_context: ctx
-        )
-
-      assert result =~ "## Client Context"
-    end
-
-    test "includes client context in api prompt when provided" do
-      ctx = "## Client Context\nClient: Acme Corp"
-
-      result =
-        PromptBuilder.build(make_run(), make_phase(:api),
           infra_home: "/tmp/nonexistent",
           client_context: ctx
         )

@@ -420,7 +420,6 @@ defmodule Crucible.WorkflowRunner do
 
   defp parse_phase_type("session"), do: :session
   defp parse_phase_type("team"), do: :team
-  defp parse_phase_type("api"), do: :api
   defp parse_phase_type("review-gate"), do: :review_gate
   defp parse_phase_type("pr-shepherd"), do: :pr_shepherd
   defp parse_phase_type("preflight"), do: :preflight

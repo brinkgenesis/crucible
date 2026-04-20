@@ -571,7 +571,7 @@ defmodule Crucible.Orchestrator do
       _budget ->
         # Note: per-workflow circuit breaker removed (2026-04-05).
         # It caused cascade failures: one bad card in a workflow type would
-        # block ALL cards of that type. Per-adapter CBs (ClaudeSdk, ClaudeApi)
+        # block ALL cards of that type. Per-adapter CBs (ClaudeSdk, ClaudePort)
         # handle actual execution failures at the right granularity.
 
         # Node affinity: check if another node is better suited for this run

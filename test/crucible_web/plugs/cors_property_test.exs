@@ -4,7 +4,7 @@ defmodule CrucibleWeb.Plugs.CORSPropertyTest do
 
   alias CrucibleWeb.Plugs.CORS
 
-  @default_origins ["http://localhost:4801", "http://localhost:4800", "http://localhost:3000"]
+  @default_origins ["http://localhost:4801", "http://localhost:3000"]
 
   defp allowed_origin do
     member_of(@default_origins)

@@ -52,11 +52,6 @@ defmodule Crucible.SelfImprovementTest do
       assert is_list(result)
     end
 
-    test "returns global hints for api phase" do
-      result = SelfImprovement.read_prompt_hints_for_phase(nil, :api)
-      assert is_list(result)
-    end
-
     test "returns empty list for unknown phase type" do
       result = SelfImprovement.read_prompt_hints_for_phase(nil, :unknown)
       assert is_list(result)

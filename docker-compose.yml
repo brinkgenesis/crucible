@@ -1,5 +1,18 @@
-# Crucible local development / self-hosted stack.
-# Usage: docker compose up
+# Crucible Docker Compose.
+#
+# Recommended local dev flow is NATIVE (mix phx.server) — see README.md.
+# Docker is here for two scenarios:
+#
+#   1. You want a one-command Postgres without installing it natively:
+#        docker compose up -d postgres
+#      Then run Crucible with `mix phx.server` and set
+#        DATABASE_URL=postgresql://crucible:crucible@localhost:55432/crucible
+#
+#   2. Server self-hosting (the full stack including the app container):
+#        docker compose up
+#      Note: inside the `crucible` container the app can't see the `claude` CLI,
+#      tmux, your workspace repos, or your GitHub credentials. Control and agent
+#      runs require extra wiring — see docs/deployment-runbook.md.
 services:
   postgres:
     image: postgres:16-alpine

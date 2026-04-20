@@ -1,12 +1,12 @@
 defmodule CrucibleWeb.AgentsLive do
   use CrucibleWeb, :live_view
 
-  # Agent YAML definitions live at the infra project root (one level above orchestrator/)
+  # Agent YAML definitions live at the repo root under .claude/agents/
   defp agents_dir do
     Application.get_env(
       :crucible,
       :agents_dir,
-      Path.expand("../.claude/agents")
+      Path.expand(".claude/agents")
     )
   end
 

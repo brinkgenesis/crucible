@@ -207,15 +207,12 @@ Seven files live under `lib/crucible/adapter/`. Below is their status as of 2026
 
 | Adapter | Verdict | Evidence |
 |---------|---------|----------|
-| `Crucible.Adapter.Behaviour` | ACTIVE | Implemented by all six adapter modules; defines the `execute_phase/4` + `cleanup_artifacts/2` callbacks. |
-| `Crucible.Adapter.ClaudePort` | ACTIVE | `PhaseRunner.Executor.adapter_for/1` returns it as the default non-SDK path (`sdk_or_port/0`); also called directly for team-phase fallback (`executor.ex:193`). |
-| `Crucible.Adapter.ClaudeApi` | ACTIVE | `PhaseRunner.Executor.adapter_for(:api)` — used for `:api` phase type (`executor.ex:283`). |
-| `Crucible.Adapter.ClaudeHook` | ACTIVE | `PhaseRunner.Executor.adapter_for(:preflight)` — used for `:preflight` phase type (`executor.ex:286`). |
-| `Crucible.Adapter.ClaudeSdk` | ACTIVE | `PhaseRunner.Executor.sdk_or_port/0` returns it when `FeatureFlags.enabled?(:sdk_port_adapter)` is true (`executor.ex:291`). |
-| `Crucible.Adapter.SdkPort` | ACTIVE | Started under `Crucible.SdkPortSupervisor` (a `DynamicSupervisor`) in `application.ex:104`; receives streaming JSON from the Node bridge. |
-| `Crucible.Adapter.ElixirSdk` | LEGACY | No call sites in PhaseRunner, AgentRunner, or the application supervisor. The `Crucible.ElixirSdk.*` subsystem is a separate native-Elixir query engine — it does not use this adapter module. Scheduled for removal in Q3 2026. |
-
-**Finding:** `Crucible.Adapter.ElixirSdk` was ported from the TypeScript predecessor but was never wired into the Elixir phase dispatch path. All other adapters are actively referenced. Do not delete any adapter files until the Q3 2026 removal window.
+| `Crucible.Adapter.Behaviour` | ACTIVE | Implemented by all adapter modules; defines the `execute_phase/4` + `cleanup_artifacts/2` callbacks. |
+| `Crucible.Adapter.ClaudePort` | ACTIVE | `PhaseRunner.Executor.adapter_for/1` returns it as the default non-SDK path (`sdk_or_port/0`); also called directly for team-phase fallback. |
+| `Crucible.Adapter.ClaudeHook` | ACTIVE | `PhaseRunner.Executor.adapter_for(:preflight)` — used for `:preflight` phase type. |
+| `Crucible.Adapter.ClaudeSdk` | ACTIVE | `PhaseRunner.Executor.sdk_or_port/0` returns it when `FeatureFlags.enabled?(:sdk_port_adapter)` is true. |
+| `Crucible.Adapter.SdkPort` | ACTIVE | Started under `Crucible.SdkPortSupervisor` (a `DynamicSupervisor`); receives streaming JSON from the Node bridge in `bridge/`. |
+| `Crucible.Adapter.ElixirSdk` | ACTIVE | Native-Elixir SDK adapter — the canonical execution path used by the SDK port bridge for in-BEAM tool calls. |
 
 ## Design principles
 

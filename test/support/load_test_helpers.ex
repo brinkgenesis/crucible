@@ -71,8 +71,8 @@ defmodule Crucible.LoadTestHelpers do
   # ── StreamData Generators ──────────────────────────────────────────
 
   @workflow_types ~w(code-review bug-fix feature refactor ci-pipeline deploy)
-  @phase_types [:session, :team, :api, :review_gate, :pr_shepherd, :preflight]
-  @execution_types ~w(subscription api hook)
+  @phase_types [:session, :team, :review_gate, :pr_shepherd, :preflight]
+  @execution_types ~w(subscription hook)
 
   @doc "Generator for valid run IDs."
   def gen_run_id do

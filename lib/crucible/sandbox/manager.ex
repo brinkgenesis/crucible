@@ -12,7 +12,7 @@ defmodule Crucible.Sandbox.Manager do
         pool_size: 3,
         image: "node:22-alpine",
         policy_preset: :standard,
-        router_host: "host.docker.internal:4800"
+        network_allowlist: nil  # comma-separated host:port list, or nil
   """
   use GenServer
   require Logger

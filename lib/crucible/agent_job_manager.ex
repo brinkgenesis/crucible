@@ -148,7 +148,7 @@ defmodule Crucible.AgentJobManager do
     parent_phase = %Phase{
       id: job.parent_phase || "job-phase",
       name: "Agent Job",
-      type: :api,
+      type: :session,
       phase_index: 0
     }
 

@@ -2,8 +2,10 @@ defmodule Crucible.Adapter.SdkPort do
   @moduledoc """
   GenServer managing an Erlang Port to the SDK port bridge (Node.js subprocess).
 
-  Opens a Port to `npx tsx scripts/sdk-port-bridge.ts`, sends JSON config on stdin,
-  reads newline-delimited JSON events from stdout (tool_use, status, result).
+  Opens a Port to `npx tsx bridge/src/sdk-port-bridge.ts`, sends JSON config on
+  stdin, reads newline-delimited JSON events from stdout (tool_use, status,
+  result). The bridge ships with Crucible under `bridge/`. Override the path
+  with `config :crucible, :sdk_bridge_script, "/abs/path/to/bridge.ts"`.
 
   OTP guarantees:
   * `terminate/2` always closes the Port and kills the OS process (no zombies)
@@ -145,7 +147,7 @@ defmodule Crucible.Adapter.SdkPort do
     Process.flag(:trap_exit, true)
 
     infra_home = Map.fetch!(config, :infra_home)
-    bridge_script = Path.join(infra_home, "scripts/sdk-port-bridge.ts")
+    bridge_script = bridge_script_path()
     run_id = Map.get(config, :run_id)
     phase_id = Map.get(config, :phase_id)
 
@@ -574,6 +576,16 @@ defmodule Crucible.Adapter.SdkPort do
 
   defp generate_attempt_id do
     :crypto.strong_rand_bytes(12) |> Base.url_encode64(padding: false)
+  end
+
+  # Resolve the bridge script path. Defaults to `bridge/src/sdk-port-bridge.ts`
+  # under the Crucible app's current working directory. Override with
+  # `config :crucible, :sdk_bridge_script, "/abs/path/to/bridge.ts"`.
+  defp bridge_script_path do
+    case Application.get_env(:crucible, :sdk_bridge_script) do
+      nil -> Path.join([File.cwd!(), "bridge", "src", "sdk-port-bridge.ts"])
+      path when is_binary(path) -> path
+    end
   end
 
   defp build_port_env do

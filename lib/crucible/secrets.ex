@@ -70,6 +70,11 @@ defmodule Crucible.Secrets do
 
         :persistent_term.put(@persistent_term_key, secrets)
 
+        # Mirror resolved secrets back into the process env so call sites
+        # that still read `System.get_env/1` (SDK adapters, scripts) work
+        # regardless of provider. No-op for EnvProvider (same source).
+        export_to_system_env(secrets)
+
         :persistent_term.put(@status_key, %{
           provider: provider_name,
           secret_count: loaded_count,
@@ -118,6 +123,16 @@ defmodule Crucible.Secrets do
   # Convert a provider module to a short label atom for log/status fields.
   defp provider_label(Crucible.Secrets.AwsProvider), do: :aws
   defp provider_label(_), do: :env
+
+  defp export_to_system_env(secrets) do
+    Enum.each(secrets, fn
+      {key, value} when is_binary(key) and is_binary(value) and value != "" ->
+        System.put_env(key, value)
+
+      _ ->
+        :ok
+    end)
+  end
 
   # Best-effort extraction of missing key names from provider error terms.
   defp extract_missing_keys({:missing_keys, keys}) when is_list(keys), do: keys

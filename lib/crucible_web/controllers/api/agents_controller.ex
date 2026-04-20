@@ -2,9 +2,9 @@ defmodule CrucibleWeb.Api.AgentsController do
   use CrucibleWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
-  # Agent YAML definitions live at infra project root (one level above orchestrator/)
+  # Agent YAML definitions live at the repo root under .claude/agents/
   defp agents_dir do
-    Application.get_env(:crucible, :agents_dir, Path.expand("../.claude/agents"))
+    Application.get_env(:crucible, :agents_dir, Path.expand(".claude/agents"))
   end
 
   operation(:index,
