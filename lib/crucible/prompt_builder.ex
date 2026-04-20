@@ -46,7 +46,6 @@ defmodule Crucible.PromptBuilder do
     case phase.type do
       :session -> build_session_prompt(run, phase, opts)
       :team -> build_team_prompt(run, phase, opts)
-      :api -> build_api_team_prompt(run, phase, opts)
       :review_gate -> build_review_gate_prompt(run, phase, opts)
       :pr_shepherd -> build_pr_shepherd_prompt(run, phase, opts)
       :preflight -> build_preflight_prompt(run, phase, opts)
@@ -102,26 +101,6 @@ defmodule Crucible.PromptBuilder do
       learned_hints_section(run.workflow_type, phase.type),
       file_ownership_section(agents, plan_files),
       work_units_section(phase.work_units)
-    ]
-
-    join_sections(sections)
-  end
-
-  defp build_api_team_prompt(run, phase, opts) do
-    infra_home = Keyword.get(opts, :infra_home, File.cwd!())
-    plan_files = extract_all_plan_files(run, phase)
-
-    sections = [
-      plan_section(run, infra_home),
-      client_context_section(opts),
-      module_context_section(infra_home, phase.work_units),
-      phase_header_section(phase),
-      agent_roster_section(phase.agents),
-      file_ownership_section(phase.agents, plan_files),
-      work_units_section(phase.work_units),
-      api_context_section(run),
-      learned_hints_section(run.workflow_type, phase.type),
-      api_instructions_section()
     ]
 
     join_sections(sections)
@@ -233,27 +212,11 @@ defmodule Crucible.PromptBuilder do
     end
   end
 
-  defp agent_roster_section([]), do: nil
-
-  defp agent_roster_section(agents) do
-    "## Agent Roster\n#{format_agent_roster(agents)}"
-  end
-
   defp file_ownership_section(_agents, []), do: nil
 
   defp file_ownership_section(_agents, plan_files) do
     assignments = RoleAssignment.assign_files(plan_files)
     "## File Ownership\n#{format_file_ownership(assignments)}"
-  end
-
-  defp api_context_section(run) do
-    lines = [
-      "## API Context",
-      "- Budget: $#{run.budget_usd}",
-      "- Use model router for all LLM calls"
-    ]
-
-    Enum.join(lines, "\n")
   end
 
   defp pr_context_section(run) do
@@ -418,14 +381,6 @@ defmodule Crucible.PromptBuilder do
     ]
     |> Enum.reject(&is_nil/1)
     |> Enum.join("\n")
-  end
-
-  defp api_instructions_section do
-    """
-    ## Instructions
-    You are executing an API-driven team phase. Use the model router for LLM calls. \
-    Enforce file ownership and budget limits. No tmux or CLI-specific operations.\
-    """
   end
 
   defp review_gate_instructions_section(infra_home) do

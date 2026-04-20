@@ -56,7 +56,7 @@ defmodule CrucibleWeb.KanbanLive do
        plan_popup: nil,
        detail_plan: nil,
        workspaces: Crucible.WorkspaceProfiles.list_workspaces(),
-       refining_cards: MapSet.new()
+       selected_cards: MapSet.new()
      )
      |> load_cards()}
   end
@@ -120,6 +120,59 @@ defmodule CrucibleWeb.KanbanLive do
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Move failed: #{inspect(reason)}")}
     end
+  end
+
+  def handle_event("toggle_card_selected", %{"id" => id}, socket) do
+    selected = socket.assigns.selected_cards
+
+    selected =
+      if MapSet.member?(selected, id),
+        do: MapSet.delete(selected, id),
+        else: MapSet.put(selected, id)
+
+    {:noreply, assign(socket, selected_cards: selected)}
+  end
+
+  def handle_event("clear_selection", _params, socket) do
+    {:noreply, assign(socket, selected_cards: MapSet.new())}
+  end
+
+  # Fires every selected unassigned card into :todo concurrently.
+  # Each card still goes through `maybe_trigger_workflow`, which enforces the
+  # same guards (no double-trigger, sub-cards skipped) as drag-and-drop.
+  def handle_event("execute_selected", _params, socket) do
+    adapter = kanban_adapter()
+    unassigned = Map.get(socket.assigns.cards_by_column, "unassigned", [])
+    selected_ids = socket.assigns.selected_cards
+
+    targets =
+      unassigned
+      |> Enum.filter(fn c -> MapSet.member?(selected_ids, to_string(c.id)) end)
+
+    socket =
+      Enum.reduce(targets, socket, fn card, acc ->
+        case adapter.move_card(card.id, "todo") do
+          {:ok, moved} -> maybe_trigger_workflow(acc, moved, adapter)
+          {:error, reason} ->
+            Logger.warning("KanbanLive.execute_selected move failed: #{inspect(reason)}")
+            put_flash(acc, :error, "Move failed for card #{card.id}: #{inspect(reason)}")
+        end
+      end)
+
+    count = length(targets)
+
+    flash_msg =
+      case count do
+        0 -> "No selected cards to execute"
+        1 -> "Executing 1 card"
+        n -> "Executing #{n} cards concurrently"
+      end
+
+    {:noreply,
+     socket
+     |> assign(selected_cards: MapSet.new())
+     |> put_flash(:info, flash_msg)
+     |> load_cards()}
   end
 
   def handle_event("archive_card", %{"id" => id}, socket) do
@@ -299,73 +352,6 @@ defmodule CrucibleWeb.KanbanLive do
     end
   end
 
-  def handle_event("refine_plan_for_codebase", %{"card_id" => card_id}, socket) do
-    card = socket.assigns[:detail_card]
-    ws_id = card && card.workspace_id
-
-    workspace = if ws_id, do: Crucible.WorkspaceProfiles.get_workspace(ws_id)
-
-    if is_nil(workspace) do
-      {:noreply, put_flash(socket, :error, "Select a codebase first")}
-    else
-      pid = self()
-
-      Task.start(fn ->
-        result =
-          Crucible.ApiServer.post_json(
-            "/api/inbox/cards/#{card_id}/refine-plan",
-            %{
-              workspace_name: workspace.name,
-              repo_path: workspace.repo_path,
-              tech_context: workspace.tech_context
-            },
-            receive_timeout: 60_000
-          )
-
-        require Logger
-        Logger.debug("[KanbanLive] refine result for #{card_id}: #{inspect(result)}")
-        send(pid, {:refine_plan_result, card_id, result})
-      end)
-
-      refining = MapSet.put(socket.assigns.refining_cards, card_id)
-      {:noreply, assign(socket, refining_cards: refining) |> put_flash(:info, "Refining plan for #{workspace.name}...")}
-    end
-  end
-
-  def handle_info({:refine_plan_result, card_id, {:ok, body}}, socket) when is_map(body) do
-    refining = MapSet.delete(socket.assigns.refining_cards, card_id)
-    detail_card = socket.assigns[:detail_card]
-
-    # If the detail modal is showing the card that just finished, refresh it
-    updated_detail =
-      if detail_card && detail_card.id == card_id do
-        Repo.get(Crucible.Schema.Card, card_id)
-      else
-        detail_card
-      end
-
-    {:noreply,
-     socket
-     |> assign(refining_cards: refining, detail_card: updated_detail)
-     |> load_cards()
-     |> put_flash(:info, "Plan refined for #{body["workspaceName"] || "codebase"}")}
-  end
-
-  def handle_info({:refine_plan_result, card_id, error}, socket) do
-    require Logger
-    Logger.warning("[KanbanLive] refine failed for #{card_id}: #{inspect(error)}")
-    refining = MapSet.delete(socket.assigns.refining_cards, card_id)
-    msg = case error do
-      :error -> "Dashboard API unreachable — is port 4800 running?"
-      {:error, reason} -> "Refinement failed: #{inspect(reason)}"
-      _ -> "Plan refinement failed"
-    end
-    {:noreply,
-     socket
-     |> assign(refining_cards: refining)
-     |> put_flash(:error, msg)}
-  end
-
   defp maybe_trigger_workflow(socket, card, adapter) do
     metadata = card.metadata || %{}
     refined_for = metadata["refinedForWorkspace"]
@@ -501,7 +487,22 @@ defmodule CrucibleWeb.KanbanLive do
         if col in @columns, do: col, else: "unassigned"
       end)
 
-    assign(socket, cards_by_column: grouped, archived_cards: archived)
+    unassigned_ids =
+      grouped
+      |> Map.get("unassigned", [])
+      |> MapSet.new(&to_string(&1.id))
+
+    pruned_selection =
+      case socket.assigns[:selected_cards] do
+        %MapSet{} = set -> MapSet.intersection(set, unassigned_ids)
+        _ -> MapSet.new()
+      end
+
+    assign(socket,
+      cards_by_column: grouped,
+      archived_cards: archived,
+      selected_cards: pruned_selection
+    )
   end
 
   # Sync card columns with workflow run status from the DB
@@ -577,6 +578,23 @@ defmodule CrucibleWeb.KanbanLive do
             </p>
           </div>
           <div class="flex gap-3">
+            <button
+              :if={MapSet.size(@selected_cards) > 0}
+              type="button"
+              phx-click="execute_selected"
+              class="px-4 py-2 bg-[#00eefc] text-black font-label text-[10px] font-bold uppercase tracking-widest hover:bg-[#00eefc]/80 flex items-center gap-2"
+            >
+              <.mat_icon name="play_arrow" class="text-sm" />
+              EXECUTE ({MapSet.size(@selected_cards)})
+            </button>
+            <button
+              :if={MapSet.size(@selected_cards) > 0}
+              type="button"
+              phx-click="clear_selection"
+              class="px-3 py-2 border border-[#494847] text-[#adaaaa] font-label text-[10px] uppercase tracking-widest hover:bg-surface-container-high"
+            >
+              CLEAR
+            </button>
             <.tactical_button phx-click="toggle_add_form">
               <span class="flex items-center gap-2">
                 <.mat_icon name="add_box" class="text-sm" /> NEW_TASK
@@ -640,6 +658,7 @@ defmodule CrucibleWeb.KanbanLive do
                 columns={@columns}
                 current_column={col}
                 plan_popup={@plan_popup}
+                selected_cards={@selected_cards}
               />
               <div
                 :if={Map.get(@cards_by_column, col, []) == []}
@@ -683,7 +702,6 @@ defmodule CrucibleWeb.KanbanLive do
         card_history={@card_history}
         detail_plan={@detail_plan}
         workspaces={@workspaces}
-        refining_cards={@refining_cards}
       />
     </Layouts.app>
     """
@@ -693,12 +711,21 @@ defmodule CrucibleWeb.KanbanLive do
   attr :columns, :list, required: true
   attr :current_column, :string, required: true
   attr :plan_popup, :map, default: nil
+  attr :selected_cards, :any, default: nil
 
   defp card_item(assigns) do
     metadata = Map.get(assigns.card, :metadata) || %{}
 
     active_popup? =
       assigns.plan_popup && to_string(assigns.plan_popup.card_id) == to_string(assigns.card.id)
+
+    selected? =
+      case assigns[:selected_cards] do
+        %MapSet{} = set -> MapSet.member?(set, to_string(assigns.card.id))
+        _ -> false
+      end
+
+    selectable? = assigns.current_column == "unassigned"
 
     assigns =
       assigns
@@ -710,13 +737,13 @@ defmodule CrucibleWeb.KanbanLive do
           if(metadata["planNote"], do: "[[#{metadata["planNote"]}]]", else: nil)
       )
       |> assign(:active_popup?, active_popup?)
+      |> assign(:selected?, selected?)
+      |> assign(:selectable?, selectable?)
 
     ~H"""
     <div
-      class={"group relative overflow-visible cursor-pointer transition-all #{card_style(@current_column)}"}
+      class={"group relative overflow-visible transition-all #{card_style(@current_column)} #{if @selected?, do: "ring-2 ring-[#00eefc] ring-offset-1 ring-offset-black", else: ""}"}
       data-card-id={@card.id}
-      phx-click="show_card_detail"
-      phx-value-id={@card.id}
     >
       <div :if={@current_column == "in_progress"} class="absolute top-0 right-0 p-1">
         <div class="flex space-x-0.5">
@@ -725,9 +752,25 @@ defmodule CrucibleWeb.KanbanLive do
         </div>
       </div>
       <div class="flex justify-between items-start mb-2">
-        <span class="font-label text-[9px] text-[#ffa44c]/50">#{Map.get(@card, :id, "")}</span>
+        <div class="flex items-center gap-2">
+          <input
+            :if={@selectable?}
+            type="checkbox"
+            checked={@selected?}
+            phx-click="toggle_card_selected"
+            phx-value-id={@card.id}
+            aria-label={"Select card #{@card.id}"}
+            class="w-3.5 h-3.5 accent-[#00eefc] cursor-pointer"
+          />
+          <span class="font-label text-[9px] text-[#ffa44c]/50">#{Map.get(@card, :id, "")}</span>
+        </div>
         <span class="material-symbols-outlined text-[14px] text-[#00eefc]/40 drag-handle cursor-grab active:cursor-grabbing select-none">drag_indicator</span>
       </div>
+      <div
+        class="cursor-pointer"
+        phx-click="show_card_detail"
+        phx-value-id={@card.id}
+      >
       <h4 class="font-headline text-sm font-bold text-white mb-3 uppercase leading-tight">{Map.get(@card, :title, "Untitled")}</h4>
       <div class="flex flex-wrap gap-2 mb-3">
         <span :if={Map.get(@card, :workflow)} class="text-[8px] font-label px-1.5 py-0.5 bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/20 uppercase">
@@ -759,6 +802,7 @@ defmodule CrucibleWeb.KanbanLive do
           <span class="text-[#ffa44c] uppercase">{@current_column}</span>
         </div>
       </div>
+      </div>
 
     </div>
     """
@@ -777,7 +821,6 @@ defmodule CrucibleWeb.KanbanLive do
   attr :card_history, :list, default: []
   attr :detail_plan, :map, default: nil
   attr :workspaces, :list, default: []
-  attr :refining_cards, :any, default: nil
 
   defp card_detail_modal(assigns) do
     ~H"""
@@ -866,7 +909,7 @@ defmodule CrucibleWeb.KanbanLive do
               </div>
             </div>
 
-            <.detail_plan :if={@tab == "plan"} plan={@detail_plan} card={@card} workspaces={@workspaces} refining_cards={@refining_cards} />
+            <.detail_plan :if={@tab == "plan"} plan={@detail_plan} card={@card} workspaces={@workspaces} />
             <.detail_phases :if={@tab == "phases"} phases={(@summary && @summary.phases) || []} />
             <.detail_agents :if={@tab == "agents"} agents={@agents} agent_details={(@summary && @summary.agent_details) || []} />
             <.detail_sessions :if={@tab == "sessions"} sessions={@sessions} />
@@ -924,19 +967,15 @@ defmodule CrucibleWeb.KanbanLive do
   attr :card, :map, required: true
 
   attr :workspaces, :list, required: true
-  attr :refining_cards, :any, required: true
 
   defp detail_plan(assigns) do
     metadata = Map.get(assigns.card, :metadata) || %{}
     idea_plan = metadata["ideaPlan"]
 
-    refining = MapSet.member?(assigns.refining_cards || MapSet.new(), assigns.card.id)
-
     assigns =
       assigns
       |> assign(:idea_plan, idea_plan)
       |> assign(:plan_summary, metadata["planSummary"])
-      |> assign(:refining, refining)
 
     ~H"""
     <div :if={!@plan && !@idea_plan} class="flex flex-col items-center py-12 text-[#adaaaa]/40">
@@ -1031,23 +1070,9 @@ defmodule CrucibleWeb.KanbanLive do
         <pre class="whitespace-pre-wrap break-words font-label text-[11px] leading-6 text-[#adaaaa]">{@plan.content}</pre>
       </div>
 
-      <%!-- Refine Plan action (workspace is selected in header) --%>
-      <div class="mt-8 pt-6 border-t border-[#494847]/30 flex items-center gap-4">
-        <button
-          phx-click="refine_plan_for_codebase"
-          phx-value-card_id={@card.id}
-          disabled={@refining || !@card.workspace_id}
-          class={"px-4 py-2 font-label text-[10px] tracking-widest uppercase border transition-colors " <>
-            if(@refining, do: "border-[#494847]/30 text-[#adaaaa]/40 animate-pulse",
-              else: if(@card.workspace_id, do: "border-[#00eefc]/30 text-[#00eefc] hover:bg-[#00eefc]/10",
-                else: "border-[#494847]/30 text-[#adaaaa]/30 cursor-not-allowed"))}
-        >
-          {if @refining, do: "REFINING...", else: "REFINE_PLAN"}
-        </button>
-        <span :if={!@card.workspace_id} class="font-label text-[9px] text-[#adaaaa]/40">
-          Select a codebase above to refine
-        </span>
-        <span :if={@card.workspace_id} class="font-label text-[9px] text-[#adaaaa]/40">
+      <%!-- Workspace target indicator --%>
+      <div :if={@card.workspace_id} class="mt-8 pt-6 border-t border-[#494847]/30">
+        <span class="font-label text-[9px] text-[#adaaaa]/40">
           Target: {Enum.find(@workspaces, &(&1.id == @card.workspace_id)) |> then(& &1 && &1.repo_path || "unknown")}
         </span>
       </div>

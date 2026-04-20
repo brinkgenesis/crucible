@@ -1,7 +1,8 @@
 defmodule Crucible.Adapter.Behaviour do
   @moduledoc """
   Behaviour for execution adapters.
-  Implementations: ClaudePort (Port-based), ClaudeApi (HTTP), ClaudeHook (file-trigger).
+  Implementations: ClaudePort (tmux), ClaudeSdk (Node SDK port bridge),
+  ElixirSdk (native Elixir), ClaudeHook (file-trigger).
   """
 
   alias Crucible.Types.{Run, Phase}

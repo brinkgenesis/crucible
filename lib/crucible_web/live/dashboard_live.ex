@@ -156,21 +156,20 @@ defmodule CrucibleWeb.DashboardLive do
     }
 
     # Await all — 5s timeout matches refresh interval
-    # Await with timeout protection — don't crash LiveView if a data source is slow
-    results =
-      Map.new(tasks, fn {k, task} ->
+    # Await with timeout protection — don't crash LiveView if a data source is slow.
+    # A source is only counted as "failed" when it times out; nil results from a
+    # successful call (e.g. no KPI snapshot yet) are a legitimate empty state.
+    {results, failed_sections} =
+      Enum.reduce(tasks, {%{}, []}, fn {k, task}, {acc, failed} ->
         try do
-          {k, Task.await(task, 5_000)}
+          {Map.put(acc, k, Task.await(task, 5_000)), failed}
         catch
           :exit, _ ->
             Task.shutdown(task, :brutal_kill)
             Logger.warning("Dashboard: task #{k} timed out")
-            {k, nil}
+            {Map.put(acc, k, nil), [k | failed]}
         end
       end)
-
-    # Track which sections failed to load (returned nil from timeout/error)
-    failed_sections = for {k, nil} <- results, do: k
 
     budget = results.budget || %{daily_spent: 0.0, daily_limit: 100.0, daily_remaining: 100.0, is_over_budget: false}
     unfiltered_scope_runs = results.unfiltered_runs || []

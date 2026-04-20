@@ -12,7 +12,7 @@ defmodule Crucible.Sandbox.ManagerTest do
       pool_size: 2,
       image: "node:22-alpine",
       policy_preset: :standard,
-      router_host: "localhost:4800"
+      network_allowlist: nil
     )
 
     {:ok, pid} = Manager.start_link(name: :test_sandbox_manager)

@@ -106,13 +106,33 @@ defmodule Crucible.ControlSession.TmuxManager do
     else
       output = capture_pane(session_name)
 
-      if claude_ready?(output) do
-        :ok
-      else
-        Process.sleep(2_000)
-        do_wait_ready(session_name, deadline)
+      cond do
+        claude_ready?(output) ->
+          :ok
+
+        trust_prompt?(output) ->
+          auto_accept_trust(session_name)
+          Process.sleep(2_000)
+          do_wait_ready(session_name, deadline)
+
+        true ->
+          Process.sleep(2_000)
+          do_wait_ready(session_name, deadline)
       end
     end
+  end
+
+  # Claude Code shows a "Do you trust this folder?" dialog on first launch in an
+  # unrecognized directory. We auto-accept — the user already picked the dir in the
+  # spawn modal, so confirming trust is redundant.
+  defp trust_prompt?(output) do
+    String.contains?(output, "trust this folder") or
+      String.contains?(output, "Yes, I trust this folder")
+  end
+
+  defp auto_accept_trust(session_name) do
+    System.cmd("tmux", ["send-keys", "-t", session_name, "1", "Enter"], stderr_to_stdout: true)
+    :ok
   end
 
   defp claude_ready?(output) do

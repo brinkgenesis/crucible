@@ -87,7 +87,7 @@ LocalProvider. Add half-open probe every 60s so recovery is automatic.
 
 Check the [issue tracker](../../issues) for the `good-first-issue` label. Examples of friendly starter work:
 
-- New model adapter (mirror `Crucible.Adapter.ClaudeApi` for another provider)
+- New model adapter (mirror `Crucible.Adapter.ClaudePort` for another provider)
 - New troubleshooting runbook entry in README
 - Test coverage for a thinly-tested module (`mix test --cover` to find them)
 - Doc polish — especially anything you tripped over during your own setup

@@ -49,12 +49,10 @@ defmodule Crucible.Sandbox.Policy do
   end
 
   def from_preset(:standard) do
-    router_host = sandbox_config(:router_host, "host.docker.internal:4800")
-
     %__MODULE__{
       preset: :standard,
       network_mode: "bridge",
-      allowed_endpoints: [router_host],
+      allowed_endpoints: extra_endpoints(),
       read_only_rootfs: false,
       memory_limit_mb: 1024,
       cpu_quota: 100_000,
@@ -63,24 +61,25 @@ defmodule Crucible.Sandbox.Policy do
   end
 
   def from_preset(:permissive) do
-    router_host = sandbox_config(:router_host, "host.docker.internal:4800")
-
-    allowlist =
-      case sandbox_config(:network_allowlist, nil) do
-        nil -> [router_host]
-        list when is_list(list) -> [router_host | list]
-        str when is_binary(str) -> [router_host | String.split(str, ",", trim: true)]
-      end
-
     %__MODULE__{
       preset: :permissive,
       network_mode: "bridge",
-      allowed_endpoints: allowlist,
+      allowed_endpoints: extra_endpoints(),
       read_only_rootfs: false,
       memory_limit_mb: 2048,
       cpu_quota: 200_000,
       no_new_privileges: true
     }
+  end
+
+  # Additional endpoints to allow inside the sandbox. Configure via
+  # SANDBOX_NETWORK_ALLOWLIST (comma-separated) or :network_allowlist config.
+  defp extra_endpoints do
+    case sandbox_config(:network_allowlist, nil) do
+      nil -> []
+      list when is_list(list) -> list
+      str when is_binary(str) -> String.split(str, ",", trim: true)
+    end
   end
 
   @doc "Convert a policy to Docker CLI flags for `docker run`."

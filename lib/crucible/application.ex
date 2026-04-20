@@ -81,9 +81,6 @@ defmodule Crucible.Application do
       # Local process registry for run lookup by ID (fast local-only path)
       {Registry, keys: :unique, name: Crucible.RunRegistry},
 
-      # Registry for per-run ContextManager processes (P2: context window management)
-      {Registry, keys: :unique, name: Crucible.ContextManagerRegistry},
-
       # Tenant registry and dynamic supervisor for per-tenant isolation
       Crucible.Tenant.Registry,
       Crucible.Tenant.Supervisor,
@@ -105,7 +102,7 @@ defmodule Crucible.Application do
 
       # Workflow YAML cache (polls for file changes)
       {Crucible.WorkflowStore,
-       workflows_dir: Application.get_env(:crucible, :workflows_dir, "../workflows")},
+       workflows_dir: Application.get_env(:crucible, :workflows_dir, "workflows")},
 
       # Budget tracker (ETS-backed cost accumulator)
       {Crucible.BudgetTracker, cost_events_path: cost_events_path},

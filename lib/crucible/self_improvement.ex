@@ -70,9 +70,6 @@ defmodule Crucible.SelfImprovement do
         t when t in [:team, :review_gate] ->
           Map.get(workflow_hints, :team, [])
 
-        :api ->
-          Map.get(workflow_hints, :api, [])
-
         _ ->
           []
       end

@@ -13,13 +13,30 @@ defmodule Crucible.Sandbox.PolicyTest do
       assert policy.memory_limit_mb == 512
     end
 
-    test "standard preset has bridge network and allows router" do
+    test "standard preset has bridge network with empty default allowlist" do
       policy = Policy.from_preset(:standard)
       assert policy.network_mode == "bridge"
       assert policy.read_only_rootfs == false
       assert policy.no_new_privileges == true
       assert policy.memory_limit_mb == 1024
-      assert length(policy.allowed_endpoints) >= 1
+      assert policy.allowed_endpoints == []
+    end
+
+    test "standard preset includes endpoints from :network_allowlist config" do
+      original = Application.get_env(:crucible, :sandbox, [])
+
+      try do
+        Application.put_env(
+          :crucible,
+          :sandbox,
+          Keyword.put(original, :network_allowlist, ["api.anthropic.com:443"])
+        )
+
+        policy = Policy.from_preset(:standard)
+        assert "api.anthropic.com:443" in policy.allowed_endpoints
+      after
+        Application.put_env(:crucible, :sandbox, original)
+      end
     end
 
     test "permissive preset has larger resource limits" do

@@ -96,22 +96,31 @@ defmodule CrucibleWeb.Api.RouterController do
     json(conn, status)
   end
 
-  @known_providers ~w(anthropic google minimax openai groq)a
+  # Provider circuits (anthropic/google/...) plus internal service circuits
+  # tripped by the execution path (SDK adapters, sandbox daemon). All are
+  # reachable from the same reset endpoint so ops can recover without a
+  # BEAM restart.
+  @resettable_services ~w(anthropic google minimax openai groq
+                          elixir_sdk claude_sdk model_router
+                          api_server docker_daemon)a
 
+  # The path parameter is historically called `provider` but now also accepts
+  # internal service names (elixir_sdk, docker_daemon, …). The response field
+  # is kept as `provider` for backwards compatibility with existing callers.
   def reset_circuit(conn, %{"provider" => provider}) do
-    case safe_provider_atom(provider) do
+    case safe_service_atom(provider) do
       {:ok, service} ->
         Crucible.ExternalCircuitBreaker.reset(service)
         json(conn, %{status: "ok", provider: provider, state: "closed"})
 
       :error ->
-        conn |> put_status(400) |> json(%{error: "unknown_provider", provider: provider})
+        conn |> put_status(400) |> json(%{error: "unknown_service", provider: provider})
     end
   end
 
-  defp safe_provider_atom(provider) when is_binary(provider) do
-    atom = String.to_existing_atom(provider)
-    if atom in @known_providers, do: {:ok, atom}, else: :error
+  defp safe_service_atom(service) when is_binary(service) do
+    atom = String.to_existing_atom(service)
+    if atom in @resettable_services, do: {:ok, atom}, else: :error
   rescue
     ArgumentError -> :error
   end

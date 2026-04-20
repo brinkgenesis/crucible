@@ -349,43 +349,21 @@ defmodule CrucibleWeb.Api.KanbanController do
     end
   end
 
-  defp ensure_plan(card, adapter) do
+  # Returns {metadata, plan_note, plan_summary} from existing card metadata.
+  # If no plan is present the run still proceeds — the agent receives the
+  # card title as its task description and discovers context as it works.
+  defp ensure_plan(card, _adapter) do
     metadata = Map.get(card, :metadata) || %{}
     plan_note = get_in(metadata, ["planNote"])
     plan_summary = get_in(metadata, ["planSummary"])
 
-    if plan_note && plan_summary do
-      # Plan already exists
-      {metadata, plan_note, plan_summary}
-    else
-      Logger.info("KanbanController: card #{card.id} has no plan, generating via TS dashboard")
-
-      case Crucible.ApiServer.post_json(
-             "/api/inbox/cards/#{card.id}/generate-plan",
-             %{},
-             receive_timeout: 60_000
-           ) do
-        {:ok, %{"planNote" => note, "planSummary" => summary}} ->
-          # Reload card metadata after TS updated it
-          case adapter.get_card(card.id) do
-            {:ok, updated_card} ->
-              updated_meta = Map.get(updated_card, :metadata) || metadata
-              {updated_meta, note, summary}
-
-            _ ->
-              {Map.merge(metadata, %{"planNote" => note, "planSummary" => summary}), note,
-               summary}
-          end
-
-        {:ok, %{"error" => reason}} ->
-          Logger.warning("KanbanController: plan generation failed: #{reason}")
-          {metadata, plan_note, plan_summary}
-
-        _ ->
-          Logger.warning("KanbanController: TS dashboard unavailable for plan generation")
-          {metadata, plan_note, plan_summary}
-      end
+    unless plan_note && plan_summary do
+      Logger.info(
+        "KanbanController: card #{card.id} has no stored plan — running with title only"
+      )
     end
+
+    {metadata, plan_note, plan_summary}
   end
 
   defp normalize_execution_type("api"), do: "api"

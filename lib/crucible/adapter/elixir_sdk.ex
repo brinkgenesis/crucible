@@ -202,7 +202,7 @@ defmodule Crucible.Adapter.ElixirSdk do
   defp model_price(_), do: %{input: 0.0, output: 0.0, cache_read: nil}
 
   defp build_knowledge_sources(run, phase) do
-    lessons = SelfImprovement.read_prompt_hints_for_phase(run.workflow_name, phase.type)
+    lessons = SelfImprovement.read_prompt_hints_for_phase(run.workflow_type, phase.type)
     handoffs = collect_prior_phase_handoffs(run, phase)
 
     KnowledgeInjector.build_workflow_sources(

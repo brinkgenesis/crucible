@@ -11,12 +11,6 @@ defmodule Crucible.SessionResumptionTest do
       assert SessionResumption.resolve_session_id(run, phase) == nil
     end
 
-    test "returns nil for non-session-like :api phase" do
-      run = %Run{id: "run-1", workflow_type: "test", phases: []}
-      phase = %Phase{id: "p-0", name: "API", type: :api, phase_index: 1}
-      assert SessionResumption.resolve_session_id(run, phase) == nil
-    end
-
     test "returns nil for non-session-like :review_gate phase" do
       run = %Run{id: "run-1", workflow_type: "test", phases: []}
       phase = %Phase{id: "p-0", name: "Review", type: :review_gate, phase_index: 1}

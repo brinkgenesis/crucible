@@ -23,8 +23,7 @@ defmodule Crucible.ElixirSdk.Tools.WebSearch do
     %{
       type: "web_search_20250305",
       name: "web_search",
-      max_uses: 5,
-      description: "Search the web via Anthropic's server-side search."
+      max_uses: 5
     }
   end
 

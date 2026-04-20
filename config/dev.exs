@@ -1,9 +1,8 @@
 import Config
 
-# Configure your database — use the same shared PostgreSQL that the
-# TypeScript dashboard API expects by default.
+# Default to a local Postgres on the standard port. Override with DATABASE_URL.
 config :crucible, Crucible.Repo,
-  url: System.get_env("DATABASE_URL") || "postgresql://infra:infra@localhost:5432/crucible_dev",
+  url: System.get_env("DATABASE_URL") || "postgresql://localhost:5432/crucible_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
@@ -14,10 +13,9 @@ config :crucible, Crucible.Repo,
   backoff_max: 15_000,
   disconnect_on_error_codes: [:admin_shutdown]
 
-# The shared `infra` Postgres used by the TypeScript dashboard doesn't create
-# Oban leadership tables by default. Keep local startup quiet and predictable
-# unless the developer explicitly opts into the DB-backed Oban plugin path after
-# running Phoenix migrations against that database.
+# Default dev database is empty until `mix ecto.setup` runs the Phoenix
+# migrations. Keep Oban plugins off by default so a fresh checkout boots
+# without errors; opt in once leadership tables exist.
 if System.get_env("OBAN_ENABLE_PLUGINS", "false") != "true" do
   config :crucible, Oban,
     peer: false,
@@ -25,9 +23,8 @@ if System.get_env("OBAN_ENABLE_PLUGINS", "false") != "true" do
     queues: false
 end
 
-# The shared dev database is primarily managed outside Phoenix Ecto migrations,
-# so the standard pending-migration blocker produces false positives. Re-enable
-# it explicitly when validating Phoenix-native migrations.
+# Pending-migration check is opt-in for dev. Set PHX_CHECK_PENDING_MIGRATIONS=true
+# to enforce it locally.
 config :crucible,
   check_pending_migrations_in_dev:
     System.get_env("PHX_CHECK_PENDING_MIGRATIONS", "false") == "true"
@@ -38,6 +35,20 @@ config :crucible,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
+dev_secret_key_base =
+  case System.get_env("SECRET_KEY_BASE") do
+    nil ->
+      IO.warn("""
+      SECRET_KEY_BASE is not set — using an ephemeral dev secret.
+      Generate one with `mix phx.gen.secret` and add it to .env.
+      """)
+
+      :crypto.strong_rand_bytes(48) |> Base.encode64()
+
+    value ->
+      value
+  end
+
 config :crucible, CrucibleWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
@@ -45,9 +56,7 @@ config :crucible, CrucibleWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base:
-    System.get_env("SECRET_KEY_BASE") ||
-      "vp24sWWDjm8um1qK1eovWR2cypSZjA5wWsmYABcvMeemVeV6Vj3M4WL+GTlBZJNY",
+  secret_key_base: dev_secret_key_base,
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:crucible, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:crucible, ~w(--watch)]}

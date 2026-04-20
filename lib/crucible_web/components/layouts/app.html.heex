@@ -53,12 +53,7 @@
   phx-hook="MobileSidebar"
   class="fixed left-0 top-0 h-full flex-col pt-16 pb-4 overflow-y-auto bg-[#000000] w-56 border-r border-[#ffa44c]/10 z-40 hidden md:flex"
 >
-  <div class="px-4 py-4 mb-4">
-    <div class="text-sm font-bold text-[#ffa44c] font-headline tracking-widest">CRUCIBLE</div>
-    <div class="text-[9px] text-[#00eefc] font-label tracking-widest mt-1">LEVEL_A_ACCESS</div>
-  </div>
-
-  <nav aria-label="Main navigation" class="flex-1 px-2 space-y-0.5 overflow-y-auto">
+  <nav aria-label="Main navigation" class="flex-1 px-2 pt-2 space-y-0.5 overflow-y-auto">
     <.nerv_nav_link path="/" icon="dashboard" label="DASHBOARD" current={@current_path} />
     <.nerv_nav_link path="/control" icon="terminal" label="CONTROL" current={@current_path} />
     <.nerv_nav_link path="/runs" icon="play_circle" label="RUNS" current={@current_path} />

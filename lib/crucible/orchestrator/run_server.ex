@@ -517,11 +517,11 @@ defmodule Crucible.Orchestrator.RunServer do
                   }
 
                 _ ->
-                  %{workflow_name: "unknown", version: 1}
+                  %{workflow_name: "unknown", task_description: "", version: 1}
               end
 
             _ ->
-              %{workflow_name: "unknown", version: 1}
+              %{workflow_name: "unknown", task_description: "", version: 1}
           end
 
         %WorkflowRun{run_id: run_id}

@@ -104,15 +104,41 @@ defmodule Crucible.ControlSession do
     end
   end
 
-  @doc "Available models for the model selector."
+  @doc "Available models for the model selector. First entry is the default."
   @spec available_models() :: [map()]
   def available_models do
     [
-      %{id: "claude-opus-4-6", name: "Opus 4.6", tier: "highest"},
+      %{id: "claude-opus-4-7", name: "Opus 4.7", tier: "highest"},
       %{id: "claude-sonnet-4-6", name: "Sonnet 4.6", tier: "high"},
-      %{id: "claude-sonnet-4-5-20250929", name: "Sonnet 4.5", tier: "high"},
       %{id: "claude-haiku-4-5-20251001", name: "Haiku 4.5", tier: "fast"}
     ]
+  end
+
+  @doc "Default model id — the initial selection in the spawn modal."
+  @spec default_model() :: String.t()
+  def default_model do
+    case available_models() do
+      [%{id: id} | _] -> id
+      _ -> "claude-opus-4-7"
+    end
+  end
+
+  @doc """
+  Returns `true` if the host has the binaries Control needs (`tmux` and `claude`).
+  Used by the UI to show a setup banner instead of silently failing to spawn.
+  """
+  @spec host_supported?() :: boolean()
+  def host_supported? do
+    System.find_executable("tmux") != nil and System.find_executable("claude") != nil
+  end
+
+  @doc "Returns a map describing which required binaries are present."
+  @spec host_status() :: %{tmux: boolean(), claude: boolean()}
+  def host_status do
+    %{
+      tmux: System.find_executable("tmux") != nil,
+      claude: System.find_executable("claude") != nil
+    }
   end
 
   # --- GenServer callbacks ---

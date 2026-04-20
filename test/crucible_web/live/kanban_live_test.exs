@@ -151,12 +151,44 @@ defmodule CrucibleWeb.KanbanLiveTest do
     assert html =~ "CLICK_TO_VIEW_PLAN"
 
     # Open the card detail modal — plan tab auto-selects when plan exists
-    html =
-      view
-      |> element("[data-card-id=\"#{card_id}\"]")
-      |> render_click()
+    html = render_click(view, "show_card_detail", %{"id" => card_id})
 
     assert html =~ "Benchmark regression follow-up"
+  end
+
+  test "unassigned cards get a selection checkbox; other columns do not", %{conn: conn} do
+    unassigned_id = Ecto.UUID.generate()
+    todo_id = Ecto.UUID.generate()
+
+    %Card{id: unassigned_id}
+    |> Card.changeset(%{title: "Pick me", column: "unassigned"})
+    |> Repo.insert!()
+
+    %Card{id: todo_id}
+    |> Card.changeset(%{title: "Already running", column: "todo"})
+    |> Repo.insert!()
+
+    {:ok, _view, html} = conn |> authenticate() |> live("/kanban")
+
+    assert html =~ ~s(aria-label="Select card #{unassigned_id}")
+    refute html =~ ~s(aria-label="Select card #{todo_id}")
+  end
+
+  test "toggle_card_selected reveals the batch bar and clear_selection hides it", %{conn: conn} do
+    card_id = Ecto.UUID.generate()
+
+    %Card{id: card_id}
+    |> Card.changeset(%{title: "Batchable", column: "unassigned"})
+    |> Repo.insert!()
+
+    {:ok, view, html} = conn |> authenticate() |> live("/kanban")
+    refute html =~ "EXECUTE ("
+
+    html = render_click(view, "toggle_card_selected", %{"id" => card_id})
+    assert html =~ "EXECUTE (1)"
+
+    html = render_click(view, "clear_selection", %{})
+    refute html =~ "EXECUTE ("
   end
 
   test "build_manifest includes the selected execution mode" do

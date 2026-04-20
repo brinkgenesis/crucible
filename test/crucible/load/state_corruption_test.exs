@@ -70,7 +70,7 @@ defmodule Crucible.Load.StateCorruptionTest do
   defp phase_gen(index) do
     gen all(
           name <- string(:alphanumeric, min_length: 4, max_length: 12),
-          type <- member_of([:session, :team, :api, :review_gate, :pr_shepherd, :preflight]),
+          type <- member_of([:session, :team, :review_gate, :pr_shepherd, :preflight]),
           status <- member_of([:pending, :running, :review, :done, :failed])
         ) do
       %Phase{

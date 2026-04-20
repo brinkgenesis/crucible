@@ -96,7 +96,7 @@ defmodule Crucible.Types do
   defmodule Phase do
     @moduledoc "A single phase within a workflow run."
     @type phase_type ::
-            :session | :team | :api | :review_gate | :pr_shepherd | :preflight
+            :session | :team | :review_gate | :pr_shepherd | :preflight
 
     @type t :: %__MODULE__{
             id: String.t(),

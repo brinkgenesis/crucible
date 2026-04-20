@@ -54,8 +54,21 @@ defmodule Crucible.ControlSessionTest do
     test "includes opus and sonnet" do
       models = ControlSession.available_models()
       ids = Enum.map(models, & &1.id)
-      assert "claude-opus-4-6" in ids
+      assert "claude-opus-4-7" in ids
       assert "claude-sonnet-4-6" in ids
+    end
+
+    test "default_model/0 returns the first (highest-tier) model" do
+      [%{id: expected} | _] = ControlSession.available_models()
+      assert ControlSession.default_model() == expected
+    end
+  end
+
+  describe "host_status/0" do
+    test "reports presence of tmux and claude as booleans" do
+      status = ControlSession.host_status()
+      assert is_boolean(status.tmux)
+      assert is_boolean(status.claude)
     end
   end
 
@@ -163,9 +176,9 @@ defmodule Crucible.ControlSessionTest do
 
   describe "set_model/2" do
     test "updates model on idle slot" do
-      ControlSession.set_model(4, "claude-opus-4-6")
+      ControlSession.set_model(4, "claude-opus-4-7")
       slot = ControlSession.get_slot(4)
-      assert slot.model == "claude-opus-4-6"
+      assert slot.model == "claude-opus-4-7"
     end
   end
 

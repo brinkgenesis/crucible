@@ -11,7 +11,7 @@ defmodule CrucibleWeb.Plugs.CORS do
   @default_origins Application.compile_env(
                     :crucible,
                     :cors_origins,
-                    ["http://localhost:4801", "http://localhost:4800", "http://localhost:3000"]
+                    ["http://localhost:4801", "http://localhost:3000"]
                   )
 
   @impl true

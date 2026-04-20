@@ -4,11 +4,8 @@ defmodule Crucible.Context.SnipCompact do
 
   This is the "micro" tier of context compression — it replaces bulky
   `tool_result` payloads (file reads, searches, command stdout) with a
-  short head/tail snippet plus metadata. It sits alongside two other
-  layers:
+  short head/tail snippet plus metadata. It sits alongside:
 
-    * `Crucible.ContextManager` — per-run full-conversation summarisation
-      (macro tier, calls the router on a cheap model).
     * `Crucible.ElixirSdk.Compactor` — mid-stream turn collapsing
       (meso tier, calls Haiku directly).
 

@@ -24,7 +24,8 @@ defmodule Crucible.FeatureFlags do
     idempotency_check: true,
     structured_log_context: true,
     sandbox_enabled: true,
-    sdk_port_adapter: true
+    sdk_port_adapter: false,
+    tmux_port_adapter: false
   ]
 
   # Client API

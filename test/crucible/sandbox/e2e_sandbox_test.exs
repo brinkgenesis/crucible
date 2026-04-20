@@ -25,7 +25,7 @@ defmodule Crucible.Sandbox.E2ESandboxTest do
       pool_size: 0,
       image: "alpine:latest",
       policy_preset: :standard,
-      router_host: "host.docker.internal:4800"
+      network_allowlist: nil
     )
 
     # Enable sandbox feature flag
