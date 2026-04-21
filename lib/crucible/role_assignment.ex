@@ -143,7 +143,7 @@ defmodule Crucible.RoleAssignment do
     |> String.trim_leading("`")
     |> String.trim_trailing("`")
     |> String.replace(~r{^\.//+}, "")
-    |> String.replace(~r{^/Users/[^/]+/infra/}, "")
+    |> String.replace(~r{^/(Users|home)/[^/]+/[^/]+/}, "")
     |> String.replace("\\", "/")
   end
 

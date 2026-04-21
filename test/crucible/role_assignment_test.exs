@@ -131,7 +131,7 @@ defmodule Crucible.RoleAssignmentTest do
     end
 
     test "strips absolute path prefix" do
-      assert "lib/test.ts" = RoleAssignment.normalize_path("/workspace/example/lib/test.ts")
+      assert "lib/test.ts" = RoleAssignment.normalize_path("/home/user/project/lib/test.ts")
     end
   end
 

@@ -14,7 +14,7 @@ Elixir/Phoenix control plane for the agentic orchestration platform. Manages wor
 - **Research Benchmark Lane** — Harbor / Terminal-Bench runs ingest into a separate `research_benchmark` lane so verifier-backed benchmark evidence does not pollute workflow-learning experiments
 - **Phoenix Kanban Plans** — cards can carry `planSummary`, `planNote`, and `planWikiLink` metadata with inline vault-plan previews in LiveView
 
-For the dedicated Phoenix/Elixir architecture, see [ARCHITECTURE.md](/workspace/example/orchestrator/ARCHITECTURE.md).
+For the dedicated Phoenix/Elixir architecture, see [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 ## Automatic Benchmark Loop
 
