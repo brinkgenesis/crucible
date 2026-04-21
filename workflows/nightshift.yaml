@@ -1,0 +1,92 @@
+# Nightshift Workflow — Overnight Budget-Sweep Runner
+# Uses leftover daily budget to run autonomous code quality sweeps.
+# Tasks are selected by priority within the remaining budget envelope.
+
+name: nightshift
+description: >
+  Overnight budget-sweep runner. Reads remaining daily budget from
+  cost-events.jsonl, selects high-value sweep tasks (security lint,
+  test gaps, dead code, doc drift), runs them as repo-optimizer
+  passes, and opens PRs with findings.
+
+sweep_tasks:
+  - id: security-lint
+    name: Security Lint
+    category: security-lint
+    priority: 10
+    estimated_cost_usd: 1.0
+    description: >
+      Scan for hardcoded secrets, dependency vulnerabilities,
+      and OWASP top-10 issues across the codebase.
+    prompt: >
+      Analyze the codebase for security issues: hardcoded API keys,
+      secrets in config files, SQL injection risks, XSS vectors,
+      and known dependency vulnerabilities. Output a structured
+      report with file paths, line numbers, severity, and fix suggestions.
+
+  - id: test-gaps
+    name: Test Gap Detection
+    category: test-gaps
+    priority: 8
+    estimated_cost_usd: 2.0
+    description: >
+      Find functions without test coverage and missing edge-case tests.
+    prompt: >
+      Identify exported functions and public APIs that lack test coverage.
+      Cross-reference source files in lib/ with test files in tests/.
+      Report uncovered functions, suggest test cases for edge conditions,
+      and flag any test files that import removed modules.
+
+  - id: dead-code
+    name: Dead Code Removal
+    category: dead-code
+    priority: 6
+    estimated_cost_usd: 1.5
+    description: >
+      Detect unused exports, unreachable branches, and orphan files.
+    prompt: >
+      Find dead code: unused exports not imported anywhere, unreachable
+      code paths behind always-false conditions, orphan files not
+      referenced by any import or config. Suggest safe removals with
+      confidence levels.
+
+  - id: doc-drift
+    name: Documentation Drift
+    category: doc-drift
+    priority: 4
+    estimated_cost_usd: 1.0
+    description: >
+      Find stale READMEs, outdated JSDoc, and mismatched API docs.
+    prompt: >
+      Compare documentation (README, JSDoc, inline comments) against
+      actual code behavior. Flag outdated parameter descriptions,
+      removed functions still documented, and README sections that
+      no longer match the codebase structure.
+
+settings:
+  # Minimum remaining budget (USD) to start any sweep
+  minBudgetUsd: 0.50
+  # Reserve this percentage from remaining budget (don't spend 100%)
+  budgetReservePercent: 10
+  # Branch prefix for sweep PRs
+  branchPrefix: nightshift/
+  # Maximum concurrent sweep tasks
+  maxConcurrent: 1
+
+phases:
+  - name: sweep
+    type: team
+    routingProfile: cost
+    parallel: false
+    agents:
+      - role: sweeper
+        model: claude-sonnet-4-6
+        description: >
+          Autonomous sweep agent. Reads the selected task prompt,
+          analyzes the codebase, and produces a structured findings
+          report with actionable fix suggestions.
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: >
+          Validates sweep findings, filters false positives, and
+          prepares PR descriptions with prioritized action items.

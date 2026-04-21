@@ -1,0 +1,57 @@
+# Persona Stress-Test Workflow
+# Runs multiple synthetic user personas against a target workflow step sequence
+# and aggregates pass/fail metrics into a structured JSON report.
+
+name: persona-stress-test
+description: >
+  Agent-driven UX validation: fan-out one agent per persona to simulate a
+  target workflow's step sequence, then aggregate traces into a pass-rate
+  report. Input must supply targetWorkflowId, personas[], and stepSequence[].
+
+phases:
+  - name: setup
+    type: session
+    routingProfile: scout
+    description: >
+      Validate run config, confirm targetWorkflowId exists, and load/validate
+      the personas array. Emits a structured setup-complete sentinel so the
+      simulate phase can proceed.
+
+  - name: simulate
+    type: team
+    routingProfile: throughput
+    parallel: true
+    depends_on:
+      - setup
+    description: >
+      Fan-out: one persona-simulator agent per persona entry in the run config.
+      Each agent receives its persona context + stepSequence and attempts to
+      complete every step, writing a per-persona trace JSON to the run output.
+    agents:
+      - role: persona-simulator
+        model: claude-haiku-4-5
+        description: >
+          Synthetic persona agent. Receives persona context, role, and step
+          sequence. Executes each step, records outcome, and writes a
+          PersonaRunResult JSON to the shared run output directory.
+
+  - name: aggregate
+    type: session
+    routingProfile: scout
+    depends_on:
+      - simulate
+    description: >
+      Read all per-persona trace files from the run output directory, compute
+      pass rate and median duration, and build the failure breakdown map.
+      Writes aggregated-results.json to the run output.
+
+  - name: report
+    type: session
+    routingProfile: scout
+    depends_on:
+      - aggregate
+    description: >
+      Read aggregated-results.json, wrap it in the PersonaStressTestReport
+      envelope (runId, completedAt, summary stats), and emit the final
+      structured JSON to the run output as report.json. This is the workflow's
+      terminal artifact.

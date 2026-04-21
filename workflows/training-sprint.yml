@@ -1,0 +1,29 @@
+# Training Sprint Workflow
+# Full SDK training pipeline: coder on branch, PR created, shepherd merges.
+# Used for SDK self-improvement training loops exercising the complete
+# branch → commit → PR → CI check → merge flow.
+
+name: training-sprint
+description: >
+  Single-coder sprint with branch isolation and PR shepherd.
+  Creates a git branch, spawns 1 coder, commits on branch,
+  creates a PR, then the shepherd monitors CI and merges.
+
+phases:
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    createBranch: true
+    agents:
+      - role: coder
+        model: claude-sonnet-4-6
+        description: Solo coder — implements the full task on a branch
+
+  - name: pr-shepherd
+    type: pr-shepherd
+    depends_on:
+      - sprint
+    description: >
+      Monitors CI status on the PR, auto-responds to review comments,
+      and fixes CI failures. Merges when CI is green.

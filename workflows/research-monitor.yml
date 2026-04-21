@@ -1,0 +1,23 @@
+# Research Monitor Workflow
+# Lightweight scheduled monitoring for active research projects.
+#
+# Single phase: runs all collectors + anomaly scanner for active projects.
+# Designed for periodic execution (every 4 hours via research scheduler).
+
+name: research-monitor
+description: >
+  Scheduled monitoring: refresh metrics for all active research projects,
+  run anomaly scanner, and flag any deviations. Lightweight — single
+  session phase designed for periodic cron execution.
+
+phases:
+  - name: refresh
+    type: team
+    routingProfile: throughput
+    agents:
+      - role: data-collector
+        model: claude-haiku-4-5-20251001
+        description: >
+          Run Python KISS collectors (DeFiLlama, CoinGecko, derivatives,
+          Twitter, GitHub) and the ingestion pipeline for all active
+          research projects. Then run the anomaly scanner to flag deviations.

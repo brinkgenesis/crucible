@@ -1,0 +1,53 @@
+# Altcoin Research Workflow
+# On-demand deep dive into a specific crypto project.
+#
+# Phase 1 (collect): data-collector runs all Python KISS agents in parallel
+#   to gather DeFiLlama, CoinGecko, and derivatives data.
+#
+# Phase 2 (analyze): anomaly-analyst and research-lead work in parallel.
+#   Anomaly-analyst flags statistical deviations, research-lead synthesizes
+#   all data into a scored research report with investment thesis.
+#
+# Phase 3 (review): session consolidation — produces final vault notes
+#   with project profile, thesis, and anomaly observations.
+
+name: altcoin-research
+description: >
+  On-demand deep dive: collect data from DeFiLlama, CoinGecko, and
+  derivatives sources, run anomaly detection, then synthesize into a
+  scored research report with investment thesis and risk assessment.
+
+phases:
+  - name: collect
+    type: team
+    routingProfile: throughput
+    agents:
+      - role: data-collector
+        model: claude-haiku-4-5-20251001
+        description: >
+          Ravi Singh — runs Python KISS collectors (DeFiLlama, CoinGecko,
+          derivatives) and the ingestion pipeline for the target project.
+
+  - name: analyze
+    type: team
+    parallel: true
+    routingProfile: deep-reasoning
+    depends_on:
+      - collect
+    agents:
+      - role: anomaly-analyst
+        model: claude-sonnet-4-6
+        description: >
+          Lena Voronova — runs anomaly scanner on ingested data, evaluates
+          statistical deviations, cross-references with signals.
+      - role: research-lead
+        model: claude-sonnet-4-6
+        description: >
+          Kai Nakamura — synthesizes all collected data into a scored
+          research report with investment thesis and risk assessment.
+
+  - name: review
+    type: session
+    routingProfile: quality
+    depends_on:
+      - analyze

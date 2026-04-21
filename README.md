@@ -1,5 +1,10 @@
 # Crucible
 
+[![CI](https://github.com/brinkgenesis/crucible/actions/workflows/ci.yml/badge.svg)](https://github.com/brinkgenesis/crucible/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Elixir](https://img.shields.io/badge/Elixir-1.15%2B-4B275F?logo=elixir)](https://elixir-lang.org/)
+[![Phoenix](https://img.shields.io/badge/Phoenix-1.8-orange?logo=phoenixframework)](https://www.phoenixframework.org/)
+
 **A self-improving kanban for concurrent AI coding agents.**
 
 Drop a task on the board. Crucible plans it, runs it on an isolated git branch with a Claude Code agent, opens a PR, and tunes its own prompts from what it learned on the way.
@@ -34,6 +39,30 @@ You can start cards by hand (works today) or pipe bookmarks / RSS / issues into 
 - A hosted service. You run it yourself.
 - A general agent framework (LangGraph, CrewAI). Crucible is opinionated: card → plan → branch → commit → PR.
 - A single-model tool. Router and adapter layers are model-agnostic.
+
+---
+
+## Why Elixir for agent orchestration
+
+Crucible runs on the BEAM (Erlang virtual machine) via Elixir and Phoenix. The BEAM was built for telecom switches that couldn't go down — it's been battle-tested for decades on systems with nine-nines uptime requirements — and almost every property that made it good at routing phone calls makes it good at orchestrating swarms of AI agents.
+
+- **Massive concurrency, cheaply.** Each agent run, each phase, each sandbox watchdog, each WebSocket push is its own BEAM process. Processes are lightweight (kilobytes, not megabytes) — a single node handles **hundreds of thousands to millions** of them without breaking a sweat. There is no thread-pool to tune and no `async/await` coloring to fight.
+
+- **Fault isolation by default.** A process crash is contained to that process and its supervised subtree. When an agent run gets stuck in a runaway loop, hits an OOM condition in a sandbox, or a model call goes sideways, the blast radius stops there — the kanban board, the budget tracker, the trace stream, and every other in-flight run keep humming. Crucible leans on this directly: every `RunServer` sits under a `DynamicSupervisor`, and each tier has its own crash semantics and restart strategy.
+
+- **Supervision trees + "let it crash".** Instead of defensive try/catch at every layer, faulty processes die and supervisors bring them back in a known-good state. This is the opposite of the "wrap everything in retries" pattern you see in Python/JS agent frameworks — and it's dramatically more reliable for long-running workloads that touch flaky external APIs.
+
+- **Partition tolerance and recoverability.** Agent workloads are partition-prone by nature: models time out, git hangs, Claude's API returns 529s. The BEAM's `:gen_server` timeouts, `Task.async_stream` with explicit deadlines, and per-process mailboxes let Crucible degrade gracefully under Byzantine-style failures — slow, silent, or lying components don't stall the rest of the system. Crucible's circuit breakers and budget-paused states fall out of these primitives directly rather than being bolted on.
+
+- **First-class distribution.** `:pg` groups, `:global`, and `Node.spawn` mean multi-node orchestration is part of the standard library. When we're ready to shard runs across machines, we don't rewrite — we add nodes.
+
+- **Soft-realtime scheduling.** Per-process garbage collection means no stop-the-world GC pauses freezing the dashboard when one run allocates 500 MB of traces. The Control panel's live trace stream, budget meters, and phase indicators stay responsive even under heavy agent load.
+
+- **Phoenix LiveView.** Real-time dashboards (kanban, trace viewer, cost charts, circuit-breaker state) without shipping a JS SPA, without WebSocket plumbing, without a separate API layer. Server renders a diff, browser applies it. When you're running many agents at once and want to *watch* them work, this matters a lot.
+
+- **Pattern matching + immutable data.** Agent state flows through well-typed `Run` / `Phase` / `WorkUnit` structs. The compiler catches most "I forgot to update this call site" bugs before the test suite even runs.
+
+If you've looked at an agent framework written in Python and thought *"this is going to be a nightmare to keep alive under production load"* — that's the problem the BEAM solves by construction.
 
 ---
 

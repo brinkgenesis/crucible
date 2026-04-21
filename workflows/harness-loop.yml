@@ -1,0 +1,17 @@
+# Harness Loop — minimal workflow for concurrency stress tests.
+# Single :session phase, no branch creation, no PR shepherd.
+# Exercise the orchestrator → run-server → phase-runner path without
+# touching git, tmux, or GitHub.
+
+name: harness-loop
+description: >
+  Test-only workflow used by scripts/card_loop.exs to stress the
+  kanban→orchestrator pipeline. Not for production runs.
+
+phases:
+  - name: noop
+    type: session
+    routingProfile: throughput
+    description: >
+      Single session phase. Adapter-override in the harness returns :ok
+      immediately; the real adapter would hit the LLM.

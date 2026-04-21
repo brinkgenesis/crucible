@@ -14,8 +14,8 @@ defmodule Crucible.LLMUsageReaderTest do
     File.mkdir_p!(Path.join([infra_home, ".claude-flow", "runs"]))
     File.mkdir_p!(Path.join([infra_home, ".claude-flow", "logs"]))
 
-    project_dir = Path.join(projects_root, "-Users-helios-infra")
-    other_project_dir = Path.join(projects_root, "-Users-helios-other")
+    project_dir = Path.join(projects_root, "-home-user-project")
+    other_project_dir = Path.join(projects_root, "-home-user-other")
     File.mkdir_p!(Path.join(project_dir, "subagents"))
     File.mkdir_p!(other_project_dir)
 
@@ -100,7 +100,7 @@ defmodule Crucible.LLMUsageReaderTest do
 
     assert summary["byModel"]["claude-sonnet-4-6"]["inputTokens"] == 110
     assert summary["byModel"]["claude-sonnet-4-6"]["cacheCreation"] == 30
-    assert summary["byProject"]["infra"]["sessions"] == 2
+    assert summary["byProject"]["project"]["sessions"] == 2
     assert summary["sessions"] |> Enum.at(0) |> Map.get("sessionId") == "lifecycle-session"
   end
 

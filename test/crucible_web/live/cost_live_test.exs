@@ -60,7 +60,7 @@ defmodule CrucibleWeb.CostLiveTest do
       Path.join(System.tmp_dir!(), "cost_live_usage_#{System.unique_integer([:positive])}")
 
     projects_root = Path.join(tmp_dir, "projects")
-    project_dir = Path.join(projects_root, "-Users-helios-infra")
+    project_dir = Path.join(projects_root, "-home-user-project")
     File.mkdir_p!(project_dir)
 
     today = Date.utc_today() |> Date.to_iso8601()

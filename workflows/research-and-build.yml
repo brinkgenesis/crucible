@@ -1,0 +1,34 @@
+# Research & Build Workflow
+# Scout phase does cheap reconnaissance, then team phase implements.
+# Research and design context comes from the vault plan note injected at run creation.
+
+name: research-and-build
+description: >
+  Two-phase build: scout agent does quick recon (cheap model) to identify
+  key files and areas, then team lead reads scout findings + vault plan,
+  spawns coders and reviewer. Coders implement in parallel, reviewer commits.
+
+phases:
+  - name: scout
+    type: scout
+    routingProfile: scout
+    description: Quick reconnaissance to identify key files and investigation areas
+
+  - name: build
+    type: team
+    routingProfile: throughput
+    parallel: true
+    depends_on: [scout]
+    agents:
+      - role: coder-backend
+        model: claude-sonnet-4-6
+        description: Ava Park — Backend Engineer
+      - role: coder-runtime
+        model: claude-sonnet-4-6
+        description: Marco Ibarra — Runtime Reliability Engineer
+      - role: coder-frontend
+        model: claude-sonnet-4-6
+        description: Lena Kovacs — Frontend + DX Engineer
+      - role: reviewer
+        model: claude-sonnet-4-6
+        description: Sofia Reyes — Principal Reviewer, validates and commits

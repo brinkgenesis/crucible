@@ -1,0 +1,18 @@
+# Harness Team — single team phase, no branch, no PR shepherd.
+# Exercises the :team phase path that the simple-sprint workflow uses,
+# but without git side effects. Paired with scripts/real_probe.exs.
+
+name: harness-team
+description: >
+  Test-only workflow exercising a single :team phase through the real
+  adapter. Not for production runs.
+
+phases:
+  - name: sprint
+    type: team
+    routingProfile: throughput
+    parallel: true
+    agents:
+      - role: coder
+        model: claude-sonnet-4-6
+        description: Solo coder — prints hello and stops.
