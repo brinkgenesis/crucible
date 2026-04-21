@@ -58,6 +58,11 @@ defmodule Crucible.Config do
             repo_root: [
               type: :string,
               doc: "Repository root path."
+            ],
+            disabled: [
+              type: :boolean,
+              default: false,
+              doc: "If true, Orchestrator GenServer skips polling — idle mode (used in tests)."
             ]
           )
 

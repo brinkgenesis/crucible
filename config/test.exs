@@ -23,6 +23,7 @@ config :crucible, CrucibleWeb.Endpoint,
 # directory, polluting it with thousands of test-run-*, bottleneck-*, etc. files
 # that cause API timeouts and postgres connection exhaustion.
 config :crucible, :orchestrator,
+  disabled: true,
   repo_root: Path.join(System.tmp_dir!(), "infra-orchestrator-test"),
   runs_dir: ".claude-flow/runs"
 

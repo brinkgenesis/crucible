@@ -170,22 +170,33 @@ defmodule Crucible.Orchestrator do
     ensure_pg_started()
     :pg.join(@pg_scope, @pg_group, self())
 
-    schedule_tick(state.poll_interval_ms)
-    schedule_work_steal()
-    schedule_prune()
+    if orchestrator_disabled?() do
+      Logger.info("Orchestrator: polling disabled (config :disabled=true) — idle mode")
+      {:ok, state}
+    else
+      schedule_tick(state.poll_interval_ms)
+      schedule_work_steal()
+      schedule_prune()
 
-    # Startup cleanup (runs in background, non-blocking)
-    spawn(fn ->
-      purge_stale_artifacts(state.runs_dir)
-      kill_orphaned_tmux_sessions()
-      Workspace.prune_stale_worktrees()
-    end)
+      # Startup cleanup (runs in background, non-blocking)
+      spawn(fn ->
+        purge_stale_artifacts(state.runs_dir)
+        kill_orphaned_tmux_sessions()
+        Workspace.prune_stale_worktrees()
+      end)
 
-    Logger.info(
-      "Orchestrator started on #{node()} (poll_interval=#{state.poll_interval_ms}ms, runs_dir=#{state.runs_dir})"
-    )
+      Logger.info(
+        "Orchestrator started on #{node()} (poll_interval=#{state.poll_interval_ms}ms, runs_dir=#{state.runs_dir})"
+      )
 
-    {:ok, state}
+      {:ok, state}
+    end
+  end
+
+  defp orchestrator_disabled? do
+    :crucible
+    |> Application.get_env(:orchestrator, [])
+    |> Keyword.get(:disabled, false)
   end
 
   @impl true
@@ -533,7 +544,8 @@ defmodule Crucible.Orchestrator do
             if run_id &&
                  not is_run_active?(run_id) &&
                  not Map.has_key?(state.completed, run_id) &&
-                 manifest_dispatchable?(manifest) do
+                 manifest_dispatchable?(manifest) &&
+                 not manifest_expired?(path) do
               [Map.put(manifest, "_source_path", path)]
             else
               []
@@ -552,6 +564,19 @@ defmodule Crucible.Orchestrator do
   defp manifest_dispatchable?(manifest) do
     status = manifest["status"] || "pending"
     status in ["pending", "running", "budget_paused"]
+  end
+
+  @manifest_max_age_hours 24
+
+  defp manifest_expired?(path) do
+    case File.stat(path, time: :posix) do
+      {:ok, %{mtime: mtime}} ->
+        age_hours = (System.system_time(:second) - mtime) / 3600
+        age_hours > @manifest_max_age_hours
+
+      _ ->
+        false
+    end
   end
 
   defp dispatch_run(state, manifest) do
