@@ -235,6 +235,7 @@ defmodule CrucibleWeb.Router do
 
     post "/alert", AlertWebhookController, :receive
     post "/github", GithubWebhookController, :receive
+    post "/inbox/receive", InboxIngestController, :webhook
   end
 
   # Prometheus metrics — no auth (scraped by monitoring infra)
@@ -317,6 +318,9 @@ defmodule CrucibleWeb.Router do
 
     # Webhooks
     post "/webhooks/trigger", WebhookController, :trigger
+
+    # Inbox
+    post "/inbox/link", InboxIngestController, :link
 
     # Agent Jobs (async agent API — P3)
 

@@ -194,29 +194,32 @@ See [`docs/workflows.md`](docs/workflows.md) for the phase definitions, what eac
 
 Crucible has an **inbox** for things that *might* become cards. An item in the inbox is evaluated by an LLM against a scoring rubric; items that score above threshold are auto-promoted to cards on a 3-hour Oban schedule.
 
-The schema supports these sources:
+All six sources are wired end-to-end:
 
-- `manual` — POST an item yourself
-- `link` — a raw URL
-- `rss` — a feed entry
-- `github` — an issue or PR reference
-- `webhook` — anything pushed to an ingestion endpoint
-- `run_failure` — wired today; a failed run creates an inbox item so it isn't lost
-
-**What works today:** only the `run_failure` path is wired end-to-end. The triage/scan/promote pipeline is implemented (`lib/crucible/inbox/scanner.ex`) and runs on schedule — but the ingesters for the other sources aren't built yet.
-
-**What's on the roadmap (and why the env file has placeholders):**
-
-| Planned ingester | Env keys you'll set when it lands | Notes |
+| Source | How it fires | Config |
 |---|---|---|
-| X / Twitter bookmarks | `X_BEARER_TOKEN`, `X_USER_ID` | Polls your bookmarks, each becomes a `link` item |
-| RSS feeds | `RSS_FEED_URLS` (comma-sep) | One item per new entry |
-| GitHub issues | `GITHUB_INBOX_REPOS` | Filed issues → inbox |
-| Generic webhook | no key; HMAC-signed `POST /api/v1/inbox` | For anything custom |
+| `link` | `POST /api/v1/inbox/link` (session-authed) with `{"url": "..."}` — optionally fetches `<title>` | none |
+| `rss` | `Crucible.Jobs.RssIngestJob` polls every 30 min | `INBOX_RSS_FEEDS` (comma-separated feed URLs) |
+| `github` | `Crucible.Jobs.GithubIngestJob` polls issues + PRs every 2h | `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_TOKEN` |
+| `webhook` | `POST /api/v1/webhooks/inbox/receive` with HMAC-SHA256 signature | `INBOX_WEBHOOK_SECRET` (unset = unsigned dev mode) |
+| `manual` | `Crucible.Inbox.upsert_from_ingestion/1` from your own code | none |
+| `run_failure` | Automatic — a failed workflow run files itself | none |
 
-If you want to ship one of these, the data model, the scanner, and the LLM evaluator are ready — you only have to write the ingester and call `Crucible.Inbox.create_item/1`. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+The triage/scan/promote pipeline lives in `lib/crucible/inbox/scanner.ex` and runs on a 3-hour Oban schedule. Dedup is handled by the unique index on `(source, source_id)`, so re-polling any source is idempotent.
 
-**If you don't use bookmarks at all:** everything works without any ingester. Manual card creation is the primary path today.
+**Webhook example:**
+
+```bash
+body='{"source_id":"blog-post-42","title":"Found on Hacker News","url":"https://news.ycombinator.com/item?id=42"}'
+sig=$(echo -n "$body" | openssl dgst -sha256 -hmac "$INBOX_WEBHOOK_SECRET" -hex | awk '{print $2}')
+
+curl -X POST http://localhost:4801/api/v1/webhooks/inbox/receive \
+  -H "content-type: application/json" \
+  -H "x-crucible-signature-256: sha256=$sig" \
+  -d "$body"
+```
+
+**If you don't use bookmarks at all:** everything works without any ingester configured. Manual card creation is the primary path.
 
 ---
 

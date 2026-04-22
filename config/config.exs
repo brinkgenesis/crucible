@@ -50,7 +50,9 @@ config :crucible, Oban,
        {"0 2 * * *", Crucible.Jobs.LogRotationJob},
        {"30 */6 * * *", Crucible.Jobs.StaleCardArchiver},
        {"17 */3 * * *", Crucible.Jobs.InboxScanJob},
-       {"45 * * * *", Crucible.Jobs.CiLogAnalyzerJob}
+       {"45 * * * *", Crucible.Jobs.CiLogAnalyzerJob},
+       {"*/30 * * * *", Crucible.Jobs.RssIngestJob},
+       {"7 */2 * * *", Crucible.Jobs.GithubIngestJob}
      ]}
   ]
 

@@ -106,6 +106,7 @@ defmodule Crucible.MixProject do
       # Parsing
       {:jason, "~> 1.2"},
       {:yaml_elixir, "~> 2.12"},
+      {:sweet_xml, "~> 0.7"},
 
       # Prompt templates (Liquid, mirrors Symphony's PromptBuilder)
       {:solid, "~> 1.2"},
