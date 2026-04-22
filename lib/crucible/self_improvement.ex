@@ -122,7 +122,16 @@ defmodule Crucible.SelfImprovement do
         Crucible.DreamGate.record_session_start(state.infra_home)
 
         maybe_process_benchmark_run(run_id, state)
-        Crucible.LearnTool.promote_learnings(run_id, infra_home: state.infra_home)
+
+        case Crucible.LearnTool.promote_learnings(run_id, infra_home: state.infra_home) do
+          :ok ->
+            :ok
+
+          {:error, reason} ->
+            Logger.warning(
+              "SelfImprovement: vault lesson promotion failed for run #{run_id}: #{inspect(reason)}"
+            )
+        end
 
         # Run-triggered cycles run unconditionally (not gated by dream-gate).
         # The gate only applies to periodic background checks to prevent
@@ -247,38 +256,55 @@ defmodule Crucible.SelfImprovement do
   end
 
   defp maybe_process_benchmark_run(run_id, state) do
-    {:ok, _} = BenchmarkAutopilot.process_completed_run(run_id, infra_home: state.infra_home)
-    :ok
+    case BenchmarkAutopilot.process_completed_run(run_id, infra_home: state.infra_home) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.debug("SelfImprovement: benchmark autopilot failed #{run_id}: #{inspect(reason)}")
+
+        :ok
+    end
   rescue
     e ->
       Logger.debug(
-        "SelfImprovement: benchmark autopilot failed #{run_id}: #{Exception.message(e)}"
+        "SelfImprovement: benchmark autopilot crashed #{run_id}: #{Exception.message(e)}"
       )
 
       :ok
   end
 
   defp maybe_sweep_benchmark_runs(state) do
-    {:ok, _} =
-      BenchmarkAutopilot.sweep(
-        infra_home: state.infra_home,
-        lookback_hours: @benchmark_sweep_lookback_hours,
-        limit: @benchmark_sweep_limit
-      )
+    case BenchmarkAutopilot.sweep(
+           infra_home: state.infra_home,
+           lookback_hours: @benchmark_sweep_lookback_hours,
+           limit: @benchmark_sweep_limit
+         ) do
+      {:ok, _} ->
+        :ok
 
-    :ok
+      {:error, reason} ->
+        Logger.debug("SelfImprovement: benchmark sweep failed: #{inspect(reason)}")
+        :ok
+    end
   rescue
     e ->
-      Logger.debug("SelfImprovement: benchmark sweep failed: #{Exception.message(e)}")
+      Logger.debug("SelfImprovement: benchmark sweep crashed: #{Exception.message(e)}")
       :ok
   end
 
   defp maybe_ingest_research_benchmarks do
-    {:ok, _} = HarborEvalIngestor.sweep(limit: 100)
-    :ok
+    case HarborEvalIngestor.sweep(limit: 100) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.debug("SelfImprovement: research benchmark ingest failed: #{inspect(reason)}")
+        :ok
+    end
   rescue
     e ->
-      Logger.debug("SelfImprovement: research benchmark ingest failed: #{Exception.message(e)}")
+      Logger.debug("SelfImprovement: research benchmark ingest crashed: #{Exception.message(e)}")
       :ok
   end
 

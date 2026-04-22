@@ -335,6 +335,16 @@ defmodule CrucibleWeb.TracesLive do
       })
 
     case result do
+      {:ok, card} ->
+        card_id = Map.get(card, :id) || Map.get(card, "id")
+
+        flash_msg =
+          if card_id,
+            do: "Action card created (##{card_id})",
+            else: "Action card created"
+
+        {:noreply, put_flash(socket, :info, flash_msg)}
+
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to create action card: #{inspect(reason)}")}
     end
