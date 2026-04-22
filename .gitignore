@@ -56,4 +56,6 @@ coverage/
 # ---- Secrets (belt and suspenders) ----
 *.pem
 *.key
-secrets/
+# Leading slash keeps this scoped to a `/secrets/` dir at repo root
+# (otherwise it swallows `lib/crucible/secrets/`, which is source code).
+/secrets/
