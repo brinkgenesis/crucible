@@ -18,6 +18,21 @@ if config_env() == :dev do
   if database_url = System.get_env("DATABASE_URL") do
     config :crucible, Crucible.Repo, url: database_url
   end
+
+  # `config/dev.exs` compiles the Endpoint with an ephemeral secret placeholder
+  # so it can't warn spuriously before `.env` has loaded. Resolve the real
+  # value now that DotenvLoader has hydrated the environment, and warn only if
+  # it's still missing — the ephemeral placeholder stays so the server boots.
+  case System.get_env("SECRET_KEY_BASE") do
+    value when value in [nil, ""] ->
+      IO.warn("""
+      SECRET_KEY_BASE is not set — using an ephemeral dev secret.
+      Generate one with `mix phx.gen.secret` and add it to .env.
+      """)
+
+    secret_key_base ->
+      config :crucible, CrucibleWeb.Endpoint, secret_key_base: secret_key_base
+  end
 end
 
 # -- Feature flags (env-var overrides for runtime-tunable defaults) --

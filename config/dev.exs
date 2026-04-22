@@ -35,20 +35,11 @@ config :crucible,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-dev_secret_key_base =
-  case System.get_env("SECRET_KEY_BASE") do
-    nil ->
-      IO.warn("""
-      SECRET_KEY_BASE is not set — using an ephemeral dev secret.
-      Generate one with `mix phx.gen.secret` and add it to .env.
-      """)
-
-      :crypto.strong_rand_bytes(48) |> Base.encode64()
-
-    value ->
-      value
-  end
-
+#
+# `secret_key_base` is an ephemeral compile-time placeholder — the real value
+# is resolved from `.env` / the shell in `config/runtime.exs` (which warns
+# there if unset). Resolving here would fire spuriously, because `.env` is
+# hydrated by `Crucible.DotenvLoader` in `runtime.exs`, which runs later.
 config :crucible, CrucibleWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
@@ -56,7 +47,7 @@ config :crucible, CrucibleWeb.Endpoint,
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: dev_secret_key_base,
+  secret_key_base: :crypto.strong_rand_bytes(48) |> Base.encode64(),
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:crucible, ~w(--sourcemap=inline --watch)]},
     tailwind: {Tailwind, :install_and_run, [:crucible, ~w(--watch)]}

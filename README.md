@@ -105,6 +105,8 @@ DATABASE_URL=postgresql://localhost:5432/crucible # native Postgres default
 
 > **Using Docker for Postgres instead?** Run `docker compose up -d postgres` and set `DATABASE_URL=postgresql://crucible:crucible@localhost:55432/crucible`. Port is `55432` on the host to avoid colliding with a native Postgres on `5432`.
 
+> **Postgres role needs `CREATEDB`.** `mix ecto.setup` creates the database, so the role in `DATABASE_URL` must be able to `CREATE DATABASE`. The default brew setup grants this to your OS user automatically. If you're pointing at a pre-existing role, run `ALTER USER <role> CREATEDB;` as a superuser first, or `createdb <dbname>` by hand and use `mix ecto.migrate` instead of `mix ecto.setup`.
+
 ### 3. Boot
 
 ```bash

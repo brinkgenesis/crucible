@@ -120,6 +120,30 @@ end
 defmodule CrucibleWeb.Router do
   use CrucibleWeb, :router
 
+  # Shared secure-browser headers applied to every browser request.
+  # `content-security-policy` values: LiveView needs inline script/style and
+  # `ws:`/`wss:` connect for its socket; dev LiveReload + esbuild inline
+  # sourcemaps need the same. Tighten per-route via a custom plug if a scope
+  # doesn't need them.
+  @secure_browser_headers %{
+    "x-frame-options" => "DENY",
+    "x-content-type-options" => "nosniff",
+    "x-xss-protection" => "1; mode=block",
+    "referrer-policy" => "strict-origin-when-cross-origin",
+    "permissions-policy" => "camera=(), microphone=(), geolocation=()",
+    "content-security-policy" =>
+      "default-src 'self'; " <>
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " <>
+        "style-src 'self' 'unsafe-inline'; " <>
+        "img-src 'self' data: blob:; " <>
+        "font-src 'self' data:; " <>
+        "connect-src 'self' ws: wss:; " <>
+        "frame-ancestors 'none'; " <>
+        "base-uri 'self'; " <>
+        "form-action 'self'; " <>
+        "object-src 'none'"
+  }
+
   pipeline :browser do
     plug CrucibleWeb.Plugs.RequestId
     plug CrucibleWeb.Plugs.LogContext
@@ -130,13 +154,7 @@ defmodule CrucibleWeb.Router do
     plug :put_root_layout, html: {CrucibleWeb.Layouts, :root}
     plug :protect_from_forgery
 
-    plug :put_secure_browser_headers, %{
-      "x-frame-options" => "DENY",
-      "x-content-type-options" => "nosniff",
-      "x-xss-protection" => "1; mode=block",
-      "referrer-policy" => "strict-origin-when-cross-origin",
-      "permissions-policy" => "camera=(), microphone=(), geolocation=()"
-    }
+    plug :put_secure_browser_headers, @secure_browser_headers
 
     plug CrucibleWeb.Plugs.CopySidToSession
     plug CrucibleWeb.Plugs.SessionAuth
@@ -152,13 +170,7 @@ defmodule CrucibleWeb.Router do
     plug :put_root_layout, html: {CrucibleWeb.Layouts, :root}
     plug :protect_from_forgery
 
-    plug :put_secure_browser_headers, %{
-      "x-frame-options" => "DENY",
-      "x-content-type-options" => "nosniff",
-      "x-xss-protection" => "1; mode=block",
-      "referrer-policy" => "strict-origin-when-cross-origin",
-      "permissions-policy" => "camera=(), microphone=(), geolocation=()"
-    }
+    plug :put_secure_browser_headers, @secure_browser_headers
   end
 
   pipeline :api do
@@ -208,6 +220,13 @@ defmodule CrucibleWeb.Router do
     get "/ready", HealthController, :ready
     get "/startup", HealthController, :startup
     get "/executor", HealthController, :executor
+  end
+
+  # Short alias for liveness so `curl /healthz` works out of the box.
+  scope "/", CrucibleWeb.Api do
+    pipe_through :api
+
+    get "/healthz", HealthController, :live
   end
 
   # Internal webhooks — no auth (called by Alertmanager and other infra services)
