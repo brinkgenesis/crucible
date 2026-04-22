@@ -14,8 +14,24 @@ defmodule Crucible.LoopManagerTest do
   end
 
   defp init_git_repo(dir) do
-    System.cmd("git", ["init", "-b", "main"], cd: dir, stderr_to_stdout: true)
-    System.cmd("git", ["commit", "--allow-empty", "-m", "init"], cd: dir, stderr_to_stdout: true)
+    # CI runners have no user.name/user.email set globally, so inject an identity
+    # through env vars for the commit — otherwise it aborts and `main` never
+    # becomes a real ref, causing ensure_run_branch to fail with
+    # `fatal: invalid reference: main`.
+    env = [
+      {"GIT_AUTHOR_NAME", "test"},
+      {"GIT_AUTHOR_EMAIL", "test@example.com"},
+      {"GIT_COMMITTER_NAME", "test"},
+      {"GIT_COMMITTER_EMAIL", "test@example.com"}
+    ]
+
+    System.cmd("git", ["init", "-b", "main"], cd: dir, stderr_to_stdout: true, env: env)
+
+    System.cmd("git", ["commit", "--allow-empty", "-m", "init"],
+      cd: dir,
+      stderr_to_stdout: true,
+      env: env
+    )
   end
 
   defp with_repo_root(dir, fun) do

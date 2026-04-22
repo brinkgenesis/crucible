@@ -45,7 +45,9 @@ defmodule CrucibleWeb.Api.RemoteControllerTest do
 
         500 ->
           body = json_response(conn, 500)
-          assert body["error"] == "start_failed"
+          # "start_failed" when Port.open fails for any reason, "claude_not_found"
+          # when the binary is missing (CI runners). Either is a valid error shape.
+          assert body["error"] in ["start_failed", "claude_not_found"]
       end
     end
 
