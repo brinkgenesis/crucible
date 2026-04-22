@@ -22,10 +22,14 @@ config :crucible, CrucibleWeb.Endpoint,
 # Without this, ResultWriter + Orchestrator write to the real .claude-flow/runs/
 # directory, polluting it with thousands of test-run-*, bottleneck-*, etc. files
 # that cause API timeouts and postgres connection exhaustion.
+# runs_dir is set to an absolute tmp path so any code that reads it without
+# joining against :repo_root still resolves to the isolated tmp location.
+test_tmp_root = Path.join(System.tmp_dir!(), "infra-orchestrator-test")
+
 config :crucible, :orchestrator,
   disabled: true,
-  repo_root: Path.join(System.tmp_dir!(), "infra-orchestrator-test"),
-  runs_dir: ".claude-flow/runs"
+  repo_root: test_tmp_root,
+  runs_dir: Path.join(test_tmp_root, ".claude-flow/runs")
 
 # Disable Oban in tests
 config :crucible, Oban, testing: :inline
