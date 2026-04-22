@@ -221,9 +221,7 @@ defmodule Crucible.Adapter.SdkPort do
       when not is_nil(port) do
     msg_type = Map.get(msg, :type) || Map.get(msg, "type") || "unknown"
 
-    Logger.info(
-      "SdkPort: sending #{msg_type} for run=#{state.run_id} phase=#{state.phase_id}"
-    )
+    Logger.info("SdkPort: sending #{msg_type} for run=#{state.run_id} phase=#{state.phase_id}")
 
     try do
       Port.command(port, Jason.encode!(msg) <> "\n")
@@ -392,9 +390,7 @@ defmodule Crucible.Adapter.SdkPort do
         }
 
         if msg["percentage"] && msg["percentage"] > 80 do
-          Logger.warning(
-            "SdkPort: context usage #{msg["percentage"]}% for run=#{state.run_id}"
-          )
+          Logger.warning("SdkPort: context usage #{msg["percentage"]}% for run=#{state.run_id}")
         end
 
         %{state | context_usage: usage}
@@ -435,9 +431,7 @@ defmodule Crucible.Adapter.SdkPort do
     timeout_ms = state.timeout_ms || 300_000
     timer_ref = Process.send_after(self(), :timeout, timeout_ms)
 
-    Logger.info(
-      "SdkPort: bridge ready for run=#{state.run_id} phase=#{state.phase_id}"
-    )
+    Logger.info("SdkPort: bridge ready for run=#{state.run_id} phase=#{state.phase_id}")
 
     %{state | ready: true, timer_ref: timer_ref}
   end

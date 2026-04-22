@@ -79,7 +79,11 @@ defmodule Crucible.TranscriptTailer do
           historical = load_recent_events(path, @max_events_per_session)
           entry = %{path: path, position: size, events: historical}
           sessions = Map.put(state.sessions, session_id, entry)
-          Logger.info("TranscriptTailer: watching #{session_id} (#{length(historical)} historical events, position #{size})")
+
+          Logger.info(
+            "TranscriptTailer: watching #{session_id} (#{length(historical)} historical events, position #{size})"
+          )
+
           {:reply, :ok, %{state | sessions: sessions}}
       end
     end
@@ -198,7 +202,7 @@ defmodule Crucible.TranscriptTailer do
     |> Enum.flat_map(fn line ->
       case Jason.decode(line) do
         {:ok, %{"type" => "assistant", "message" => %{"content" => content}} = data}
-            when is_list(content) ->
+        when is_list(content) ->
           ts = data["timestamp"] || ""
 
           content
@@ -225,7 +229,7 @@ defmodule Crucible.TranscriptTailer do
     |> Enum.reduce([], fn line, acc ->
       case Jason.decode(String.trim(line)) do
         {:ok, %{"type" => "assistant", "message" => %{"content" => content}} = data}
-            when is_list(content) ->
+        when is_list(content) ->
           ts = data["timestamp"] || ""
 
           tools =

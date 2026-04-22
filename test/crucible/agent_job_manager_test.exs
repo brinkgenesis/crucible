@@ -70,7 +70,11 @@ defmodule Crucible.AgentJobManagerTest do
     test "rejects update on non-pending job" do
       job =
         %AgentJob{}
-        |> AgentJob.changeset(%{run_id: "upd-reject", status: "running", launched_at: DateTime.utc_now()})
+        |> AgentJob.changeset(%{
+          run_id: "upd-reject",
+          status: "running",
+          launched_at: DateTime.utc_now()
+        })
         |> Repo.insert!()
 
       assert {:error, :not_pending} = AgentJobManager.update(job.id, %{"config" => %{}})
@@ -82,7 +86,7 @@ defmodule Crucible.AgentJobManagerTest do
   end
 
   describe "cancel/1" do
-  @tag :skip
+    @tag :skip
     test "cancels a pending job" do
       {:ok, job} = AgentJobManager.launch(%{"run_id" => "cancel-pend"})
 
@@ -91,7 +95,7 @@ defmodule Crucible.AgentJobManagerTest do
       assert cancelled.completed_at != nil
     end
 
-  @tag :skip
+    @tag :skip
     test "cancels a running job" do
       {:ok, job} = AgentJobManager.launch(%{"run_id" => "cancel-run"})
 

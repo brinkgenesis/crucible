@@ -23,10 +23,12 @@ defmodule Crucible.Schema.PolicyConfigTest do
     end
 
     test "accepts policy_id and timings" do
-      cs = PolicyConfig.changeset(%PolicyConfig{}, %{
-        policy_id: "pol-123",
-        timings: %{"p50" => 1200, "p99" => 5000}
-      })
+      cs =
+        PolicyConfig.changeset(%PolicyConfig{}, %{
+          policy_id: "pol-123",
+          timings: %{"p50" => 1200, "p99" => 5000}
+        })
+
       assert cs.valid?
     end
 

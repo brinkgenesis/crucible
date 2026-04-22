@@ -91,6 +91,12 @@ defmodule Crucible.PubSub.ManifoldAdapter do
 
   @impl true
   def direct_broadcast(adapter_name, node_name, topic, message, _dispatcher) do
-    Phoenix.PubSub.PG2.direct_broadcast(adapter_name, node_name, topic, message, @manifold_dispatcher)
+    Phoenix.PubSub.PG2.direct_broadcast(
+      adapter_name,
+      node_name,
+      topic,
+      message,
+      @manifold_dispatcher
+    )
   end
 end

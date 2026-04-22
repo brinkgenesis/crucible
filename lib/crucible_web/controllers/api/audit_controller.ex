@@ -9,36 +9,88 @@ defmodule CrucibleWeb.Api.AuditController do
 
   @valid_actions MapSet.new([
                    # JSONL-originated (TS dashboard)
-                   "login", "logout", "config.update", "env.update", "budget.update",
-                   "workflow.trigger", "workflow.view", "client.create", "client.update",
-                   "client.delete", "client.team.add", "client.team.remove",
-                   "client.config.update", "kanban.card.move", "kanban.card.create",
-                   "kanban.card.update", "circuit.reset", "remote.session.start",
-                   "remote.session.kill", "audit.query",
+                   "login",
+                   "logout",
+                   "config.update",
+                   "env.update",
+                   "budget.update",
+                   "workflow.trigger",
+                   "workflow.view",
+                   "client.create",
+                   "client.update",
+                   "client.delete",
+                   "client.team.add",
+                   "client.team.remove",
+                   "client.config.update",
+                   "kanban.card.move",
+                   "kanban.card.create",
+                   "kanban.card.update",
+                   "circuit.reset",
+                   "remote.session.start",
+                   "remote.session.kill",
+                   "audit.query",
                    # DB-native event types
-                   "created", "updated", "deleted", "moved", "archived", "restored",
-                   "status_changed", "card_linked", "cancelled", "completed", "failed",
-                   "upserted", "member_added", "member_removed"
+                   "created",
+                   "updated",
+                   "deleted",
+                   "moved",
+                   "archived",
+                   "restored",
+                   "status_changed",
+                   "card_linked",
+                   "cancelled",
+                   "completed",
+                   "failed",
+                   "upserted",
+                   "member_added",
+                   "member_removed"
                  ])
 
   operation(:index,
     summary: "Query audit trail",
-    description: "Returns paginated audit events with optional filters by user, client, action type, and date range.",
+    description:
+      "Returns paginated audit events with optional filters by user, client, action type, and date range.",
     tags: ["Audit"],
     parameters: [
-      limit: [in: :query, type: :integer, required: false, description: "Max events to return (1–100, default 50)"],
-      offset: [in: :query, type: :integer, required: false, description: "Pagination offset (default 0)"],
+      limit: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Max events to return (1–100, default 50)"
+      ],
+      offset: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Pagination offset (default 0)"
+      ],
       userId: [in: :query, type: :string, required: false, description: "Filter by actor user ID"],
       clientId: [in: :query, type: :string, required: false, description: "Filter by client ID"],
-      action: [in: :query, type: :string, required: false, description: "Filter by action type (must be a supported audit action)"],
-      from: [in: :query, type: :string, required: false, description: "Start date filter (ISO 8601 date)"],
-      to: [in: :query, type: :string, required: false, description: "End date filter (ISO 8601 date)"]
+      action: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Filter by action type (must be a supported audit action)"
+      ],
+      from: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Start date filter (ISO 8601 date)"
+      ],
+      to: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "End date filter (ISO 8601 date)"
+      ]
     ],
     responses: [
       ok: {"Audit events", "application/json", %OpenApiSpex.Schema{type: :object}},
       bad_request: {"Validation error", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def index(conn, params) do
     with {:ok, limit} <- parse_limit(Map.get(params, "limit", "50")),
          {:ok, offset} <- parse_offset(Map.get(params, "offset", "0")),
@@ -170,15 +222,20 @@ defmodule CrucibleWeb.Api.AuditController do
     user = conn.assigns[:current_user] || %{}
     actor = if user[:id], do: "api:#{user[:id]}", else: "api:anonymous"
 
-    AuditLog.log("audit", "query", "audit.query", %{
-      filters: %{
-        userId: Map.get(params, "userId") || Map.get(params, "user_id"),
-        clientId: Map.get(params, "clientId") || Map.get(params, "client_id"),
-        action: Map.get(params, "action"),
-        from: Map.get(params, "from"),
-        to: Map.get(params, "to")
-      }
-    }, actor: actor)
+    AuditLog.log(
+      "audit",
+      "query",
+      "audit.query",
+      %{
+        filters: %{
+          userId: Map.get(params, "userId") || Map.get(params, "user_id"),
+          clientId: Map.get(params, "clientId") || Map.get(params, "client_id"),
+          action: Map.get(params, "action"),
+          from: Map.get(params, "from"),
+          to: Map.get(params, "to")
+        }
+      },
+      actor: actor
+    )
   end
-
 end

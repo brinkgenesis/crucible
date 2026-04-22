@@ -26,7 +26,8 @@ defmodule CrucibleWeb.Api.RouterController do
 
   operation(:circuits,
     summary: "Circuit breaker states",
-    description: "Returns the current open/closed/half-open state of each provider circuit breaker.",
+    description:
+      "Returns the current open/closed/half-open state of each provider circuit breaker.",
     responses: [
       ok: {"Circuit states", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]

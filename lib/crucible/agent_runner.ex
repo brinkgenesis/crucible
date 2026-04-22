@@ -227,7 +227,10 @@ defmodule Crucible.AgentRunner do
           updated_run
 
         {:error, reason} ->
-          Logger.warning("AgentRunner: branch creation failed for #{phase.id}: #{inspect(reason)}")
+          Logger.warning(
+            "AgentRunner: branch creation failed for #{phase.id}: #{inspect(reason)}"
+          )
+
           run
       end
     else
@@ -262,7 +265,9 @@ defmodule Crucible.AgentRunner do
     # Check if there are uncommitted changes
     case System.cmd("git", ["status", "--porcelain"], cd: cwd, stderr_to_stdout: true) do
       {output, 0} when output != "" ->
-        Logger.warning("AgentRunner: coder left uncommitted changes for #{run.id}, auto-committing")
+        Logger.warning(
+          "AgentRunner: coder left uncommitted changes for #{run.id}, auto-committing"
+        )
 
         System.cmd("git", ["add", "-A"], cd: cwd, stderr_to_stdout: true)
 
@@ -354,13 +359,13 @@ defmodule Crucible.AgentRunner do
 
   defp has_reviewer?(phase) do
     agents = phase.agents || []
+
     Enum.any?(agents, fn
       a when is_binary(a) -> a == "reviewer"
       %{role: role} -> role == "reviewer"
       _ -> false
     end)
   end
-
 
   defp watch_for_reviewer(run, phase) do
     config = Application.get_env(:crucible, :orchestrator, [])
@@ -381,7 +386,10 @@ defmodule Crucible.AgentRunner do
       case File.read(path) do
         {:ok, content} ->
           # Check last 32KB for reviewer idle events
-          tail = if byte_size(content) > 32_768, do: binary_part(content, byte_size(content) - 32_768, 32_768), else: content
+          tail =
+            if byte_size(content) > 32_768,
+              do: binary_part(content, byte_size(content) - 32_768, 32_768),
+              else: content
 
           if String.contains?(tail, "reviewer") and String.contains?(tail, team_name) do
             # Reviewer started — move card to review
@@ -437,7 +445,8 @@ defmodule Crucible.AgentRunner do
       |> Stream.each(fn line ->
         with {:ok, event} <- Jason.decode(line) do
           attrs = %{
-            trace_id: event["traceId"] || "#{event["runId"]}-#{:erlang.unique_integer([:positive])}",
+            trace_id:
+              event["traceId"] || "#{event["runId"]}-#{:erlang.unique_integer([:positive])}",
             run_id: event["runId"],
             phase_id: event["phaseId"],
             session_id: event["sessionId"],

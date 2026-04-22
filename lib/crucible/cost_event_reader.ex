@@ -326,7 +326,7 @@ defmodule Crucible.CostEventReader do
 
     result =
       (rollups ++ session_only)
-      |> Enum.sort_by(&(&1["events"]), :desc)
+      |> Enum.sort_by(& &1["events"], :desc)
 
     {:reply, result, state}
   end
@@ -341,7 +341,7 @@ defmodule Crucible.CostEventReader do
         aggregate_task_events(task_id, events)
       end)
       |> Enum.reject(&(&1["events"] == 0))
-      |> Enum.sort_by(&(&1["events"]), :desc)
+      |> Enum.sort_by(& &1["events"], :desc)
 
     {:reply, rollups, state}
   end
@@ -427,8 +427,7 @@ defmodule Crucible.CostEventReader do
               e.metadata,
               e.metadata
             ),
-          total_cost:
-            fragment("SUM(COALESCE((?->>'costUsd')::double precision, 0))", e.metadata),
+          total_cost: fragment("SUM(COALESCE((?->>'costUsd')::double precision, 0))", e.metadata),
           last_tool:
             fragment(
               "COALESCE((ARRAY_REMOVE(array_agg(? ORDER BY ? DESC), NULL))[1], NULL)",
@@ -462,7 +461,7 @@ defmodule Crucible.CostEventReader do
           "lastActivity" => format_datetime(row.last_seen)
         }
       end)
-      |> Enum.sort_by(&(&1["events"]), :desc)
+      |> Enum.sort_by(& &1["events"], :desc)
 
     {:ok, rollups}
   rescue
@@ -877,8 +876,7 @@ defmodule Crucible.CostEventReader do
 
                       event ->
                         {update_session(sess, event), append_event(sevts, event),
-                         append_event_by_agent(aevts, event),
-                         append_event_by_task(tevts, event)}
+                         append_event_by_agent(aevts, event), append_event_by_task(tevts, event)}
                     end
                   end
                 )

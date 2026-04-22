@@ -40,12 +40,14 @@ defmodule Crucible.Jobs.BackupJob do
         %{timestamp: System.system_time(:second)},
         %{}
       )
+
       Logger.info("BackupJob: all backups completed for #{date}")
       :ok
     else
-      error_summary = Enum.map_join(errors, ", ", fn {target, {:error, reason}} ->
-        "#{target}: #{inspect(reason)}"
-      end)
+      error_summary =
+        Enum.map_join(errors, ", ", fn {target, {:error, reason}} ->
+          "#{target}: #{inspect(reason)}"
+        end)
 
       Logger.error("BackupJob: partial failure for #{date}: #{error_summary}")
       {:error, error_summary}
@@ -79,7 +81,10 @@ defmodule Crucible.Jobs.BackupJob do
           {:ok, output_path}
 
         {output, code} ->
-          Logger.error("BackupJob: pg_dump failed (#{code}): #{Enum.take(output, 3) |> Enum.join()}")
+          Logger.error(
+            "BackupJob: pg_dump failed (#{code}): #{Enum.take(output, 3) |> Enum.join()}"
+          )
+
           {:error, {:pg_dump_failed, code}}
       end
     end

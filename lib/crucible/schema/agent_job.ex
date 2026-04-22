@@ -24,8 +24,14 @@ defmodule Crucible.Schema.AgentJob do
   def changeset(job, attrs) do
     job
     |> cast(attrs, [
-      :run_id, :parent_phase, :config, :status,
-      :result, :error, :launched_at, :completed_at
+      :run_id,
+      :parent_phase,
+      :config,
+      :status,
+      :result,
+      :error,
+      :launched_at,
+      :completed_at
     ])
     |> validate_inclusion(:status, @valid_statuses)
   end

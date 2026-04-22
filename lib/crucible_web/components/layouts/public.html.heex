@@ -10,7 +10,9 @@
             <div class="text-[9px] font-label uppercase tracking-widest text-[#00eefc]">
               PUBLICATION_LAYER
             </div>
-            <div class="text-lg font-headline font-bold text-[#ffa44c] tracking-tight">BENCHMARK_LAB</div>
+            <div class="text-lg font-headline font-bold text-[#ffa44c] tracking-tight">
+              BENCHMARK_LAB
+            </div>
           </div>
         </a>
       </div>
@@ -20,7 +22,10 @@
           href="/lab"
           class={[
             "px-3 py-1.5 font-label text-[10px] tracking-widest uppercase transition-all",
-            if(@current_path == "/lab", do: "bg-[#ffa44c] text-[#1e0c00] font-bold", else: "text-[#ffa44c]/60 hover:text-[#00eefc] hover:bg-[#00eefc]/10")
+            if(@current_path == "/lab",
+              do: "bg-[#ffa44c] text-[#1e0c00] font-bold",
+              else: "text-[#ffa44c]/60 hover:text-[#00eefc] hover:bg-[#00eefc]/10"
+            )
           ]}
         >
           CATALOG

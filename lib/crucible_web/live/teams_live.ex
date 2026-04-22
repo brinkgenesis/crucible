@@ -22,7 +22,15 @@ defmodule CrucibleWeb.TeamsLive do
 
   use CrucibleWeb, :live_view
 
-  alias Crucible.{CostEventReader, Events, SessionDiscovery, TeamReader, TraceReader, TranscriptTailer}
+  alias Crucible.{
+    CostEventReader,
+    Events,
+    SessionDiscovery,
+    TeamReader,
+    TraceReader,
+    TranscriptTailer
+  }
+
   alias CrucibleWeb.Live.ScopeFilters
   require Logger
 
@@ -250,7 +258,9 @@ defmodule CrucibleWeb.TeamsLive do
     client_filter = ScopeFilters.normalize_param(params["client_id"])
     workspace_filter = ScopeFilters.normalize_param(params["workspace"])
     codebase_filter = ScopeFilters.normalize_param(params["codebase"])
-    {:noreply, push_patch(socket, to: teams_index_path(client_filter, workspace_filter, codebase_filter))}
+
+    {:noreply,
+     push_patch(socket, to: teams_index_path(client_filter, workspace_filter, codebase_filter))}
   end
 
   # ---------------------------------------------------------------------------
@@ -322,23 +332,59 @@ defmodule CrucibleWeb.TeamsLive do
         </div>
       </div>
 
-      <form phx-change="set_scope_filters" class="flex flex-wrap items-end gap-3 bg-surface-container-low hud-border p-3">
+      <form
+        phx-change="set_scope_filters"
+        class="flex flex-wrap items-end gap-3 bg-surface-container-low hud-border p-3"
+      >
         <label class="w-full sm:w-56">
-          <span class="text-[10px] font-label tracking-widest text-[#ffa44c]/60 uppercase block mb-1">CLIENT</span>
-          <select name="client_id" class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none">
-            <option :for={option <- @client_options} value={option.value} selected={option.value == @client_filter}>{option.label}</option>
+          <span class="text-[10px] font-label tracking-widest text-[#ffa44c]/60 uppercase block mb-1">
+            CLIENT
+          </span>
+          <select
+            name="client_id"
+            class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none"
+          >
+            <option
+              :for={option <- @client_options}
+              value={option.value}
+              selected={option.value == @client_filter}
+            >
+              {option.label}
+            </option>
           </select>
         </label>
         <label class="w-full sm:w-64">
-          <span class="text-[10px] font-label tracking-widest text-[#00eefc]/60 uppercase block mb-1">WORKSPACE</span>
-          <select name="workspace" class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none">
-            <option :for={option <- @workspace_options} value={option.value} selected={option.value == @workspace_filter}>{option.label}</option>
+          <span class="text-[10px] font-label tracking-widest text-[#00eefc]/60 uppercase block mb-1">
+            WORKSPACE
+          </span>
+          <select
+            name="workspace"
+            class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none"
+          >
+            <option
+              :for={option <- @workspace_options}
+              value={option.value}
+              selected={option.value == @workspace_filter}
+            >
+              {option.label}
+            </option>
           </select>
         </label>
         <label :if={length(@codebase_options) > 1} class="w-full sm:w-56">
-          <span class="text-[10px] font-label tracking-widest text-[#39ff14]/60 uppercase block mb-1">CODEBASE</span>
-          <select name="codebase" class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#39ff14] focus:outline-none">
-            <option :for={option <- @codebase_options} value={option.value} selected={option.value == @codebase_filter}>{option.label}</option>
+          <span class="text-[10px] font-label tracking-widest text-[#39ff14]/60 uppercase block mb-1">
+            CODEBASE
+          </span>
+          <select
+            name="codebase"
+            class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#39ff14] focus:outline-none"
+          >
+            <option
+              :for={option <- @codebase_options}
+              value={option.value}
+              selected={option.value == @codebase_filter}
+            >
+              {option.label}
+            </option>
           </select>
         </label>
       </form>
@@ -346,8 +392,13 @@ defmodule CrucibleWeb.TeamsLive do
       <%!-- Active sessions header --%>
       <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-[#00eefc]">sensors</span>
-        <h2 class="font-headline font-bold text-sm text-[#ffa44c] uppercase tracking-widest">ACTIVE_SESSIONS</h2>
-        <span :if={@sessions != []} class="px-2 py-0.5 bg-[#00eefc]/10 text-[#00eefc] text-[8px] font-bold border border-[#00eefc]/20 uppercase">
+        <h2 class="font-headline font-bold text-sm text-[#ffa44c] uppercase tracking-widest">
+          ACTIVE_SESSIONS
+        </h2>
+        <span
+          :if={@sessions != []}
+          class="px-2 py-0.5 bg-[#00eefc]/10 text-[#00eefc] text-[8px] font-bold border border-[#00eefc]/20 uppercase"
+        >
           {String.pad_leading(to_string(length(@sessions)), 2, "0")} ONLINE
         </span>
       </div>
@@ -374,7 +425,6 @@ defmodule CrucibleWeb.TeamsLive do
   attr :events, :list, default: []
 
   defp session_card(assigns) do
-
     ~H"""
     <div
       class="bg-surface-container-low border border-[#494847]/15 p-4 hover:bg-surface-container-high transition-colors cursor-pointer group"
@@ -387,8 +437,13 @@ defmodule CrucibleWeb.TeamsLive do
             "inline-block w-2 h-2 shrink-0",
             if(session_active?(@session), do: "bg-[#00FF41] animate-pulse", else: "bg-[#494847]")
           ]} />
-          <span class="font-mono text-[11px] font-bold text-[#ffa44c] tracking-tighter">{@session.short_id}</span>
-          <span :if={Map.get(@session, :execution_type) == "api"} class="px-1.5 py-0.5 bg-[#ffa44c]/10 border border-[#ffa44c]/30 text-[#ffa44c] text-[8px] font-bold">
+          <span class="font-mono text-[11px] font-bold text-[#ffa44c] tracking-tighter">
+            {@session.short_id}
+          </span>
+          <span
+            :if={Map.get(@session, :execution_type) == "api"}
+            class="px-1.5 py-0.5 bg-[#ffa44c]/10 border border-[#ffa44c]/30 text-[#ffa44c] text-[8px] font-bold"
+          >
             API
           </span>
           <span
@@ -400,12 +455,18 @@ defmodule CrucibleWeb.TeamsLive do
         </div>
         <span class="text-[9px] font-mono text-[#777575]">{session_duration(@session)}</span>
       </div>
-      <div :if={workspace_label(@session) != ""} class="text-[10px] text-[#494847] font-mono truncate mb-2" title={Map.get(@session, :workspace_path, "")}>
+      <div
+        :if={workspace_label(@session) != ""}
+        class="text-[10px] text-[#494847] font-mono truncate mb-2"
+        title={Map.get(@session, :workspace_path, "")}
+      >
         {workspace_label(@session)}
       </div>
       <div class="flex items-center gap-3 text-[10px] font-mono text-[#777575]">
         <span>{@session.tool_count} tools</span>
-        <span :if={@session.last_tool} class="px-1.5 py-0.5 bg-surface-container-highest text-[9px]">{@session.last_tool}</span>
+        <span :if={@session.last_tool} class="px-1.5 py-0.5 bg-surface-container-highest text-[9px]">
+          {@session.last_tool}
+        </span>
         <span class="text-[#00eefc]">
           {format_tokens(@session.total_input_tokens + @session.total_output_tokens)} tok
         </span>
@@ -420,8 +481,12 @@ defmodule CrucibleWeb.TeamsLive do
           <span class="text-[#494847] shrink-0">
             {format_event_time_eastern(event_field(ev, :timestamp))}
           </span>
-          <span class="px-1.5 py-0.5 bg-surface-container-highest text-[9px]">{event_field(ev, :tool)}</span>
-          <span :if={event_field(ev, :detail)} class="text-[#777575] truncate">{event_field(ev, :detail)}</span>
+          <span class="px-1.5 py-0.5 bg-surface-container-highest text-[9px]">
+            {event_field(ev, :tool)}
+          </span>
+          <span :if={event_field(ev, :detail)} class="text-[#777575] truncate">
+            {event_field(ev, :detail)}
+          </span>
         </div>
       </div>
       <div
@@ -503,7 +568,11 @@ defmodule CrucibleWeb.TeamsLive do
 
     ~H"""
     <%!-- Header --%>
-    <div id="team-detail" phx-hook="Download" class="flex items-center justify-between border-b-2 border-[#ffa44c]/20 pb-3">
+    <div
+      id="team-detail"
+      phx-hook="Download"
+      class="flex items-center justify-between border-b-2 border-[#ffa44c]/20 pb-3"
+    >
       <div class="flex items-center gap-4">
         <.link
           patch={teams_index_path(@client_filter, @workspace_filter)}
@@ -516,17 +585,25 @@ defmodule CrucibleWeb.TeamsLive do
           if(@team.is_active, do: "bg-[#00FF41] animate-pulse", else: "bg-[#494847]")
         ]} />
         <div>
-          <h1 class="text-2xl font-headline font-bold text-[#ffa44c] tracking-tighter uppercase truncate max-w-md" title={@team.description || @team_name}>
+          <h1
+            class="text-2xl font-headline font-bold text-[#ffa44c] tracking-tighter uppercase truncate max-w-md"
+            title={@team.description || @team_name}
+          >
             {team_display_name(@team)}
           </h1>
           <div class="flex items-center gap-3 mt-1">
-            <span class="font-mono text-[10px] text-[#00eefc] opacity-70">{humanize_team_name(@team_name)}</span>
+            <span class="font-mono text-[10px] text-[#00eefc] opacity-70">
+              {humanize_team_name(@team_name)}
+            </span>
             <span class="font-mono text-[10px] text-[#777575]">{@team.member_count} MEMBERS</span>
           </div>
         </div>
       </div>
       <div class="flex items-center gap-4">
-        <button phx-click="export_team" class="px-3 py-1.5 border border-[#ffa44c]/30 text-[#ffa44c] font-mono text-[10px] uppercase tracking-widest hover:border-[#00eefc] hover:text-[#00eefc] transition-colors flex items-center gap-1">
+        <button
+          phx-click="export_team"
+          class="px-3 py-1.5 border border-[#ffa44c]/30 text-[#ffa44c] font-mono text-[10px] uppercase tracking-widest hover:border-[#00eefc] hover:text-[#00eefc] transition-colors flex items-center gap-1"
+        >
           <span class="material-symbols-outlined text-sm">download</span> EXPORT
         </button>
         <div class="flex items-center gap-2 w-48">
@@ -570,8 +647,12 @@ defmodule CrucibleWeb.TeamsLive do
     <div :if={@team_events != []}>
       <div class="flex items-center gap-3 mb-4">
         <span class="material-symbols-outlined text-[#00eefc]">bolt</span>
-        <h2 class="font-headline font-bold text-sm text-[#ffa44c] uppercase tracking-widest">LIVE_ACTIVITY</h2>
-        <span class="px-2 py-0.5 bg-[#00eefc]/10 text-[#00eefc] text-[8px] font-bold border border-[#00eefc]/20">{length(@team_events)}</span>
+        <h2 class="font-headline font-bold text-sm text-[#ffa44c] uppercase tracking-widest">
+          LIVE_ACTIVITY
+        </h2>
+        <span class="px-2 py-0.5 bg-[#00eefc]/10 text-[#00eefc] text-[8px] font-bold border border-[#00eefc]/20">
+          {length(@team_events)}
+        </span>
       </div>
       <div class="space-y-1">
         <div
@@ -627,13 +708,19 @@ defmodule CrucibleWeb.TeamsLive do
         </h4>
         <div :if={@tasks == []} class="text-[10px] font-mono text-[#494847] py-2">EMPTY</div>
         <div :if={@tasks != []} class="space-y-2">
-          <div :for={task <- @tasks} class="p-3 bg-surface-container border border-[#494847]/10 text-sm">
+          <div
+            :for={task <- @tasks}
+            class="p-3 bg-surface-container border border-[#494847]/10 text-sm"
+          >
             <div class="flex items-start gap-2">
               <.task_status_dot status={task.status} />
               <div class="flex-1 min-w-0">
                 <p class="font-mono text-xs text-white truncate">{task.subject}</p>
                 <div class="flex items-center gap-2 mt-1">
-                  <span :if={task.owner} class="px-1.5 py-0.5 bg-surface-container-highest text-[9px] font-mono text-[#777575]">
+                  <span
+                    :if={task.owner}
+                    class="px-1.5 py-0.5 bg-surface-container-highest text-[9px] font-mono text-[#777575]"
+                  >
                     @{task.owner}
                   </span>
                   <span :if={task.blocked_by != []} class="text-[10px] font-mono text-[#ff725e]">
@@ -658,7 +745,10 @@ defmodule CrucibleWeb.TeamsLive do
       <div class="flex items-center gap-3">
         <.member_status_dot status={@member.status} />
         <span class="font-mono text-xs font-bold text-white">{@member.name}</span>
-        <span class={["px-2 py-0.5 text-[9px] font-bold uppercase border", agent_type_hud_class(@member.agent_type)]}>
+        <span class={[
+          "px-2 py-0.5 text-[9px] font-bold uppercase border",
+          agent_type_hud_class(@member.agent_type)
+        ]}>
           {@member.agent_type}
         </span>
         <span class="text-[10px] font-mono text-[#777575] uppercase">{@member.status}</span>
@@ -712,11 +802,21 @@ defmodule CrucibleWeb.TeamsLive do
     case type do
       t when t in ["coder", "coder-backend", "coder-runtime", "coder-frontend"] ->
         "bg-[#00eefc]/10 border-[#00eefc] text-[#00eefc]"
-      "reviewer" -> "bg-[#ffa44c]/10 border-[#ffa44c] text-[#ffa44c]"
-      "architect" -> "bg-[#ff725e]/10 border-[#ff725e] text-[#ff725e]"
-      "tester" -> "bg-[#00FF41]/10 border-[#00FF41] text-[#00FF41]"
-      "team-lead" -> "bg-[#ffa44c]/10 border-[#ffa44c] text-[#ffa44c]"
-      _ -> "bg-[#494847]/10 border-[#494847] text-[#494847]"
+
+      "reviewer" ->
+        "bg-[#ffa44c]/10 border-[#ffa44c] text-[#ffa44c]"
+
+      "architect" ->
+        "bg-[#ff725e]/10 border-[#ff725e] text-[#ff725e]"
+
+      "tester" ->
+        "bg-[#00FF41]/10 border-[#00FF41] text-[#00FF41]"
+
+      "team-lead" ->
+        "bg-[#ffa44c]/10 border-[#ffa44c] text-[#ffa44c]"
+
+      _ ->
+        "bg-[#494847]/10 border-[#494847] text-[#494847]"
     end
   end
 
@@ -756,7 +856,11 @@ defmodule CrucibleWeb.TeamsLive do
       catch
         :exit, _ ->
           Enum.each(token_tasks, &Task.shutdown(&1, :brutal_kill))
-          Enum.map(new_procs, fn proc -> {proc, %{input: 0, output: 0, cache_read: 0, cache_create: 0, tool_count: 0, last_tool: nil}} end)
+
+          Enum.map(new_procs, fn proc ->
+            {proc,
+             %{input: 0, output: 0, cache_read: 0, cache_create: 0, tool_count: 0, last_tool: nil}}
+          end)
       end
 
     process_sessions =
@@ -805,7 +909,12 @@ defmodule CrucibleWeb.TeamsLive do
       end)
 
     # Only show sessions with active Claude processes or recent activity (< 2min)
-    active_ids = MapSet.new(new_procs ++ safe_call(fn -> SessionDiscovery.active_processes() end, []), & &1.session_id)
+    active_ids =
+      MapSet.new(
+        new_procs ++ safe_call(fn -> SessionDiscovery.active_processes() end, []),
+        & &1.session_id
+      )
+
     now = DateTime.utc_now()
 
     (enriched_cost ++ process_sessions)

@@ -94,7 +94,9 @@ defmodule CrucibleWeb.BudgetLive do
 
   def handle_info({:budget_update, _}, socket) do
     timer = RefreshTimer.reset(socket.assigns[:refresh_timer])
-    {:noreply, assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
+
+    {:noreply,
+     assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
   end
 
   @doc """
@@ -270,10 +272,15 @@ defmodule CrucibleWeb.BudgetLive do
         </div>
 
         <%!-- Stale data warning --%>
-        <div :if={@data_stale != []} class="bg-[#ffa44c]/10 border border-[#ffa44c]/30 p-4 flex items-center gap-3">
+        <div
+          :if={@data_stale != []}
+          class="bg-[#ffa44c]/10 border border-[#ffa44c]/30 p-4 flex items-center gap-3"
+        >
           <span class="material-symbols-outlined text-[#ffa44c]">warning</span>
           <div>
-            <div class="text-[#ffa44c] font-mono text-[10px] font-bold tracking-widest uppercase">DATA_INCOMPLETE</div>
+            <div class="text-[#ffa44c] font-mono text-[10px] font-bold tracking-widest uppercase">
+              DATA_INCOMPLETE
+            </div>
             <div class="text-neutral-400 text-[10px] font-mono">
               Some data sources timed out ({Enum.map_join(@data_stale, ", ", &to_string/1)}). Displayed values may be stale.
             </div>
@@ -288,18 +295,41 @@ defmodule CrucibleWeb.BudgetLive do
               <div class="absolute top-0 right-0 p-2 opacity-20">
                 <span class="material-symbols-outlined text-6xl">monitoring</span>
               </div>
-              <h3 class="text-[#00eefc] font-mono text-xs tracking-widest uppercase mb-8">BUDGET_GAUGE</h3>
+              <h3 class="text-[#00eefc] font-mono text-xs tracking-widest uppercase mb-8">
+                BUDGET_GAUGE
+              </h3>
               <div class="flex justify-center items-center py-6 relative">
                 <svg class="w-48 h-48 transform -rotate-90">
-                  <circle class="text-[#494847]/20" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="2" />
+                  <circle
+                    class="text-[#494847]/20"
+                    cx="96"
+                    cy="96"
+                    fill="transparent"
+                    r="88"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
                   <circle
                     class={if(@status.is_over_budget, do: "text-[#ff725e]", else: "text-[#ffa44c]")}
-                    cx="96" cy="96" fill="transparent" r="88" stroke="currentColor"
+                    cx="96"
+                    cy="96"
+                    fill="transparent"
+                    r="88"
+                    stroke="currentColor"
                     stroke-dasharray="552.92"
                     stroke-dashoffset={552.92 * (1 - min(@spend_pct, 100) / 100)}
                     stroke-width="8"
                   />
-                  <circle class="text-[#00eefc]/30" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="4" stroke-width="1" />
+                  <circle
+                    class="text-[#00eefc]/30"
+                    cx="96"
+                    cy="96"
+                    fill="transparent"
+                    r="80"
+                    stroke="currentColor"
+                    stroke-dasharray="4"
+                    stroke-width="1"
+                  />
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center">
                   <span class="text-4xl font-black font-mono text-white">
@@ -313,7 +343,10 @@ defmodule CrucibleWeb.BudgetLive do
               <div class="mt-8 grid grid-cols-2 gap-4">
                 <div class="bg-black/40 p-3 border-l-2 border-[#ffa44c]">
                   <div class="text-[9px] text-neutral-500 uppercase font-mono">CONSUMPTION</div>
-                  <div class={["text-xl font-bold font-mono", if(@status.is_over_budget, do: "text-[#ff725e]", else: "text-[#ffa44c]")]}>
+                  <div class={[
+                    "text-xl font-bold font-mono",
+                    if(@status.is_over_budget, do: "text-[#ff725e]", else: "text-[#ffa44c]")
+                  ]}>
                     {@spend_pct}%
                   </div>
                 </div>
@@ -327,23 +360,29 @@ defmodule CrucibleWeb.BudgetLive do
             </div>
 
             <%!-- Alert Center --%>
-            <div :if={@status.is_over_budget} class="bg-surface-container-low border-t-2 border-[#ff7351] p-6 hud-border">
+            <div
+              :if={@status.is_over_budget}
+              class="bg-surface-container-low border-t-2 border-[#ff7351] p-6 hud-border"
+            >
               <h3 class="text-[#ff7351] font-mono text-xs tracking-widest uppercase mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">warning</span>
-                SYSTEM_ALERTS
+                <span class="material-symbols-outlined text-sm">warning</span> SYSTEM_ALERTS
               </h3>
               <div class="flex items-start gap-3 bg-[#ff7351]/5 p-3 border border-[#ff7351]/20">
                 <span class="text-[#ff7351] font-mono font-black mt-0.5">!</span>
                 <div class="flex-1">
                   <div class="text-white font-mono text-[10px] font-bold">BUDGET_EXCEEDED</div>
-                  <div class="text-neutral-500 text-[9px]">Daily limit exceeded. Cost tracking continues.</div>
+                  <div class="text-neutral-500 text-[9px]">
+                    Daily limit exceeded. Cost tracking continues.
+                  </div>
                 </div>
               </div>
             </div>
 
             <%!-- Days selector --%>
             <div class="bg-surface-container-low p-4 hud-border">
-              <div class="text-[9px] text-neutral-500 uppercase font-mono mb-3">TIME_RANGE_SELECTOR</div>
+              <div class="text-[9px] text-neutral-500 uppercase font-mono mb-3">
+                TIME_RANGE_SELECTOR
+              </div>
               <div class="flex gap-1">
                 <button
                   :for={days <- [1, 3, 7, 14, 30]}
@@ -353,7 +392,8 @@ defmodule CrucibleWeb.BudgetLive do
                     "px-3 py-1.5 font-mono text-[10px] tracking-widest transition-all",
                     if(@budget_days == days,
                       do: "bg-[#ffa44c] text-black font-bold",
-                      else: "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
+                      else:
+                        "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
                     )
                   ]}
                 >
@@ -368,7 +408,9 @@ defmodule CrucibleWeb.BudgetLive do
             <%!-- Spend by Model --%>
             <div class="bg-surface-container-low p-6 border-t-2 border-[#ea8400] hud-border">
               <div class="flex justify-between items-center mb-8">
-                <h3 class="text-[#ffa44c] font-mono text-xs tracking-widest uppercase">SPEND_BY_MODEL</h3>
+                <h3 class="text-[#ffa44c] font-mono text-xs tracking-widest uppercase">
+                  SPEND_BY_MODEL
+                </h3>
                 <div class="flex gap-1">
                   <div class="w-1 h-3 bg-[#ea8400]" />
                   <div class="w-1 h-3 bg-[#ea8400]/40" />
@@ -376,7 +418,9 @@ defmodule CrucibleWeb.BudgetLive do
                 </div>
               </div>
               <div :if={@model_breakdown == []} class="text-center py-8">
-                <span class="material-symbols-outlined text-4xl text-[#494847]/30 mb-2">bar_chart</span>
+                <span class="material-symbols-outlined text-4xl text-[#494847]/30 mb-2">
+                  bar_chart
+                </span>
                 <p class="text-[10px] font-mono text-neutral-500">NO_COST_DATA_AVAILABLE</p>
               </div>
               <div :if={@model_breakdown != []} class="space-y-6">
@@ -386,7 +430,10 @@ defmodule CrucibleWeb.BudgetLive do
                     <span class="text-[#00eefc]">${Float.round(row.cost, 4)}</span>
                   </div>
                   <div class="w-full h-4 bg-black/40 flex">
-                    <div class="h-full bg-[#ffa44c] transition-all duration-300" style={"width: #{BudgetHelpers.model_bar_pct(@model_breakdown, row.cost)}%"} />
+                    <div
+                      class="h-full bg-[#ffa44c] transition-all duration-300"
+                      style={"width: #{BudgetHelpers.model_bar_pct(@model_breakdown, row.cost)}%"}
+                    />
                   </div>
                 </div>
               </div>
@@ -395,8 +442,13 @@ defmodule CrucibleWeb.BudgetLive do
             <%!-- Two-Column Tables --%>
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <%!-- Spend by Agent --%>
-              <div :if={@agents_breakdown != []} class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border">
-                <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">SPEND_BY_AGENT</h3>
+              <div
+                :if={@agents_breakdown != []}
+                class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border"
+              >
+                <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">
+                  SPEND_BY_AGENT
+                </h3>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left font-mono text-[10px]">
                     <thead class="border-b border-[#494847]/30 text-neutral-500">
@@ -422,8 +474,13 @@ defmodule CrucibleWeb.BudgetLive do
               </div>
 
               <%!-- Spend by Session --%>
-              <div :if={@sessions_breakdown != []} class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border">
-                <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">ACTIVE_SESSIONS</h3>
+              <div
+                :if={@sessions_breakdown != []}
+                class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border"
+              >
+                <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">
+                  ACTIVE_SESSIONS
+                </h3>
                 <div class="overflow-x-auto">
                   <table class="w-full text-left font-mono text-[10px]">
                     <thead class="border-b border-[#494847]/30 text-neutral-500">
@@ -436,7 +493,9 @@ defmodule CrucibleWeb.BudgetLive do
                     <tbody class="divide-y divide-[#494847]/10 text-white">
                       <tr :for={s <- @sessions_breakdown}>
                         <td class="py-3">{Map.get(s, "session", "—")}</td>
-                        <td class="py-3 text-right text-[#00eefc]">${BudgetHelpers.format_cost(Map.get(s, "spent"))}</td>
+                        <td class="py-3 text-right text-[#00eefc]">
+                          ${BudgetHelpers.format_cost(Map.get(s, "spent"))}
+                        </td>
                         <td class="py-3 text-right">{Map.get(s, "events", 0)}</td>
                       </tr>
                     </tbody>
@@ -446,8 +505,13 @@ defmodule CrucibleWeb.BudgetLive do
             </div>
 
             <%!-- Per-task breakdown --%>
-            <div :if={@tasks_breakdown != []} class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border">
-              <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">SPEND_BY_TASK</h3>
+            <div
+              :if={@tasks_breakdown != []}
+              class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border"
+            >
+              <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">
+                SPEND_BY_TASK
+              </h3>
               <div class="overflow-x-auto">
                 <table class="w-full text-left font-mono text-[10px]">
                   <thead class="border-b border-[#494847]/30 text-neutral-500">
@@ -461,7 +525,9 @@ defmodule CrucibleWeb.BudgetLive do
                     <tr :for={t <- @tasks_breakdown}>
                       <td class="py-3 text-[#00eefc]">{Map.get(t, "task", "—")}</td>
                       <td class="py-3 text-right">{Map.get(t, "events", 0)}</td>
-                      <td class="py-3 text-right text-neutral-500">{format_time(Map.get(t, "lastActivity"))}</td>
+                      <td class="py-3 text-right text-neutral-500">
+                        {format_time(Map.get(t, "lastActivity"))}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -471,11 +537,15 @@ defmodule CrucibleWeb.BudgetLive do
         </div>
 
         <%!-- Recent Cost Events --%>
-        <div :if={!@loading} class="bg-surface-container-low border border-[#494847]/10 hud-border overflow-hidden" id="budget-events" phx-hook="Download">
+        <div
+          :if={!@loading}
+          class="bg-surface-container-low border border-[#494847]/10 hud-border overflow-hidden"
+          id="budget-events"
+          phx-hook="Download"
+        >
           <div class="p-6 border-b border-[#494847]/10 flex flex-col md:flex-row justify-between items-start md:items-center bg-surface-container gap-3">
             <h3 class="font-headline text-lg font-bold text-white uppercase flex items-center gap-2">
-              <span class="w-1.5 h-6 bg-[#ffa44c]" />
-              COST_EVENT_LOG
+              <span class="w-1.5 h-6 bg-[#ffa44c]" /> COST_EVENT_LOG
             </h3>
             <div class="flex gap-2 items-center flex-wrap">
               <div class="flex gap-1">
@@ -525,7 +595,9 @@ defmodule CrucibleWeb.BudgetLive do
                   <td class="px-6 py-4 text-white" title={Map.get(evt, :session, "")}>
                     {BudgetHelpers.short_id(Map.get(evt, :session, ""))}
                   </td>
-                  <td class="px-6 py-4 text-right text-white">${BudgetHelpers.format_cost(Map.get(evt, :cost_usd))}</td>
+                  <td class="px-6 py-4 text-right text-white">
+                    ${BudgetHelpers.format_cost(Map.get(evt, :cost_usd))}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -590,5 +662,4 @@ defmodule CrucibleWeb.BudgetLive do
     end)
     |> Enum.take(limit)
   end
-
 end

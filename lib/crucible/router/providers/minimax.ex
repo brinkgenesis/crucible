@@ -27,5 +27,7 @@ defmodule Crucible.Router.Providers.MiniMax do
     do: System.get_env("MINIMAX_API_KEY") || Application.get_env(:crucible, :minimax_api_key, "")
 
   defp base_url,
-    do: System.get_env("MINIMAX_BASE_URL") || Application.get_env(:crucible, :minimax_base_url, @default_base_url)
+    do:
+      System.get_env("MINIMAX_BASE_URL") ||
+        Application.get_env(:crucible, :minimax_base_url, @default_base_url)
 end

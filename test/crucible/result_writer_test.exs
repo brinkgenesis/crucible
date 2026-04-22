@@ -9,8 +9,12 @@ defmodule Crucible.ResultWriterTest do
     # immune to concurrent tests that temporarily override :orchestrator config.
     runs_dir =
       case :sys.get_state(ResultWriter) do
-        %{runs_dir: dir} -> dir
-        state when is_map(state) -> Map.get(state, :runs_dir, ".claude-flow/runs")
+        %{runs_dir: dir} ->
+          dir
+
+        state when is_map(state) ->
+          Map.get(state, :runs_dir, ".claude-flow/runs")
+
         _ ->
           config = Application.get_env(:crucible, :orchestrator, [])
           repo_root = Keyword.get(config, :repo_root, File.cwd!())

@@ -15,7 +15,7 @@ defmodule Crucible.TraceExtractors do
     starts =
       events
       |> Enum.filter(&(&1["eventType"] == "phase_start"))
-      |> Enum.group_by(&(&1["phaseId"]))
+      |> Enum.group_by(& &1["phaseId"])
       |> Enum.map(fn {_id, group} -> List.last(group) end)
       |> Enum.sort_by(&phase_index_from_id(&1["phaseId"]))
 
@@ -45,7 +45,7 @@ defmodule Crucible.TraceExtractors do
           phase_name: format_phase_name(meta["phaseName"] || s["detail"] || phase_id),
           phase_type: meta["phaseType"] || "session",
           phase_index: phase_index_from_id(phase_id),
-          status: end_meta["status"] || (if(e, do: "done", else: "running")),
+          status: end_meta["status"] || if(e, do: "done", else: "running"),
           started_at: started_at,
           ended_at: ended_at,
           duration_ms: phase_duration_ms(%{started_at: started_at, ended_at: ended_at}),
@@ -69,11 +69,11 @@ defmodule Crucible.TraceExtractors do
 
           if gap_ms < 0 do
             offset = abs(gap_ms) + 1000
+
             shifted = %{
               phase
               | started_at: shift_iso(phase.started_at, offset),
-                ended_at:
-                  if(phase.ended_at, do: shift_iso(phase.ended_at, offset), else: nil)
+                ended_at: if(phase.ended_at, do: shift_iso(phase.ended_at, offset), else: nil)
             }
 
             {shifted, shifted}
@@ -91,7 +91,7 @@ defmodule Crucible.TraceExtractors do
   defp synthesize_phases_from_costs(events) do
     events
     |> Enum.filter(&(&1["eventType"] == "token_efficiency"))
-    |> Enum.group_by(&(&1["phaseId"]))
+    |> Enum.group_by(& &1["phaseId"])
     |> Enum.map(fn {phase_id, group} ->
       sorted = Enum.sort_by(group, & &1["timestamp"])
       first = List.first(sorted)
@@ -159,7 +159,8 @@ defmodule Crucible.TraceExtractors do
     tool_files =
       events
       |> Enum.filter(fn e ->
-        e["eventType"] == "tool_call" and e["tool"] in ["Write", "Edit", "write_file", "edit_file"]
+        e["eventType"] == "tool_call" and
+          e["tool"] in ["Write", "Edit", "write_file", "edit_file"]
       end)
       |> Enum.map(fn e ->
         meta = e["metadata"] || %{}
@@ -192,7 +193,13 @@ defmodule Crucible.TraceExtractors do
     |> Enum.filter(&(&1["eventType"] == "task_update"))
     |> Enum.map(fn e ->
       meta = e["metadata"] || %{}
-      %{task_id: meta["taskId"], status: meta["status"], title: meta["title"], phase_id: e["phaseId"]}
+
+      %{
+        task_id: meta["taskId"],
+        status: meta["status"],
+        title: meta["title"],
+        phase_id: e["phaseId"]
+      }
     end)
   end
 
@@ -296,8 +303,12 @@ defmodule Crucible.TraceExtractors do
 
   def metadata_duration_ms(metadata) when is_map(metadata) do
     case metadata["duration_ms"] || metadata["durationMs"] do
-      nil -> 0
-      val when is_number(val) -> round(val)
+      nil ->
+        0
+
+      val when is_number(val) ->
+        round(val)
+
       val when is_binary(val) ->
         try do
           String.to_integer(val)

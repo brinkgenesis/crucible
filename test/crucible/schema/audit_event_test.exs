@@ -5,11 +5,13 @@ defmodule Crucible.Schema.AuditEventTest do
 
   describe "changeset/2" do
     test "valid with required fields" do
-      cs = AuditEvent.changeset(%AuditEvent{}, %{
-        entity_type: "card",
-        entity_id: "abc-123",
-        event_type: "created"
-      })
+      cs =
+        AuditEvent.changeset(%AuditEvent{}, %{
+          entity_type: "card",
+          entity_id: "abc-123",
+          event_type: "created"
+        })
+
       assert cs.valid?
     end
 
@@ -32,13 +34,15 @@ defmodule Crucible.Schema.AuditEventTest do
     end
 
     test "accepts optional actor and payload" do
-      cs = AuditEvent.changeset(%AuditEvent{}, %{
-        entity_type: "config",
-        entity_id: "budget",
-        event_type: "updated",
-        actor: "liveview:ConfigLive",
-        payload: %{"key" => "value"}
-      })
+      cs =
+        AuditEvent.changeset(%AuditEvent{}, %{
+          entity_type: "config",
+          entity_id: "budget",
+          event_type: "updated",
+          actor: "liveview:ConfigLive",
+          payload: %{"key" => "value"}
+        })
+
       assert cs.valid?
       assert Ecto.Changeset.get_change(cs, :actor) == "liveview:ConfigLive"
     end

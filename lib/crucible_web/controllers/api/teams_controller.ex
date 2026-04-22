@@ -8,8 +8,13 @@ defmodule CrucibleWeb.Api.TeamsController do
     summary: "List agent teams",
     description: "Returns all agent teams with member counts and descriptions.",
     tags: ["Teams"],
-    responses: [ok: {"Teams list", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Teams list", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def index(conn, _params) do
     teams =
       if File.dir?(@teams_dir) do
@@ -44,6 +49,7 @@ defmodule CrucibleWeb.Api.TeamsController do
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def show(conn, %{"name" => name}) do
     case read_team_config(name) do
       config when config != %{} -> json(conn, config)
@@ -58,8 +64,13 @@ defmodule CrucibleWeb.Api.TeamsController do
     parameters: [
       name: [in: :path, type: :string, required: true, description: "Team name"]
     ],
-    responses: [ok: {"Team members", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Team members", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def members(conn, %{"name" => name}) do
     config = read_team_config(name)
     json(conn, Map.get(config, "members", []))
@@ -72,8 +83,13 @@ defmodule CrucibleWeb.Api.TeamsController do
     parameters: [
       name: [in: :path, type: :string, required: true, description: "Team name"]
     ],
-    responses: [ok: {"Team tasks", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Team tasks", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def tasks(conn, %{"name" => name}) do
     tasks_dir = Path.join([Path.expand("~/.claude/tasks"), name])
 

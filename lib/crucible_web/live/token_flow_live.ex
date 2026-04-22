@@ -80,21 +80,23 @@ defmodule CrucibleWeb.TokenFlowLive do
     <Layouts.app flash={@flash} current_path={@current_path}>
       <div class="space-y-6">
         <.hud_header icon="token" label="TOKEN_FLOW" />
-
-        <!-- Loading skeleton -->
+        
+    <!-- Loading skeleton -->
         <div :if={@loading} class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div :for={_ <- 1..4} class="bg-surface-container-low hud-border animate-pulse">
             <div class="p-5"><div class="h-24 bg-surface-container rounded" /></div>
           </div>
         </div>
-
-        <!-- Pipeline overview -->
+        
+    <!-- Pipeline overview -->
         <div :if={!@loading}>
           <.hud_card accent="primary">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-[#ffa44c] text-sm">filter_alt</span>
-                <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Transformation Pipeline</span>
+                <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+                  Transformation Pipeline
+                </span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="font-mono text-[10px] text-[#e0e0e0]/30">RATIO</span>
@@ -148,18 +150,24 @@ defmodule CrucibleWeb.TokenFlowLive do
             </div>
 
             <div class="mt-3 pt-3 border-t border-[#ffa44c]/10 flex items-center gap-4">
-              <span class="font-mono text-[10px] text-[#e0e0e0]/30">TOTAL <span class="text-[#ffa44c]/60">{@pipeline.total_notes}</span></span>
-              <span class="font-mono text-[10px] text-[#e0e0e0]/30">AVG VALUE <span class="text-[#00eefc]/60">{@pipeline.avg_value}</span></span>
+              <span class="font-mono text-[10px] text-[#e0e0e0]/30">
+                TOTAL <span class="text-[#ffa44c]/60">{@pipeline.total_notes}</span>
+              </span>
+              <span class="font-mono text-[10px] text-[#e0e0e0]/30">
+                AVG VALUE <span class="text-[#00eefc]/60">{@pipeline.avg_value}</span>
+              </span>
             </div>
           </.hud_card>
         </div>
-
-        <!-- Flywheels -->
+        
+    <!-- Flywheels -->
         <div :if={!@loading && @flywheels}>
           <.hud_card>
             <div class="flex items-center gap-2 mb-4">
               <span class="material-symbols-outlined text-[#00eefc] text-sm">sync</span>
-              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Trust Flywheels</span>
+              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+                Trust Flywheels
+              </span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -182,7 +190,10 @@ defmodule CrucibleWeb.TokenFlowLive do
 
             <div class="mt-3 pt-3 border-t border-[#ffa44c]/10 flex items-center gap-3">
               <span class="font-mono text-[10px] text-[#e0e0e0]/30">OVERALL HEALTH</span>
-              <span class={["font-mono font-bold text-sm", health_hud_color(@flywheels.overall_health)]}>
+              <span class={[
+                "font-mono font-bold text-sm",
+                health_hud_color(@flywheels.overall_health)
+              ]}>
                 {pct(@flywheels.overall_health)}
               </span>
               <span class="px-1.5 py-0.5 font-mono text-[8px] uppercase border border-[#e0e0e0]/10 text-[#e0e0e0]/30 rounded">
@@ -198,27 +209,42 @@ defmodule CrucibleWeb.TokenFlowLive do
             </div>
           </.hud_card>
         </div>
-
-        <!-- Agent Identity (KYA) -->
+        
+    <!-- Agent Identity (KYA) -->
         <div :if={!@loading && @agents != []}>
           <.hud_card>
             <div class="flex items-center gap-2 mb-4">
               <span class="material-symbols-outlined text-[#ff725e] text-sm">fingerprint</span>
-              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Agent Identity (KYA)</span>
+              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+                Agent Identity (KYA)
+              </span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full">
                 <thead>
                   <tr class="border-b border-[#ffa44c]/10">
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Agent</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Trust</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Tasks</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Efficiency</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">7d</th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Agent
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Trust
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Tasks
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Efficiency
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      7d
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr :for={agent <- Enum.take(@agents, 10)} class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5">
+                  <tr
+                    :for={agent <- Enum.take(@agents, 10)}
+                    class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5"
+                  >
                     <td class="font-mono text-[11px] text-[#00eefc] py-2 px-3">{agent.name}</td>
                     <td class="py-2 px-3">
                       <div class="flex items-center gap-1.5">
@@ -249,13 +275,15 @@ defmodule CrucibleWeb.TokenFlowLive do
             </div>
           </.hud_card>
         </div>
-
-        <!-- Attention Budget -->
+        
+    <!-- Attention Budget -->
         <div :if={!@loading}>
           <.hud_card>
             <div class="flex items-center gap-2 mb-4">
               <span class="material-symbols-outlined text-[#ffa44c] text-sm">visibility</span>
-              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Attention Budget</span>
+              <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+                Attention Budget
+              </span>
             </div>
             <div
               :if={@attention.agents == [] && @attention.tasks == []}
@@ -263,11 +291,15 @@ defmodule CrucibleWeb.TokenFlowLive do
             >
               <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">visibility</span>
               <p class="font-mono text-xs">NO ATTENTION TRACKING DATA</p>
-              <p class="font-mono text-[10px] text-[#e0e0e0]/20 mt-1">Agents record token consumption as they work</p>
+              <p class="font-mono text-[10px] text-[#e0e0e0]/20 mt-1">
+                Agents record token consumption as they work
+              </p>
             </div>
             <div :if={@attention.agents != []} class="space-y-2">
               <div :for={a <- @attention.agents} class="flex items-center gap-3">
-                <span class="font-mono text-[11px] text-[#00eefc]/60 w-32 truncate" title={a.agent_id}>{a.agent_id}</span>
+                <span class="font-mono text-[11px] text-[#00eefc]/60 w-32 truncate" title={a.agent_id}>
+                  {a.agent_id}
+                </span>
                 <div class="flex-1 bg-surface-container rounded-full h-2 overflow-hidden">
                   <div
                     class={[
@@ -300,7 +332,10 @@ defmodule CrucibleWeb.TokenFlowLive do
     <div class="p-3 bg-surface-container rounded border border-[#ffa44c]/10">
       <div class="flex items-center justify-between mb-1">
         <span class="font-mono text-[11px] font-bold text-[#e0e0e0]/80">{@name}</span>
-        <span class={["px-1.5 py-0.5 font-mono text-[8px] uppercase border rounded", momentum_hud_badge(@data.momentum)]}>
+        <span class={[
+          "px-1.5 py-0.5 font-mono text-[8px] uppercase border rounded",
+          momentum_hud_badge(@data.momentum)
+        ]}>
           {@data.momentum}
         </span>
       </div>
@@ -312,7 +347,9 @@ defmodule CrucibleWeb.TokenFlowLive do
             style={"width: #{@data.velocity * 100}%"}
           />
         </div>
-        <span class="font-mono text-[10px] text-[#e0e0e0]/40 w-12 text-right">{pct(@data.velocity)}</span>
+        <span class="font-mono text-[10px] text-[#e0e0e0]/40 w-12 text-right">
+          {pct(@data.velocity)}
+        </span>
       </div>
     </div>
     """

@@ -178,7 +178,12 @@ defmodule Crucible.MixProject do
         "phx.digest"
       ],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"],
-      "ci.check": ["compile --warnings-as-errors", "sobelow --config", "dialyzer --halt-exit-status", "test"],
+      "ci.check": [
+        "compile --warnings-as-errors",
+        "sobelow --config",
+        "dialyzer --halt-exit-status",
+        "test"
+      ],
       "test.coverage": ["coveralls.html"]
     ]
   end

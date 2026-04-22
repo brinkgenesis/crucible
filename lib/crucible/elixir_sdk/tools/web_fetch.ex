@@ -119,7 +119,8 @@ defmodule Crucible.ElixirSdk.Tools.WebFetch do
 
   defp collect_summary(acc \\ "") do
     receive do
-      {:crucible_sdk, :content_block_delta, %{"delta" => %{"type" => "text_delta", "text" => txt}}} ->
+      {:crucible_sdk, :content_block_delta,
+       %{"delta" => %{"type" => "text_delta", "text" => txt}}} ->
         collect_summary(acc <> txt)
 
       {:crucible_sdk, :done, _} ->

@@ -152,7 +152,9 @@ defmodule CrucibleWeb.KanbanLive do
     socket =
       Enum.reduce(targets, socket, fn card, acc ->
         case adapter.move_card(card.id, "todo") do
-          {:ok, moved} -> maybe_trigger_workflow(acc, moved, adapter)
+          {:ok, moved} ->
+            maybe_trigger_workflow(acc, moved, adapter)
+
           {:error, reason} ->
             Logger.warning("KanbanLive.execute_selected move failed: #{inspect(reason)}")
             put_flash(acc, :error, "Move failed for card #{card.id}: #{inspect(reason)}")
@@ -221,7 +223,11 @@ defmodule CrucibleWeb.KanbanLive do
           case Crucible.VaultPlanStore.read_note(plan_note_path) do
             {:error, reason} ->
               require Logger
-              Logger.warning("[KanbanLive] plan read failed: path=#{plan_note_path} reason=#{inspect(reason)}")
+
+              Logger.warning(
+                "[KanbanLive] plan read failed: path=#{plan_note_path} reason=#{inspect(reason)}"
+              )
+
               nil
           end
         else
@@ -251,9 +257,7 @@ defmodule CrucibleWeb.KanbanLive do
     {:noreply, assign(socket, detail_card: nil)}
   end
 
-  def handle_event("open_plan_popup", %{"path" => path, "card_id" => card_id}, socket) do
-    _ = card_id
-
+  def handle_event("open_plan_popup", %{"path" => path, "card_id" => _card_id}, socket) do
     popup =
       case Crucible.VaultPlanStore.read_note(path) do
         {:error, _} -> nil
@@ -327,6 +331,7 @@ defmodule CrucibleWeb.KanbanLive do
 
   def handle_event("set_card_workspace", %{"workspace_id" => ws_id}, socket) do
     card = socket.assigns[:detail_card]
+
     if card do
       ws_id = if ws_id == "", do: nil, else: ws_id
       kanban_adapter().update_card(card.id, %{workspace_id: ws_id})
@@ -353,8 +358,15 @@ defmodule CrucibleWeb.KanbanLive do
 
       # Plan was refined for a specific codebase but no workspace selected — warn
       refined_for && is_nil(card.workspace_id) ->
-        Logger.warning("KanbanLive: card #{card.id} refined for #{refined_for} but no workspace set")
-        put_flash(socket, :error, "This plan was refined for #{refined_for} — select the target workspace before executing")
+        Logger.warning(
+          "KanbanLive: card #{card.id} refined for #{refined_for} but no workspace set"
+        )
+
+        put_flash(
+          socket,
+          :error,
+          "This plan was refined for #{refined_for} — select the target workspace before executing"
+        )
 
       # Card has no active run → trigger workflow
       true ->
@@ -417,7 +429,9 @@ defmodule CrucibleWeb.KanbanLive do
         case Crucible.WorkspaceProfiles.get_workspace(ws_id) do
           %{repo_path: path, default_branch: branch, name: name, tech_context: tc} ->
             {path, branch || "main", name, tc || ""}
-          _ -> {nil, "main", nil, ""}
+
+          _ ->
+            {nil, "main", nil, ""}
         end
       else
         {nil, "main", nil, ""}
@@ -554,7 +568,9 @@ defmodule CrucibleWeb.KanbanLive do
         <!-- Toolbar -->
         <div class="flex justify-between items-end border-l-4 border-[#ffa44c] pl-4">
           <div>
-            <h1 class="font-headline text-3xl font-bold tracking-tighter text-[#ffa44c] uppercase">TACTICAL_PIPELINE</h1>
+            <h1 class="font-headline text-3xl font-bold tracking-tighter text-[#ffa44c] uppercase">
+              TACTICAL_PIPELINE
+            </h1>
             <p class="font-label text-[10px] text-[#00eefc] tracking-widest uppercase">
               ORCHESTRATION_LAYER //
               <span :if={@execution_mode == "api"} class="text-[#ff725e]">EXEC_API</span>
@@ -569,8 +585,7 @@ defmodule CrucibleWeb.KanbanLive do
               phx-click="execute_selected"
               class="px-4 py-2 bg-[#00eefc] text-black font-label text-[10px] font-bold uppercase tracking-widest hover:bg-[#00eefc]/80 flex items-center gap-2"
             >
-              <.mat_icon name="play_arrow" class="text-sm" />
-              EXECUTE ({MapSet.size(@selected_cards)})
+              <.mat_icon name="play_arrow" class="text-sm" /> EXECUTE ({MapSet.size(@selected_cards)})
             </button>
             <button
               :if={MapSet.size(@selected_cards) > 0}
@@ -599,15 +614,20 @@ defmodule CrucibleWeb.KanbanLive do
             </.tactical_button>
           </div>
         </div>
-
-        <!-- Add card form -->
-        <div :if={@show_add_form} class="bg-surface-container-low border border-[#ffa44c]/20 p-6 hud-border">
+        
+    <!-- Add card form -->
+        <div
+          :if={@show_add_form}
+          class="bg-surface-container-low border border-[#ffa44c]/20 p-6 hud-border"
+        >
           <h3 class="font-headline font-bold text-[#ffa44c] uppercase tracking-widest text-sm mb-4 flex items-center gap-2">
             <.mat_icon name="add_task" class="text-sm" /> NEW_DEPLOYMENT_FORM
           </h3>
           <form phx-submit="create_card" class="space-y-4">
             <div>
-              <label class="font-label text-[9px] text-[#ffa44c]/60 uppercase block mb-1">Task Title</label>
+              <label class="font-label text-[9px] text-[#ffa44c]/60 uppercase block mb-1">
+                Task Title
+              </label>
               <input
                 type="text"
                 name="title"
@@ -619,13 +639,24 @@ defmodule CrucibleWeb.KanbanLive do
               />
             </div>
             <div class="flex gap-3">
-              <button type="button" phx-click="toggle_add_form" class="flex-1 py-2 border border-[#494847] text-[#adaaaa] font-label text-[10px] uppercase tracking-widest hover:bg-surface-container-high">CANCEL</button>
-              <button type="submit" class="flex-1 py-2 bg-[#ffa44c] text-black font-label text-[10px] font-bold uppercase tracking-widest">DEPLOY</button>
+              <button
+                type="button"
+                phx-click="toggle_add_form"
+                class="flex-1 py-2 border border-[#494847] text-[#adaaaa] font-label text-[10px] uppercase tracking-widest hover:bg-surface-container-high"
+              >
+                CANCEL
+              </button>
+              <button
+                type="submit"
+                class="flex-1 py-2 bg-[#ffa44c] text-black font-label text-[10px] font-bold uppercase tracking-widest"
+              >
+                DEPLOY
+              </button>
             </div>
           </form>
         </div>
-
-        <!-- Kanban Board -->
+        
+    <!-- Kanban Board -->
         <div id="kanban-board" phx-hook="KanbanDrag" class="flex gap-6 overflow-x-auto pb-6">
           <div :for={col <- @columns} class="flex-shrink-0 w-80">
             <div class={"flex items-center justify-between mb-4 bg-surface-container-low p-3 border-t-2 #{column_border_color(col)}"}>
@@ -636,7 +667,11 @@ defmodule CrucibleWeb.KanbanLive do
                 {length(Map.get(@cards_by_column, col, []))}
               </span>
             </div>
-            <div class={"space-y-4 min-h-[100px] #{if col == "done", do: "opacity-40"}"} id={"column-#{col}"} data-column={col}>
+            <div
+              class={"space-y-4 min-h-[100px] #{if col == "done", do: "opacity-40"}"}
+              id={"column-#{col}"}
+              data-column={col}
+            >
               <.card_item
                 :for={card <- Map.get(@cards_by_column, col, [])}
                 card={card}
@@ -654,28 +689,43 @@ defmodule CrucibleWeb.KanbanLive do
             </div>
           </div>
         </div>
-
-        <!-- Archived cards -->
-        <div :if={@show_archived && @archived_cards != []} class="bg-surface-container-low p-5 hud-border">
-          <.hud_header icon="inventory_2" label={"ARCHIVED_RECORDS (#{length(@archived_cards)})"} class="mb-4" />
+        
+    <!-- Archived cards -->
+        <div
+          :if={@show_archived && @archived_cards != []}
+          class="bg-surface-container-low p-5 hud-border"
+        >
+          <.hud_header
+            icon="inventory_2"
+            label={"ARCHIVED_RECORDS (#{length(@archived_cards)})"}
+            class="mb-4"
+          />
           <div class="space-y-2">
             <div
               :for={card <- @archived_cards}
               class="flex items-center justify-between p-3 bg-surface-container border border-[#494847]/10"
             >
               <div>
-                <div class="font-headline text-sm font-bold text-white uppercase">{Map.get(card, :title, "Untitled")}</div>
-                <div class="text-[9px] font-label text-[#ffa44c]/40 uppercase">{Map.get(card, :workflow, "—")}</div>
+                <div class="font-headline text-sm font-bold text-white uppercase">
+                  {Map.get(card, :title, "Untitled")}
+                </div>
+                <div class="text-[9px] font-label text-[#ffa44c]/40 uppercase">
+                  {Map.get(card, :workflow, "—")}
+                </div>
               </div>
-              <button phx-click="restore_card" phx-value-id={card.id} class="text-[#00eefc] font-label text-[10px] uppercase tracking-widest hover:text-white transition-colors">
+              <button
+                phx-click="restore_card"
+                phx-value-id={card.id}
+                class="text-[#00eefc] font-label text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+              >
                 RESTORE
               </button>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Card Detail Modal -->
+      
+    <!-- Card Detail Modal -->
       <.card_detail_modal
         :if={@detail_card}
         card={@detail_card}
@@ -749,46 +799,58 @@ defmodule CrucibleWeb.KanbanLive do
           />
           <span class="font-label text-[9px] text-[#ffa44c]/50">#{Map.get(@card, :id, "")}</span>
         </div>
-        <span class="material-symbols-outlined text-[14px] text-[#00eefc]/40 drag-handle cursor-grab active:cursor-grabbing select-none">drag_indicator</span>
+        <span class="material-symbols-outlined text-[14px] text-[#00eefc]/40 drag-handle cursor-grab active:cursor-grabbing select-none">
+          drag_indicator
+        </span>
       </div>
       <div
         class="cursor-pointer"
         phx-click="show_card_detail"
         phx-value-id={@card.id}
       >
-      <h4 class="font-headline text-sm font-bold text-white mb-3 uppercase leading-tight">{Map.get(@card, :title, "Untitled")}</h4>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <span :if={Map.get(@card, :workflow)} class="text-[8px] font-label px-1.5 py-0.5 bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/20 uppercase">
-          {Map.get(@card, :workflow)}
-        </span>
-        <span :if={@plan_summary} class="text-[8px] font-label px-1.5 py-0.5 bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/20 uppercase">
-          PLAN
-        </span>
-      </div>
-
-      <div :if={@plan_summary} class="mb-3">
-        <p class="text-[10px] text-[#adaaaa] leading-relaxed">{@plan_summary}</p>
-      </div>
-
-      <div :if={@plan_note} class="mb-3">
-        <span class="text-[#00eefc] font-label text-[9px] uppercase tracking-wider flex items-center gap-1">
-          <span class="material-symbols-outlined text-[12px]">article</span>
-          CLICK_TO_VIEW_PLAN
-        </span>
-      </div>
-
-      <div class="flex justify-between items-center text-[9px] font-label border-t border-[#494847]/20 pt-2">
-        <div class="flex flex-col">
-          <span class="text-[#00eefc]/40">RUN_ID</span>
-          <span class="text-[#00eefc]">{if Map.get(@card, :run_id), do: String.slice(Map.get(@card, :run_id, ""), 0, 8), else: "NONE"}</span>
+        <h4 class="font-headline text-sm font-bold text-white mb-3 uppercase leading-tight">
+          {Map.get(@card, :title, "Untitled")}
+        </h4>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span
+            :if={Map.get(@card, :workflow)}
+            class="text-[8px] font-label px-1.5 py-0.5 bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/20 uppercase"
+          >
+            {Map.get(@card, :workflow)}
+          </span>
+          <span
+            :if={@plan_summary}
+            class="text-[8px] font-label px-1.5 py-0.5 bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/20 uppercase"
+          >
+            PLAN
+          </span>
         </div>
-        <div class="flex flex-col text-right">
-          <span class="text-[#ffa44c]/40">STATUS</span>
-          <span class="text-[#ffa44c] uppercase">{@current_column}</span>
+
+        <div :if={@plan_summary} class="mb-3">
+          <p class="text-[10px] text-[#adaaaa] leading-relaxed">{@plan_summary}</p>
+        </div>
+
+        <div :if={@plan_note} class="mb-3">
+          <span class="text-[#00eefc] font-label text-[9px] uppercase tracking-wider flex items-center gap-1">
+            <span class="material-symbols-outlined text-[12px]">article</span> CLICK_TO_VIEW_PLAN
+          </span>
+        </div>
+
+        <div class="flex justify-between items-center text-[9px] font-label border-t border-[#494847]/20 pt-2">
+          <div class="flex flex-col">
+            <span class="text-[#00eefc]/40">RUN_ID</span>
+            <span class="text-[#00eefc]">
+              {if Map.get(@card, :run_id),
+                do: String.slice(Map.get(@card, :run_id, ""), 0, 8),
+                else: "NONE"}
+            </span>
+          </div>
+          <div class="flex flex-col text-right">
+            <span class="text-[#ffa44c]/40">STATUS</span>
+            <span class="text-[#ffa44c] uppercase">{@current_column}</span>
+          </div>
         </div>
       </div>
-      </div>
-
     </div>
     """
   end
@@ -809,8 +871,15 @@ defmodule CrucibleWeb.KanbanLive do
 
   defp card_detail_modal(assigns) do
     ~H"""
-    <div class="fixed inset-0 z-[100] flex items-center justify-center p-8 backdrop-blur-md bg-black/60" phx-window-keydown="close_card_detail" phx-key="Escape">
-      <div class="w-full max-w-5xl bg-surface-container-low border border-[#ffa44c]/20 relative flex flex-col max-h-[85vh]" phx-click-away="close_card_detail">
+    <div
+      class="fixed inset-0 z-[100] flex items-center justify-center p-8 backdrop-blur-md bg-black/60"
+      phx-window-keydown="close_card_detail"
+      phx-key="Escape"
+    >
+      <div
+        class="w-full max-w-5xl bg-surface-container-low border border-[#ffa44c]/20 relative flex flex-col max-h-[85vh]"
+        phx-click-away="close_card_detail"
+      >
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-6 border-b border-[#494847]/10 bg-surface">
           <div class="flex items-center gap-4">
@@ -826,7 +895,9 @@ defmodule CrucibleWeb.KanbanLive do
                   {String.upcase(Map.get(@card, :column, "unknown"))}
                 </span>
               </div>
-              <h2 class="font-headline text-2xl font-bold text-white uppercase tracking-tight">{Map.get(@card, :title, "Untitled")}</h2>
+              <h2 class="font-headline text-2xl font-bold text-white uppercase tracking-tight">
+                {Map.get(@card, :title, "Untitled")}
+              </h2>
               <%!-- Workspace badge / selector --%>
               <form phx-change="set_card_workspace" class="flex items-center gap-2 mt-1">
                 <span class="material-symbols-outlined text-[#adaaaa]/40 text-sm">folder</span>
@@ -840,28 +911,37 @@ defmodule CrucibleWeb.KanbanLive do
                     value={ws.id}
                     selected={ws.id == @card.workspace_id}
                   >
-                    {ws.name}{if ws.default_branch && ws.default_branch != "main", do: " (#{ws.default_branch})", else: ""}
+                    {ws.name}{if ws.default_branch && ws.default_branch != "main",
+                      do: " (#{ws.default_branch})",
+                      else: ""}
                   </option>
                 </select>
               </form>
             </div>
           </div>
-          <button phx-click="close_card_detail" class="material-symbols-outlined text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors">close</button>
+          <button
+            phx-click="close_card_detail"
+            class="material-symbols-outlined text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors"
+          >
+            close
+          </button>
         </div>
-
-        <!-- Modal Body -->
+        
+    <!-- Modal Body -->
         <div class="flex-1 flex overflow-hidden">
           <!-- Tabs Sidebar -->
           <div class="w-48 border-r border-[#494847]/10 bg-black flex flex-col p-4 gap-2">
             <button
-              :for={{icon, label, tab_id} <- [
-                {"article", "PLAN", "plan"},
-                {"lan", "PHASES", "phases"},
-                {"groups", "AGENTS", "agents"},
-                {"schedule", "SESSIONS", "sessions"},
-                {"description", "LOGS", "logs"},
-                {"history", "HISTORY", "history"}
-              ]}
+              :for={
+                {icon, label, tab_id} <- [
+                  {"article", "PLAN", "plan"},
+                  {"lan", "PHASES", "phases"},
+                  {"groups", "AGENTS", "agents"},
+                  {"schedule", "SESSIONS", "sessions"},
+                  {"description", "LOGS", "logs"},
+                  {"history", "HISTORY", "history"}
+                ]
+              }
               phx-click="detail_tab"
               phx-value-tab={tab_id}
               class={"flex items-center gap-3 px-3 py-3 font-label text-[10px] font-bold tracking-widest uppercase transition-all #{if @tab == tab_id, do: "bg-[#ffa44c] text-black", else: "text-[#ffa44c]/60 hover:bg-[#ffa44c]/10"}"}
@@ -869,45 +949,67 @@ defmodule CrucibleWeb.KanbanLive do
               <span class="material-symbols-outlined text-sm">{icon}</span> {label}
             </button>
           </div>
-
-          <!-- Content Area -->
+          
+    <!-- Content Area -->
           <div class="flex-1 overflow-y-auto p-8 bg-[#0a0a0a]">
             <!-- Summary stats -->
             <div :if={@summary} class="grid grid-cols-4 gap-4 mb-8">
               <div class="bg-surface-container-high p-4 border border-[#00eefc]/10">
                 <div class="font-label text-[9px] text-[#00eefc]/60 uppercase mb-1">PHASES</div>
-                <div class="font-headline text-2xl font-bold text-[#00eefc]">{@summary.phase_count}</div>
+                <div class="font-headline text-2xl font-bold text-[#00eefc]">
+                  {@summary.phase_count}
+                </div>
               </div>
               <div class="bg-surface-container-high p-4 border border-[#00eefc]/10">
                 <div class="font-label text-[9px] text-[#00eefc]/60 uppercase mb-1">AGENTS</div>
-                <div class="font-headline text-2xl font-bold text-[#00eefc]">{@summary.agent_count}</div>
+                <div class="font-headline text-2xl font-bold text-[#00eefc]">
+                  {@summary.agent_count}
+                </div>
               </div>
               <div class="bg-surface-container-high p-4 border border-[#ffa44c]/10">
                 <div class="font-label text-[9px] text-[#ffa44c]/60 uppercase mb-1">TOKENS</div>
-                <div class="font-headline text-2xl font-bold text-[#ffa44c]">{format_large_number(@summary.total_input_tokens + @summary.total_output_tokens)}</div>
+                <div class="font-headline text-2xl font-bold text-[#ffa44c]">
+                  {format_large_number(@summary.total_input_tokens + @summary.total_output_tokens)}
+                </div>
               </div>
               <div class="bg-surface-container-high p-4 border border-[#ffa44c]/10">
                 <div class="font-label text-[9px] text-[#ffa44c]/60 uppercase mb-1">COST</div>
                 <div class="font-headline text-2xl font-bold text-[#ffa44c]">
-                  {if @summary.total_cost_usd > 0, do: "$#{Float.round(@summary.total_cost_usd, 2)}", else: "—"}
+                  {if @summary.total_cost_usd > 0,
+                    do: "$#{Float.round(@summary.total_cost_usd, 2)}",
+                    else: "—"}
                 </div>
               </div>
             </div>
 
-            <.detail_plan :if={@tab == "plan"} plan={@detail_plan} card={@card} workspaces={@workspaces} />
+            <.detail_plan
+              :if={@tab == "plan"}
+              plan={@detail_plan}
+              card={@card}
+              workspaces={@workspaces}
+            />
             <.detail_phases :if={@tab == "phases"} phases={(@summary && @summary.phases) || []} />
-            <.detail_agents :if={@tab == "agents"} agents={@agents} agent_details={(@summary && @summary.agent_details) || []} />
+            <.detail_agents
+              :if={@tab == "agents"}
+              agents={@agents}
+              agent_details={(@summary && @summary.agent_details) || []}
+            />
             <.detail_sessions :if={@tab == "sessions"} sessions={@sessions} />
             <.detail_logs :if={@tab == "logs"} logs={@logs} />
             <div :if={@tab == "history"} class="space-y-3">
-              <div :if={@card_history == []} class="flex flex-col items-center gap-3 py-12 text-[#adaaaa]/40">
+              <div
+                :if={@card_history == []}
+                class="flex flex-col items-center gap-3 py-12 text-[#adaaaa]/40"
+              >
                 <span class="material-symbols-outlined text-4xl">history</span>
                 <p class="font-label text-[10px] uppercase tracking-widest">NO_HISTORY_LOADED</p>
                 <button
                   phx-click="load_card_history"
                   phx-value-id={@card.id}
                   class="border border-[#ffa44c]/30 text-[#ffa44c] px-4 py-2 font-label text-[10px] uppercase tracking-widest hover:bg-[#ffa44c]/10 transition-all"
-                >LOAD_HISTORY</button>
+                >
+                  LOAD_HISTORY
+                </button>
               </div>
               <div :if={@card_history != []} class="space-y-1">
                 <div
@@ -915,19 +1017,25 @@ defmodule CrucibleWeb.KanbanLive do
                   class="flex items-center justify-between p-3 bg-surface-container-high border border-[#494847]/10 font-label text-[11px]"
                 >
                   <div class="flex items-center gap-3">
-                    <span class="text-[#00eefc] uppercase">{event[:event_type] || event["event_type"]}</span>
-                    <span class="text-[#adaaaa]/60">{event[:actor] || event["actor"] || "system"}</span>
+                    <span class="text-[#00eefc] uppercase">
+                      {event[:event_type] || event["event_type"]}
+                    </span>
+                    <span class="text-[#adaaaa]/60">
+                      {event[:actor] || event["actor"] || "system"}
+                    </span>
                   </div>
                   <span class="text-[#ffa44c]/40">
-                    {(event[:created_at] || event["created_at"] || "") |> to_string() |> String.slice(0..18)}
+                    {(event[:created_at] || event["created_at"] || "")
+                    |> to_string()
+                    |> String.slice(0..18)}
                   </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        <!-- Modal Footer -->
+        
+    <!-- Modal Footer -->
         <div class="p-4 bg-surface-container-high border-t border-[#494847]/10 flex justify-between items-center px-8">
           <div class="flex gap-4">
             <span class="text-[9px] font-label text-[#ffa44c]/40 uppercase">
@@ -976,7 +1084,12 @@ defmodule CrucibleWeb.KanbanLive do
           <h3 class="text-[#ffa44c] font-label text-[10px] tracking-[0.3em] uppercase mb-2 flex items-center gap-2">
             <span class="w-1 h-3 bg-[#ffa44c]"></span> SOURCE
           </h3>
-          <a href={@idea_plan["sourceUrl"]} target="_blank" rel="noopener" class="text-[#00eefc] font-label text-xs hover:text-white transition-colors break-all">
+          <a
+            href={@idea_plan["sourceUrl"]}
+            target="_blank"
+            rel="noopener"
+            class="text-[#00eefc] font-label text-xs hover:text-white transition-colors break-all"
+          >
             {@idea_plan["sourceUrl"]}
           </a>
         </div>
@@ -1007,7 +1120,9 @@ defmodule CrucibleWeb.KanbanLive do
               :for={{step, idx} <- Enum.with_index(@idea_plan["actionableSteps"], 1)}
               class="flex gap-3 p-3 bg-surface-container-high border border-[#494847]/20"
             >
-              <span class="text-[#ffa44c] font-headline text-lg font-bold shrink-0 w-6 text-right">{idx}</span>
+              <span class="text-[#ffa44c] font-headline text-lg font-bold shrink-0 w-6 text-right">
+                {idx}
+              </span>
               <p class="text-[#adaaaa] text-xs leading-relaxed">{step}</p>
             </div>
           </div>
@@ -1031,17 +1146,32 @@ defmodule CrucibleWeb.KanbanLive do
 
         <%!-- Metadata badges --%>
         <div class="flex flex-wrap gap-4 pt-4 border-t border-[#494847]/20">
-          <div :if={@idea_plan["effortEstimate"]} class="bg-surface-container-high px-3 py-2 border border-[#ffa44c]/10">
+          <div
+            :if={@idea_plan["effortEstimate"]}
+            class="bg-surface-container-high px-3 py-2 border border-[#ffa44c]/10"
+          >
             <div class="font-label text-[9px] text-[#ffa44c]/60 uppercase">EFFORT</div>
-            <div class="font-headline text-sm font-bold text-[#ffa44c]">{@idea_plan["effortEstimate"]}</div>
+            <div class="font-headline text-sm font-bold text-[#ffa44c]">
+              {@idea_plan["effortEstimate"]}
+            </div>
           </div>
-          <div :if={@idea_plan["complexity"]} class="bg-surface-container-high px-3 py-2 border border-[#00eefc]/10">
+          <div
+            :if={@idea_plan["complexity"]}
+            class="bg-surface-container-high px-3 py-2 border border-[#00eefc]/10"
+          >
             <div class="font-label text-[9px] text-[#00eefc]/60 uppercase">COMPLEXITY</div>
-            <div class="font-headline text-sm font-bold text-[#00eefc]">{@idea_plan["complexity"]}</div>
+            <div class="font-headline text-sm font-bold text-[#00eefc]">
+              {@idea_plan["complexity"]}
+            </div>
           </div>
-          <div :if={@idea_plan["suggestedWorkflow"]} class="bg-surface-container-high px-3 py-2 border border-[#ffa44c]/10">
+          <div
+            :if={@idea_plan["suggestedWorkflow"]}
+            class="bg-surface-container-high px-3 py-2 border border-[#ffa44c]/10"
+          >
             <div class="font-label text-[9px] text-[#ffa44c]/60 uppercase">WORKFLOW</div>
-            <div class="font-headline text-sm font-bold text-[#ffa44c]">{@idea_plan["suggestedWorkflow"]}</div>
+            <div class="font-headline text-sm font-bold text-[#ffa44c]">
+              {@idea_plan["suggestedWorkflow"]}
+            </div>
           </div>
         </div>
       </div>
@@ -1058,7 +1188,8 @@ defmodule CrucibleWeb.KanbanLive do
       <%!-- Workspace target indicator --%>
       <div :if={@card.workspace_id} class="mt-8 pt-6 border-t border-[#494847]/30">
         <span class="font-label text-[9px] text-[#adaaaa]/40">
-          Target: {Enum.find(@workspaces, &(&1.id == @card.workspace_id)) |> then(& &1 && &1.repo_path || "unknown")}
+          Target: {Enum.find(@workspaces, &(&1.id == @card.workspace_id))
+          |> then(&((&1 && &1.repo_path) || "unknown"))}
         </span>
       </div>
     </div>
@@ -1078,9 +1209,14 @@ defmodule CrucibleWeb.KanbanLive do
         <span class="w-1 h-3 bg-[#ffa44c]"></span> EXECUTION_TIMELINE
       </h3>
       <div class="relative pl-6 space-y-6 border-l border-[#ffa44c]/20">
-        <div :for={{phase, _idx} <- Enum.with_index(@phases)} class={"relative #{if phase.status != "done" && phase.status != "running", do: "opacity-60"}"}>
+        <div
+          :for={{phase, _idx} <- Enum.with_index(@phases)}
+          class={"relative #{if phase.status != "done" && phase.status != "running", do: "opacity-60"}"}
+        >
           <div class={"absolute -left-[29px] top-1 w-2 h-2 #{phase_dot_class(phase.status)}"}></div>
-          <div class="text-[10px] font-bold text-[#ffa44c] mb-1 uppercase tracking-tighter">{phase.name}</div>
+          <div class="text-[10px] font-bold text-[#ffa44c] mb-1 uppercase tracking-tighter">
+            {phase.name}
+          </div>
           <div class="flex items-center gap-3 text-[10px] text-[#adaaaa]">
             <span :if={phase.started_at}>START: {String.slice(phase.started_at || "", 11, 8)}</span>
             <span :if={phase.ended_at}>END: {String.slice(phase.ended_at || "", 11, 8)}</span>
@@ -1089,7 +1225,9 @@ defmodule CrucibleWeb.KanbanLive do
             </span>
             <span :if={phase.phase_type} class="text-[#ffa44c]/40">{phase.phase_type}</span>
           </div>
-          <span class={"inline-block mt-1 px-2 py-0.5 font-label text-[8px] uppercase #{phase_nerv_badge(phase.status)}"}>{phase.status}</span>
+          <span class={"inline-block mt-1 px-2 py-0.5 font-label text-[8px] uppercase #{phase_nerv_badge(phase.status)}"}>
+            {phase.status}
+          </span>
         </div>
       </div>
     </div>
@@ -1101,7 +1239,10 @@ defmodule CrucibleWeb.KanbanLive do
 
   defp detail_agents(assigns) do
     ~H"""
-    <div :if={@agents == [] and @agent_details == []} class="flex flex-col items-center py-12 text-[#adaaaa]/40">
+    <div
+      :if={@agents == [] and @agent_details == []}
+      class="flex flex-col items-center py-12 text-[#adaaaa]/40"
+    >
       <span class="material-symbols-outlined text-4xl mb-2">groups</span>
       <p class="font-label text-[10px] uppercase tracking-widest">NO_AGENT_DATA</p>
     </div>
@@ -1115,8 +1256,13 @@ defmodule CrucibleWeb.KanbanLive do
       >
         <div class="flex items-center gap-2 mb-2">
           <span class="material-symbols-outlined text-[#00eefc] text-sm">smart_toy</span>
-          <span class="font-headline text-sm font-bold text-white uppercase">{agent_name(agent)}</span>
-          <span :if={Map.get(agent, :phase_name)} class="text-[8px] font-label px-1.5 py-0.5 bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/20 uppercase">
+          <span class="font-headline text-sm font-bold text-white uppercase">
+            {agent_name(agent)}
+          </span>
+          <span
+            :if={Map.get(agent, :phase_name)}
+            class="text-[8px] font-label px-1.5 py-0.5 bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/20 uppercase"
+          >
             {Map.get(agent, :phase_name)}
           </span>
         </div>
@@ -1152,10 +1298,18 @@ defmodule CrucibleWeb.KanbanLive do
             <tr class="border-b border-[#494847]/20 bg-surface-container-high/50">
               <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc]">SESSION</th>
               <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc]">TYPE</th>
-              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">INPUT</th>
-              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">OUTPUT</th>
-              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">TOOLS</th>
-              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">COST</th>
+              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">
+                INPUT
+              </th>
+              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">
+                OUTPUT
+              </th>
+              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">
+                TOOLS
+              </th>
+              <th class="px-4 py-3 font-label text-[10px] tracking-widest text-[#00eefc] text-right">
+                COST
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#494847]/10 font-label text-xs">
@@ -1163,22 +1317,55 @@ defmodule CrucibleWeb.KanbanLive do
               <td class="px-4 py-3 font-bold text-white">{s.short_id}</td>
               <td class="px-4 py-3">
                 <span :if={Map.get(s, :execution_type) == "api"} class="text-[#ffa44c]">API</span>
-                <span :if={Map.get(s, :execution_type) in ["subscription", "sdk"]} class="text-[#00eefc]">MAX</span>
-                <span :if={Map.get(s, :execution_type) not in ["api", "subscription", "sdk"]} class="text-[#777575]">—</span>
+                <span
+                  :if={Map.get(s, :execution_type) in ["subscription", "sdk"]}
+                  class="text-[#00eefc]"
+                >
+                  MAX
+                </span>
+                <span
+                  :if={Map.get(s, :execution_type) not in ["api", "subscription", "sdk"]}
+                  class="text-[#777575]"
+                >
+                  —
+                </span>
               </td>
-              <td class="px-4 py-3 text-right text-[#adaaaa]">{format_large_number(s.total_input_tokens)}</td>
-              <td class="px-4 py-3 text-right text-[#adaaaa]">{format_large_number(s.total_output_tokens)}</td>
+              <td class="px-4 py-3 text-right text-[#adaaaa]">
+                {format_large_number(s.total_input_tokens)}
+              </td>
+              <td class="px-4 py-3 text-right text-[#adaaaa]">
+                {format_large_number(s.total_output_tokens)}
+              </td>
               <td class="px-4 py-3 text-right text-[#adaaaa]">{s.tool_count}</td>
               <td class="px-4 py-3 text-right text-[#ffa44c]">
-                {if Map.get(s, :execution_type) in ["subscription", "sdk"], do: "—", else: "$#{Float.round(s.total_cost_usd, 2)}"}
+                {if Map.get(s, :execution_type) in ["subscription", "sdk"],
+                  do: "—",
+                  else: "$#{Float.round(s.total_cost_usd, 2)}"}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="flex justify-end gap-6 mt-3 text-[10px] font-label text-[#adaaaa]/60 uppercase">
-        <span>TOTAL_TOKENS: <b class="text-[#00eefc]">{format_large_number(Enum.reduce(@sessions, 0, &(&1.total_input_tokens + &1.total_output_tokens + &2)))}</b></span>
-        <span>API_COST: <b class="text-[#ffa44c]">${Float.round(Enum.reduce(@sessions, 0.0, fn s, acc -> if Map.get(s, :execution_type) == "api", do: acc + s.total_cost_usd, else: acc end), 2)}</b></span>
+        <span>
+          TOTAL_TOKENS:
+          <b class="text-[#00eefc]">
+            {format_large_number(
+              Enum.reduce(@sessions, 0, &(&1.total_input_tokens + &1.total_output_tokens + &2))
+            )}
+          </b>
+        </span>
+        <span>
+          API_COST:
+          <b class="text-[#ffa44c]">
+            ${Float.round(
+              Enum.reduce(@sessions, 0.0, fn s, acc ->
+                if Map.get(s, :execution_type) == "api", do: acc + s.total_cost_usd, else: acc
+              end),
+              2
+            )}
+          </b>
+        </span>
       </div>
     </div>
     """
@@ -1194,13 +1381,18 @@ defmodule CrucibleWeb.KanbanLive do
     <div :if={@sorted_logs == []} class="flex flex-col items-center py-12 text-[#adaaaa]/40">
       <span class="material-symbols-outlined text-4xl mb-2">description</span>
       <p class="font-label text-[10px] uppercase tracking-widest">NO_SESSION_LOGS</p>
-      <p class="font-label text-[9px] text-[#adaaaa]/30 mt-1">SDK RUNS DO NOT PRODUCE SESSION LOG FILES</p>
+      <p class="font-label text-[9px] text-[#adaaaa]/30 mt-1">
+        SDK RUNS DO NOT PRODUCE SESSION LOG FILES
+      </p>
     </div>
     <div :if={@sorted_logs != []} class="space-y-4">
       <h3 class="text-[#00eefc] font-label text-[10px] tracking-[0.3em] uppercase mb-4 flex items-center gap-2">
         <span class="w-1 h-3 bg-[#00eefc]"></span> TERMINAL_OUTPUT
       </h3>
-      <div :for={{phase_id, content} <- @sorted_logs} class="bg-surface-container-high border border-[#494847]/10">
+      <div
+        :for={{phase_id, content} <- @sorted_logs}
+        class="bg-surface-container-high border border-[#494847]/10"
+      >
         <div class="px-4 py-2 border-b border-[#494847]/10 flex items-center gap-2">
           <span class="material-symbols-outlined text-[#00eefc] text-sm">terminal</span>
           <span class="font-label text-[10px] text-white uppercase tracking-widest">{phase_id}</span>
@@ -1236,10 +1428,21 @@ defmodule CrucibleWeb.KanbanLive do
   defp column_count_class(_), do: "bg-[#262626] text-[#adaaaa]"
 
   defp card_style("in_progress"), do: "bg-[#ffa44c]/5 border border-[#ffa44c] p-4 relative"
-  defp card_style("review"), do: "bg-surface-container-high p-4 border-l-4 border-[#00eefc]/50 hover:border-[#00eefc] transition-all"
-  defp card_style("todo"), do: "bg-surface-container-high p-4 border-r-4 border-[#00eefc]/10 hover:border-[#00eefc] transition-all"
+
+  defp card_style("review"),
+    do:
+      "bg-surface-container-high p-4 border-l-4 border-[#00eefc]/50 hover:border-[#00eefc] transition-all"
+
+  defp card_style("todo"),
+    do:
+      "bg-surface-container-high p-4 border-r-4 border-[#00eefc]/10 hover:border-[#00eefc] transition-all"
+
   defp card_style("done"), do: "bg-surface-container-low p-4 border border-[#494847]/10"
-  defp card_style("ideation"), do: "bg-surface-container-high border-l-2 border-[#ffa44c]/20 p-4 hover:border-[#00eefc]/60 transition-all"
+
+  defp card_style("ideation"),
+    do:
+      "bg-surface-container-high border-l-2 border-[#ffa44c]/20 p-4 hover:border-[#00eefc]/60 transition-all"
+
   defp card_style(_), do: "bg-surface-container-high p-4 border border-[#494847]/10"
 
   defp detail_status_class("in_progress"), do: "bg-[#ffa44c] text-black"
@@ -1255,7 +1458,10 @@ defmodule CrucibleWeb.KanbanLive do
   defp phase_dot_class(_), do: "border border-[#ffa44c] bg-surface"
 
   defp phase_nerv_badge("done"), do: "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
-  defp phase_nerv_badge("running"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
+
+  defp phase_nerv_badge("running"),
+    do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
+
   defp phase_nerv_badge("failed"), do: "bg-[#ff725e]/10 text-[#ff725e] border border-[#ff725e]/30"
   defp phase_nerv_badge(_), do: "bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30"
 

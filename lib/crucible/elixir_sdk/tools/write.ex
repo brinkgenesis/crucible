@@ -29,6 +29,7 @@ defmodule Crucible.ElixirSdk.Tools.Write do
       {:ok, "[plan mode] would write #{byte_size(content)} bytes to #{path}"}
     else
       abs = resolve(path, ctx.cwd)
+
       with :ok <- File.mkdir_p(Path.dirname(abs)),
            :ok <- File.write(abs, content) do
         {:ok, "Wrote #{byte_size(content)} bytes to #{abs}"}

@@ -44,7 +44,9 @@ defmodule Crucible.Jobs.StaleCardArchiver do
       end)
 
     if archived_count > 0 do
-      Logger.info("StaleCardArchiver: archived #{archived_count} cards with #{@failure_threshold}+ failures")
+      Logger.info(
+        "StaleCardArchiver: archived #{archived_count} cards with #{@failure_threshold}+ failures"
+      )
     end
 
     :ok
@@ -85,8 +87,12 @@ defmodule Crucible.Jobs.StaleCardArchiver do
           {:ok, _} ->
             Logger.info("StaleCardArchiver: archived '#{title}' (#{fail_count} failures)")
             :ok
+
           {:error, reason} ->
-            Logger.warning("StaleCardArchiver: failed to archive card #{card_id}: #{inspect(reason)}")
+            Logger.warning(
+              "StaleCardArchiver: failed to archive card #{card_id}: #{inspect(reason)}"
+            )
+
             :error
         end
     end

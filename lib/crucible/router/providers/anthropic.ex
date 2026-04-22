@@ -72,9 +72,11 @@ defmodule Crucible.Router.Providers.Anthropic do
   end
 
   defp system_value(%{system_prompt: nil}), do: nil
+
   defp system_value(%{system_prompt: sys, cache_system: true}) when is_binary(sys) do
     [%{type: "text", text: sys, cache_control: %{type: "ephemeral"}}]
   end
+
   defp system_value(%{system_prompt: sys}) when is_binary(sys), do: sys
   defp system_value(_), do: nil
 

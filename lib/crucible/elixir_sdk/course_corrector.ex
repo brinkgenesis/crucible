@@ -25,6 +25,7 @@ defmodule Crucible.ElixirSdk.CourseCorrector do
   @spec analyse([tool_call()]) :: :ok | {:correct, String.t()}
   def analyse(tool_calls) when is_list(tool_calls) do
     recent = Enum.take(tool_calls, -@window)
+
     cond do
       bash_loop?(recent) ->
         {:correct,
@@ -58,6 +59,7 @@ defmodule Crucible.ElixirSdk.CourseCorrector do
 
   defp identical_edit?(calls) do
     edits = Enum.filter(calls, &(&1.name == "Edit"))
+
     length(edits) >= 2 and same_field?(edits, "old_string") and
       same_field?(edits, "new_string") and same_field?(edits, "file_path")
   end

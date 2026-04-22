@@ -7,7 +7,8 @@ defmodule CrucibleWeb.Api.LogsController do
 
   operation(:index,
     summary: "List log files",
-    description: "Returns metadata for all .log and .jsonl files in the claude-flow logs directory.",
+    description:
+      "Returns metadata for all .log and .jsonl files in the claude-flow logs directory.",
     responses: [
       ok:
         {"Log file list", "application/json",

@@ -24,7 +24,10 @@ defmodule Crucible.ElixirSdk.Tools.Grep do
         required: ["pattern"],
         properties: %{
           pattern: %{type: "string", description: "Regular expression (PCRE-ish)."},
-          path: %{type: "string", description: "Directory or file to search (default: workspace)."},
+          path: %{
+            type: "string",
+            description: "Directory or file to search (default: workspace)."
+          },
           glob: %{type: "string", description: "Glob filter (e.g. *.ex, *.{ts,tsx})."},
           output_mode: %{
             type: "string",

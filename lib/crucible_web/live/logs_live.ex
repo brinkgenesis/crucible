@@ -276,7 +276,8 @@ defmodule CrucibleWeb.LogsLive do
                 "px-3 py-1 font-mono text-[10px] font-bold transition-colors",
                 if(@log_type == type,
                   do: "bg-[#ffa44c] text-black",
-                  else: "border border-[#494847] text-[#494847] hover:border-[#00eefc] hover:text-[#00eefc]"
+                  else:
+                    "border border-[#494847] text-[#494847] hover:border-[#00eefc] hover:text-[#00eefc]"
                 )
               ]}
             >
@@ -346,7 +347,10 @@ defmodule CrucibleWeb.LogsLive do
                 <span class="text-[#494847] w-16 shrink-0">
                   {format_time(entry.timestamp)}
                 </span>
-                <span class={["px-1.5 py-0.5 text-[8px] font-bold shrink-0", level_hud_badge(entry.level)]}>
+                <span class={[
+                  "px-1.5 py-0.5 text-[8px] font-bold shrink-0",
+                  level_hud_badge(entry.level)
+                ]}>
                   {entry.level}
                 </span>
                 <span :if={entry.module} class="text-[#494847] shrink-0">
@@ -380,7 +384,9 @@ defmodule CrucibleWeb.LogsLive do
                     @selected_agent == f.id && "bg-surface-container-high border-l-4 border-[#00eefc]"
                   ]}
                 >
-                  <div class="font-mono text-[10px] text-[#ffa44c] truncate">{String.slice(f.id, 0, 20)}</div>
+                  <div class="font-mono text-[10px] text-[#ffa44c] truncate">
+                    {String.slice(f.id, 0, 20)}
+                  </div>
                   <div class="text-[9px] font-mono text-[#494847]">{format_size(f.size)}</div>
                 </button>
               </div>
@@ -388,7 +394,10 @@ defmodule CrucibleWeb.LogsLive do
           </div>
 
           <div class="col-span-12 lg:col-span-9">
-            <div :if={!@selected_agent} class="bg-surface-container-low border border-[#ffa44c]/10 text-center py-12">
+            <div
+              :if={!@selected_agent}
+              class="bg-surface-container-low border border-[#ffa44c]/10 text-center py-12"
+            >
               <span class="material-symbols-outlined text-4xl text-[#494847]/30">smart_toy</span>
               <p class="font-mono text-[10px] text-[#494847] mt-2">SELECT_AGENT_LOG_TO_VIEW</p>
             </div>
@@ -404,7 +413,10 @@ defmodule CrucibleWeb.LogsLive do
               :if={@agent_entries != []}
               class="bg-surface-container-low border border-[#ffa44c]/10 overflow-hidden"
             >
-              <div class="max-h-[600px] overflow-y-auto divide-y divide-[#494847]/5" id="agent-entries">
+              <div
+                class="max-h-[600px] overflow-y-auto divide-y divide-[#494847]/5"
+                id="agent-entries"
+              >
                 <div
                   :for={entry <- @agent_entries}
                   class="flex items-start gap-3 px-4 py-2 hover:bg-surface-container-high text-[11px] font-mono"
@@ -611,12 +623,23 @@ defmodule CrucibleWeb.LogsLive do
   defp agent_event_badge(assigns) do
     {class, label} =
       case assigns.event do
-        "subagent_start" -> {"bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30", "START"}
-        "subagent_stop" -> {"bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30", "STOP"}
-        "teammate_idle" -> {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", "IDLE"}
-        "ghost_agent_detected" -> {"bg-[#ff7351] text-black", "GHOST"}
-        e when is_binary(e) -> {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", String.upcase(e)}
-        _ -> {"bg-[#494847]/10 text-[#494847]", "—"}
+        "subagent_start" ->
+          {"bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30", "START"}
+
+        "subagent_stop" ->
+          {"bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30", "STOP"}
+
+        "teammate_idle" ->
+          {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", "IDLE"}
+
+        "ghost_agent_detected" ->
+          {"bg-[#ff7351] text-black", "GHOST"}
+
+        e when is_binary(e) ->
+          {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", String.upcase(e)}
+
+        _ ->
+          {"bg-[#494847]/10 text-[#494847]", "—"}
       end
 
     assigns = assign(assigns, class: class, label: label)
@@ -641,16 +664,25 @@ defmodule CrucibleWeb.LogsLive do
   defp tool_hud_class("Grep"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
   defp tool_hud_class("Glob"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
   defp tool_hud_class("Agent"), do: "bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30"
-  defp tool_hud_class("mcp__" <> _), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
+  defp tool_hud_class("mcp__" <> _),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
   defp tool_hud_class(_), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
 
   defp audit_hud_class("success"), do: "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
   defp audit_hud_class("error"), do: "bg-[#ff7351] text-black"
   defp audit_hud_class(_), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
 
-  defp session_hud_class("session_start"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
-  defp session_hud_class("session_end"), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
-  defp session_hud_class("session_stop"), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+  defp session_hud_class("session_start"),
+    do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
+
+  defp session_hud_class("session_end"),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
+  defp session_hud_class("session_stop"),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
   defp session_hud_class(_), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
 
   defp savings_hud_color(nil), do: "text-[#494847]"

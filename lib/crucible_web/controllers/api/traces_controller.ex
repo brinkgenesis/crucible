@@ -9,13 +9,28 @@ defmodule CrucibleWeb.Api.TracesController do
     description: "Returns trace events, optionally filtered by runId, client_id, or workspace.",
     tags: ["Traces"],
     parameters: [
-      limit: [in: :query, type: :integer, required: false, description: "Max events to return (default 50)"],
+      limit: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Max events to return (default 50)"
+      ],
       runId: [in: :query, type: :string, required: false, description: "Filter by run ID"],
       client_id: [in: :query, type: :string, required: false, description: "Filter by client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Filter by workspace path"]
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Filter by workspace path"
+      ]
     ],
-    responses: [ok: {"Trace events", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Trace events", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def index(conn, params) do
     {:ok, limit} = get_int(params, "limit", 50)
     run_id = Map.get(params, "runId")
@@ -53,6 +68,7 @@ defmodule CrucibleWeb.Api.TracesController do
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def show(conn, %{"id" => id}) do
     events = TraceReader.all_events(limit: 1000)
 
@@ -68,11 +84,24 @@ defmodule CrucibleWeb.Api.TracesController do
     tags: ["Traces"],
     parameters: [
       run_id: [in: :path, type: :string, required: true, description: "Run ID to export"],
-      client_id: [in: :query, type: :string, required: false, description: "Scope filter: client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Scope filter: workspace path"]
+      client_id: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: client ID"
+      ],
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: workspace path"
+      ]
     ],
-    responses: [ok: {"NDJSON trace export", "application/x-ndjson", %OpenApiSpex.Schema{type: :string}}]
+    responses: [
+      ok: {"NDJSON trace export", "application/x-ndjson", %OpenApiSpex.Schema{type: :string}}
+    ]
   )
+
   def export(conn, %{"run_id" => run_id} = params) do
     client_id = blank_to_nil(Map.get(params, "client_id") || Map.get(params, "clientId"))
     workspace = blank_to_nil(Map.get(params, "workspace"))
@@ -91,14 +120,26 @@ defmodule CrucibleWeb.Api.TracesController do
 
   operation(:dashboard,
     summary: "Trace dashboard summary",
-    description: "Returns a summary of all runs with event counts, optionally scoped to client or workspace.",
+    description:
+      "Returns a summary of all runs with event counts, optionally scoped to client or workspace.",
     tags: ["Traces"],
     parameters: [
-      client_id: [in: :query, type: :string, required: false, description: "Scope filter: client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Scope filter: workspace path"]
+      client_id: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: client ID"
+      ],
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: workspace path"
+      ]
     ],
     responses: [ok: {"Dashboard summary", "application/json", %OpenApiSpex.Schema{type: :object}}]
   )
+
   def dashboard(conn, params) do
     client_id = blank_to_nil(Map.get(params, "client_id") || Map.get(params, "clientId"))
     workspace = blank_to_nil(Map.get(params, "workspace"))
@@ -125,14 +166,25 @@ defmodule CrucibleWeb.Api.TracesController do
     tags: ["Traces"],
     parameters: [
       run_id: [in: :path, type: :string, required: true, description: "Run ID"],
-      client_id: [in: :query, type: :string, required: false, description: "Scope filter: client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Scope filter: workspace path"]
+      client_id: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: client ID"
+      ],
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: workspace path"
+      ]
     ],
     responses: [
       ok: {"Run detail with events", "application/json", %OpenApiSpex.Schema{type: :object}},
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def detail(conn, %{"run_id" => run_id} = params) do
     client_id = blank_to_nil(Map.get(params, "client_id") || Map.get(params, "clientId"))
     workspace = blank_to_nil(Map.get(params, "workspace"))
@@ -156,14 +208,25 @@ defmodule CrucibleWeb.Api.TracesController do
     tags: ["Traces"],
     parameters: [
       run_id: [in: :path, type: :string, required: true, description: "Run ID"],
-      client_id: [in: :query, type: :string, required: false, description: "Scope filter: client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Scope filter: workspace path"]
+      client_id: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: client ID"
+      ],
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Scope filter: workspace path"
+      ]
     ],
     responses: [
       ok: {"Run summary", "application/json", %OpenApiSpex.Schema{type: :object}},
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def summary(conn, %{"run_id" => run_id} = params) do
     client_id = blank_to_nil(Map.get(params, "client_id") || Map.get(params, "clientId"))
     workspace = blank_to_nil(Map.get(params, "workspace"))

@@ -81,7 +81,9 @@ defmodule CrucibleWeb.RouterLive do
   def handle_event("reset_circuit", %{"provider" => provider}, socket) do
     service = String.to_existing_atom(provider)
     Crucible.ExternalCircuitBreaker.reset(service)
-    {:noreply, socket |> put_flash(:info, "Circuit breaker for #{provider} reset to closed") |> load_data()}
+
+    {:noreply,
+     socket |> put_flash(:info, "Circuit breaker for #{provider} reset to closed") |> load_data()}
   rescue
     ArgumentError ->
       {:noreply, put_flash(socket, :error, "Unknown provider: #{provider}")}
@@ -129,37 +131,46 @@ defmodule CrucibleWeb.RouterLive do
     <Layouts.app flash={@flash} current_path={@current_path}>
       <div class="space-y-6">
         <.hud_header icon="route" label="MODEL_ROUTER" />
-
-        <!-- Header stats -->
+        
+    <!-- Header stats -->
         <div class="flex items-center gap-6">
           <.hud_stat label="MODELS" value={Integer.to_string(length(@models))} color="primary" />
-          <.hud_stat label="PROVIDERS" value={Integer.to_string(map_size(@providers))} color="secondary" />
+          <.hud_stat
+            label="PROVIDERS"
+            value={Integer.to_string(map_size(@providers))}
+            color="secondary"
+          />
           <.hud_stat
             label="STATUS"
             value={if @router_reachable, do: "ONLINE", else: "OFFLINE"}
             color={if @router_reachable, do: "secondary", else: "tertiary"}
           />
         </div>
-
-        <!-- Loading skeleton -->
+        
+    <!-- Loading skeleton -->
         <div :if={@loading} class="bg-surface-container-low hud-border animate-pulse">
           <div class="p-5"><div class="h-32 bg-surface-container rounded" /></div>
         </div>
-
-        <!-- Connection error banner -->
-        <div :if={!@loading && !@router_reachable} class="flex items-center gap-3 px-4 py-3 border border-[#ffa44c]/30 bg-[#ffa44c]/5 rounded font-mono text-xs text-[#ffa44c]">
+        
+    <!-- Connection error banner -->
+        <div
+          :if={!@loading && !@router_reachable}
+          class="flex items-center gap-3 px-4 py-3 border border-[#ffa44c]/30 bg-[#ffa44c]/5 rounded font-mono text-xs text-[#ffa44c]"
+        >
           <span class="material-symbols-outlined text-sm">warning</span>
           <div>
             <span class="font-bold">ROUTER UNREACHABLE</span>
             <span class="text-[#ffa44c]/60 ml-2">ModelRegistry returned no data</span>
           </div>
         </div>
-
-        <!-- Routing Table -->
+        
+    <!-- Routing Table -->
         <div :if={!@loading}>
           <.hud_card>
             <div class="flex items-center justify-between mb-4">
-              <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Routing Table</div>
+              <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+                Routing Table
+              </div>
               <div :if={@router_reachable} class="flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 bg-[#00FF41] rounded-full animate-pulse shadow-[0_0_6px_#00FF41]" />
                 <span class="font-mono text-[10px] text-[#00FF41]/70">CONNECTED</span>
@@ -167,21 +178,39 @@ defmodule CrucibleWeb.RouterLive do
             </div>
             <div :if={@models == []} class="text-center py-8 text-[#e0e0e0]/30">
               <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">memory</span>
-              <p class="font-mono text-xs">{if @router_reachable, do: "NO_MODELS_CONFIGURED", else: "UNABLE_TO_LOAD_ROUTING_TABLE"}</p>
+              <p class="font-mono text-xs">
+                {if @router_reachable,
+                  do: "NO_MODELS_CONFIGURED",
+                  else: "UNABLE_TO_LOAD_ROUTING_TABLE"}
+              </p>
             </div>
             <div :if={@models != [] and is_list(@models)} class="overflow-x-auto">
               <table class="w-full">
                 <thead>
                   <tr class="border-b border-[#ffa44c]/10">
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Model</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Provider</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Context</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Cost (in/out)</th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Model
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Provider
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Context
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Cost (in/out)
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr :for={model <- @models} class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5 transition-colors">
-                    <td class="font-mono text-[11px] text-[#00eefc] py-2 px-3" title={Map.get(model, "id", "—")}>
+                  <tr
+                    :for={model <- @models}
+                    class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5 transition-colors"
+                  >
+                    <td
+                      class="font-mono text-[11px] text-[#00eefc] py-2 px-3"
+                      title={Map.get(model, "id", "—")}
+                    >
                       {Map.get(model, "id", "—")}
                     </td>
                     <td class="py-2 px-3">
@@ -203,18 +232,30 @@ defmodule CrucibleWeb.RouterLive do
             </div>
           </.hud_card>
         </div>
-
-        <!-- Circuit Breakers -->
+        
+    <!-- Circuit Breakers -->
         <div :if={!@loading}>
           <.hud_card>
-            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-4">Circuit Breakers</div>
+            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-4">
+              Circuit Breakers
+            </div>
             <div :if={@circuits == [] or @circuits == %{}} class="text-center py-8 text-[#e0e0e0]/30">
-              <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">electric_bolt</span>
+              <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">
+                electric_bolt
+              </span>
               <p class="font-mono text-xs">NO_CIRCUIT_DATA_AVAILABLE</p>
             </div>
-            <div :if={is_map(@circuits) and @circuits != %{}} class="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div :for={{name, info} <- @circuits} class="p-3 bg-surface-container rounded border border-[#ffa44c]/10">
-                <div class="font-mono text-[11px] font-bold text-[#e0e0e0]/80 truncate" title={name}>{name}</div>
+            <div
+              :if={is_map(@circuits) and @circuits != %{}}
+              class="grid grid-cols-2 md:grid-cols-4 gap-3"
+            >
+              <div
+                :for={{name, info} <- @circuits}
+                class="p-3 bg-surface-container rounded border border-[#ffa44c]/10"
+              >
+                <div class="font-mono text-[11px] font-bold text-[#e0e0e0]/80 truncate" title={name}>
+                  {name}
+                </div>
                 <div class="flex items-center gap-1.5 mt-1.5">
                   <span class={[
                     "w-2 h-2 rounded-full",
@@ -246,7 +287,6 @@ defmodule CrucibleWeb.RouterLive do
     </Layouts.app>
     """
   end
-
 
   defp circuit_hud_color("closed"), do: "text-[#00FF41]"
   defp circuit_hud_color("open"), do: "text-[#ff7351]"

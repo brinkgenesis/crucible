@@ -150,8 +150,8 @@ defmodule CrucibleWeb.Api.AuditControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/audit")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/audit")
+        assert conn.status in [401, 503]
       end)
     end
   end

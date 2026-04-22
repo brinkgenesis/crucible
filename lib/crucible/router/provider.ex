@@ -34,6 +34,7 @@ defmodule Crucible.Router.Provider do
         }
 
   @callback name() :: String.t()
-  @callback request(model_id :: String.t(), request :: request()) :: {:ok, response()} | {:error, term()}
+  @callback request(model_id :: String.t(), request :: request()) ::
+              {:ok, response()} | {:error, term()}
   @callback health_check() :: boolean()
 end

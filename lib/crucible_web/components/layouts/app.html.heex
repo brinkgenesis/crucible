@@ -1,13 +1,23 @@
 <!-- SKIP LINK -->
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-[200] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-[#ffa44c] focus:text-black focus:font-label focus:text-xs focus:tracking-widest">
+<a
+  href="#main-content"
+  class="sr-only focus:not-sr-only focus:absolute focus:z-[200] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-[#ffa44c] focus:text-black focus:font-label focus:text-xs focus:tracking-widest"
+>
   SKIP_TO_CONTENT
 </a>
 
 <!-- SCANLINE OVERLAY -->
-<div class="fixed inset-0 z-[100] scanline-overlay opacity-20 pointer-events-none" aria-hidden="true"></div>
+<div
+  class="fixed inset-0 z-[100] scanline-overlay opacity-20 pointer-events-none"
+  aria-hidden="true"
+>
+</div>
 
 <!-- TOP BAR -->
-<header role="banner" class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-14 bg-[#0e0e0e]/80 backdrop-blur-xl border-b border-[#ffa44c]/10">
+<header
+  role="banner"
+  class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-6 h-14 bg-[#0e0e0e]/80 backdrop-blur-xl border-b border-[#ffa44c]/10"
+>
   <div class="flex items-center gap-3 md:gap-6">
     <button
       id="sidebar-toggle"
@@ -19,7 +29,9 @@
     >
       <span class="material-symbols-outlined text-xl">menu</span>
     </button>
-    <a href="/" class="text-xl font-black text-[#ffa44c] tracking-widest font-headline">CRUCIBLE</a>
+    <a href="/" class="text-xl font-black text-[#ffa44c] tracking-widest font-headline">
+      CRUCIBLE
+    </a>
   </div>
   <div class="flex items-center gap-4">
     <div class="hidden md:flex bg-surface-container-low px-3 py-1 hud-border gap-4 items-center">
@@ -29,10 +41,20 @@
       <div class="w-2 h-2 bg-[#00FF41] animate-pulse"></div>
     </div>
     <div class="flex gap-1">
-      <a href="/settings" class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors" aria-label="Settings">
-        <span class="material-symbols-outlined text-lg" aria-hidden="true">settings_input_component</span>
+      <a
+        href="/settings"
+        class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors"
+        aria-label="Settings"
+      >
+        <span class="material-symbols-outlined text-lg" aria-hidden="true">
+          settings_input_component
+        </span>
       </a>
-      <a href="/router" class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors" aria-label="Router health">
+      <a
+        href="/router"
+        class="p-2 text-[#ffa44c]/60 hover:text-[#ffa44c] transition-colors"
+        aria-label="Router health"
+      >
         <span class="material-symbols-outlined text-lg" aria-hidden="true">monitor_heart</span>
       </a>
     </div>
@@ -45,7 +67,8 @@
   class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"
   onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
   aria-hidden="true"
-></div>
+>
+</div>
 
 <!-- SIDEBAR -->
 <aside
@@ -67,26 +90,33 @@
     <.nerv_nav_link path="/visual" icon="music_note" label="VISUAL" current={@current_path} />
     <.nerv_nav_link path="/remote" icon="dns" label="REMOTE" current={@current_path} />
     <.nerv_nav_link path="/codebase" icon="code" label="CODEBASE" current={@current_path} />
-
-    <!-- Settings divider -->
+    
+<!-- Settings divider -->
     <div class="my-3 border-t border-[#ffa44c]/10"></div>
 
     <.nerv_nav_link path="/config" icon="tune" label="CONFIG" current={@current_path} />
     <.nerv_nav_link path="/router" icon="swap_horiz" label="ROUTER" current={@current_path} />
     <.nerv_nav_link path="/settings" icon="settings" label="SETTINGS" current={@current_path} />
-    <.nerv_nav_link path="/workspaces" icon="workspaces" label="WORKSPACES" current={@current_path} />
+    <.nerv_nav_link
+      path="/workspaces"
+      icon="workspaces"
+      label="WORKSPACES"
+      current={@current_path}
+    />
     <.nerv_nav_link path="/audit" icon="shield" label="AUDIT" current={@current_path} />
     <.nerv_nav_link path="/policies" icon="policy" label="POLICIES" current={@current_path} />
   </nav>
-
-  <!-- Sidebar Footer -->
+  
+<!-- Sidebar Footer -->
   <div class="mt-auto px-3 pt-3 border-t border-[#ffa44c]/10">
     <div
       id="execution-mode-toggle"
       phx-hook="ExecutionModeToggle"
       phx-update="ignore"
     >
-      <div class="text-[9px] font-label text-[#ffa44c]/50 tracking-widest mb-2">EXECUTION_MODE</div>
+      <div class="text-[9px] font-label text-[#ffa44c]/50 tracking-widest mb-2">
+        EXECUTION_MODE
+      </div>
       <div class="flex w-full execution-mode-group">
         <button
           type="button"
@@ -126,7 +156,11 @@
 </aside>
 
 <!-- MAIN CONTENT -->
-<main id="main-content" role="main" class="md:ml-56 pt-20 px-4 md:px-6 pb-12 min-h-screen bg-[#0e0e0e]">
+<main
+  id="main-content"
+  role="main"
+  class="md:ml-56 pt-20 px-4 md:px-6 pb-12 min-h-screen bg-[#0e0e0e]"
+>
   <.flash_group flash={@flash} />
   {render_slot(@inner_block)}
 </main>

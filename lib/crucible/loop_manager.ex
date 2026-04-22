@@ -100,7 +100,12 @@ defmodule Crucible.LoopManager do
   @doc "Build deterministic team name for a workflow phase (matches TS buildTeamName)."
   @spec team_name_for_phase(Run.t(), any()) :: String.t()
   def team_name_for_phase(run, phase) do
-    safe_name = run.workflow_type |> to_string() |> String.replace(~r/[^a-zA-Z0-9_-]/, "") |> String.slice(0, 12)
+    safe_name =
+      run.workflow_type
+      |> to_string()
+      |> String.replace(~r/[^a-zA-Z0-9_-]/, "")
+      |> String.slice(0, 12)
+
     run_prefix = run.id |> String.slice(0, 12)
     "#{safe_name}-#{run_prefix}-p#{phase.phase_index}"
   end
@@ -315,7 +320,18 @@ defmodule Crucible.LoopManager do
 
     case System.cmd(
            "gh",
-           ["pr", "create", "--title", title, "--body", body, "--head", run.branch, "--base", base_branch],
+           [
+             "pr",
+             "create",
+             "--title",
+             title,
+             "--body",
+             body,
+             "--head",
+             run.branch,
+             "--base",
+             base_branch
+           ],
            cd: cwd,
            stderr_to_stdout: true,
            env: gh_env()
@@ -340,7 +356,10 @@ defmodule Crucible.LoopManager do
           [_, existing_url] ->
             case extract_pr_number(existing_url) do
               {:ok, number} ->
-                Logger.info("LoopManager: reusing existing PR ##{number} (created by sprint agent)")
+                Logger.info(
+                  "LoopManager: reusing existing PR ##{number} (created by sprint agent)"
+                )
+
                 {:ok, %{pr_number: number, pr_url: existing_url, existing: true}}
 
               :error ->
@@ -348,9 +367,7 @@ defmodule Crucible.LoopManager do
             end
 
           _ ->
-            Logger.warning(
-              "LoopManager: PR creation attempt #{attempt + 1}/3 failed: #{trimmed}"
-            )
+            Logger.warning("LoopManager: PR creation attempt #{attempt + 1}/3 failed: #{trimmed}")
 
             Process.sleep(3_000)
             do_create_pr(run, cwd, base_branch, attempt + 1)

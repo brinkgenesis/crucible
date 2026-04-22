@@ -47,8 +47,8 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -68,8 +68,8 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces/some-id")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces/some-id")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -92,8 +92,8 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces/export/some-run")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces/export/some-run")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -114,8 +114,8 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces/dashboard")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces/dashboard")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -135,8 +135,8 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces/some-run/detail")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces/some-run/detail")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -159,10 +159,9 @@ defmodule CrucibleWeb.Api.TracesControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/traces/some-run/summary")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/traces/some-run/summary")
+        assert conn.status in [401, 503]
       end)
     end
   end
-
 end

@@ -65,8 +65,7 @@ config :ueberauth, Ueberauth.Strategy.Google.OAuth,
   client_id: Crucible.Secrets.get("GOOGLE_OAUTH_CLIENT_ID"),
   client_secret: Crucible.Secrets.get("GOOGLE_OAUTH_CLIENT_SECRET")
 
-config :crucible, :oauth,
-  allowed_domain: System.get_env("OAUTH_ALLOWED_DOMAIN")
+config :crucible, :oauth, allowed_domain: System.get_env("OAUTH_ALLOWED_DOMAIN")
 
 # -- CORS origins --
 if cors_origins = System.get_env("CORS_ALLOWED_ORIGINS") do

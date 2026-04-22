@@ -160,9 +160,12 @@ defmodule CrucibleWeb.RemoteLive do
         <!-- Header Row -->
         <div class="col-span-12 flex items-end justify-between py-4">
           <div>
-            <h1 class="text-4xl font-headline font-black text-[#ffa44c] uppercase tracking-tighter">REMOTE_LAUNCHER</h1>
+            <h1 class="text-4xl font-headline font-black text-[#ffa44c] uppercase tracking-tighter">
+              REMOTE_LAUNCHER
+            </h1>
             <div class="flex items-center gap-2 mt-2">
-              <span :if={@remote.running} class="w-2 h-2 rounded-full bg-[#00eefc] animate-pulse"></span>
+              <span :if={@remote.running} class="w-2 h-2 rounded-full bg-[#00eefc] animate-pulse">
+              </span>
               <span :if={!@remote.running} class="w-2 h-2 rounded-full bg-[#777575]"></span>
               <span class={"font-label text-xs uppercase tracking-widest #{if @remote.running, do: "text-[#00eefc]/80", else: "text-[#777575]"}"}>
                 STATUS: {if @remote.running, do: "SESSION_ACTIVE", else: "AWAITING_LAUNCH"}
@@ -179,8 +182,8 @@ defmodule CrucibleWeb.RemoteLive do
             </button>
           </div>
         </div>
-
-        <!-- Left Column: Control & Access -->
+        
+    <!-- Left Column: Control & Access -->
         <div class="col-span-12 lg:col-span-4 space-y-6">
           <!-- Start Form -->
           <div class="bg-surface-container-low border-l-4 border-[#ffa44c] p-6 relative overflow-hidden">
@@ -188,12 +191,13 @@ defmodule CrucibleWeb.RemoteLive do
               <span class="material-symbols-outlined text-6xl text-[#ffa44c]">rocket_launch</span>
             </div>
             <h3 class="font-headline font-bold text-[#ffa44c] mb-6 flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">settings</span>
-              START_FORM
+              <span class="material-symbols-outlined text-sm">settings</span> START_FORM
             </h3>
             <form phx-submit="start_remote" phx-change="set_codebase" class="space-y-6">
               <div>
-                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">CODEBASE_ROOT_DIRECTORY</label>
+                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">
+                  CODEBASE_ROOT_DIRECTORY
+                </label>
                 <div class="relative">
                   <select
                     name="selected_codebase"
@@ -207,11 +211,15 @@ defmodule CrucibleWeb.RemoteLive do
                       {opt.label}
                     </option>
                   </select>
-                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#ffa44c] pointer-events-none">expand_more</span>
+                  <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#ffa44c] pointer-events-none">
+                    expand_more
+                  </span>
                 </div>
               </div>
               <div :if={@selected_codebase == "custom"}>
-                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">CUSTOM_PATH</label>
+                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">
+                  CUSTOM_PATH
+                </label>
                 <input
                   type="text"
                   name="custom_codebase"
@@ -221,10 +229,16 @@ defmodule CrucibleWeb.RemoteLive do
                 />
               </div>
               <div>
-                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">SESSION_PARAMETERS</label>
+                <label class="block font-label text-[10px] text-[#494847] mb-2 uppercase">
+                  SESSION_PARAMETERS
+                </label>
                 <div class="flex gap-2">
-                  <span class="bg-[#ffa44c]/10 text-[#ffa44c] font-label text-[9px] px-2 py-1 border border-[#ffa44c]/20">BYPASS_PERMS</span>
-                  <span class="bg-[#00eefc]/10 text-[#00eefc] font-label text-[9px] px-2 py-1 border border-[#00eefc]/20">REMOTE_CTRL</span>
+                  <span class="bg-[#ffa44c]/10 text-[#ffa44c] font-label text-[9px] px-2 py-1 border border-[#ffa44c]/20">
+                    BYPASS_PERMS
+                  </span>
+                  <span class="bg-[#00eefc]/10 text-[#00eefc] font-label text-[9px] px-2 py-1 border border-[#00eefc]/20">
+                    REMOTE_CTRL
+                  </span>
                 </div>
               </div>
               <button
@@ -232,18 +246,16 @@ defmodule CrucibleWeb.RemoteLive do
                 type="submit"
                 class="w-full bg-[#ffa44c] hover:brightness-110 text-black font-headline font-black py-4 flex justify-center items-center gap-3 transition-all active:scale-95"
               >
-                <span class="material-symbols-outlined">bolt</span>
-                LAUNCH_SESSION
+                <span class="material-symbols-outlined">bolt</span> LAUNCH_SESSION
               </button>
             </form>
           </div>
-
-          <!-- Session URL & QR -->
+          
+    <!-- Session URL & QR -->
           <div :if={@remote.running} class="bg-surface-container-low p-6 flex gap-6">
             <div class="flex-1 space-y-4">
               <h3 class="font-headline font-bold text-[#00eefc] text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">link</span>
-                SESSION_URL
+                <span class="material-symbols-outlined text-sm">link</span> SESSION_URL
               </h3>
               <div class="bg-black border border-[#494847]/20 p-3 font-label text-[11px] text-[#00eefc] flex items-center justify-between">
                 <span class="truncate">{@remote.url || "waiting..."}</span>
@@ -259,33 +271,48 @@ defmodule CrucibleWeb.RemoteLive do
                 </button>
               </div>
               <div class="flex justify-between items-center">
-                <span class="font-label text-[10px] text-[#494847]">PID: {to_string(@remote.pid || "—")}</span>
-                <span class="font-label text-[10px] text-[#00eefc]">MODE: {to_string(@remote.permissionMode || "bypassPermissions")}</span>
+                <span class="font-label text-[10px] text-[#494847]">
+                  PID: {to_string(@remote.pid || "—")}
+                </span>
+                <span class="font-label text-[10px] text-[#00eefc]">
+                  MODE: {to_string(@remote.permissionMode || "bypassPermissions")}
+                </span>
               </div>
             </div>
-            <div :if={@qr_code_url} class="w-24 h-24 bg-white p-1 shrink-0 flex items-center justify-center">
+            <div
+              :if={@qr_code_url}
+              class="w-24 h-24 bg-white p-1 shrink-0 flex items-center justify-center"
+            >
               <a href={@remote.url} target="_blank" rel="noopener noreferrer">
                 <img src={@qr_code_url} alt="Remote Session QR Code" class="w-full h-full" />
               </a>
             </div>
           </div>
-
-          <!-- Empty state -->
+          
+    <!-- Empty state -->
           <div :if={!@remote.running} class="bg-surface-container-low p-8 hud-border text-center">
-            <span class="material-symbols-outlined text-4xl text-[#ffa44c]/20 mb-3 block">memory</span>
-            <p class="font-label text-[10px] text-[#adaaaa]/40 uppercase tracking-widest mb-2">NO_ACTIVE_SESSION</p>
-            <p class="font-label text-[9px] text-[#ffa44c]/30">Launch a session to generate an access URL and live output stream</p>
+            <span class="material-symbols-outlined text-4xl text-[#ffa44c]/20 mb-3 block">
+              memory
+            </span>
+            <p class="font-label text-[10px] text-[#adaaaa]/40 uppercase tracking-widest mb-2">
+              NO_ACTIVE_SESSION
+            </p>
+            <p class="font-label text-[9px] text-[#ffa44c]/30">
+              Launch a session to generate an access URL and live output stream
+            </p>
           </div>
         </div>
-
-        <!-- Right Column: Terminal & Monitoring -->
+        
+    <!-- Right Column: Terminal & Monitoring -->
         <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
           <!-- Live Terminal -->
           <div class="flex-1 bg-black border border-[#494847]/30 relative flex flex-col min-h-[400px]">
             <div class="bg-surface-container-high px-4 py-2 flex items-center justify-between border-b border-[#494847]/20">
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-[#00eefc] text-sm">terminal</span>
-                <span class="font-label text-[10px] text-white uppercase tracking-widest">LIVE_OUTPUT_STREAM</span>
+                <span class="font-label text-[10px] text-white uppercase tracking-widest">
+                  LIVE_OUTPUT_STREAM
+                </span>
               </div>
               <div class="flex gap-2">
                 <div class="w-2 h-2 bg-[#ff725e]"></div>
@@ -303,13 +330,15 @@ defmodule CrucibleWeb.RemoteLive do
                   <span class="flex-1 whitespace-pre-wrap break-words leading-5">
                     {entry.line}
                   </span>
-                  <span :if={entry.count > 1} class="text-[#ffa44c] text-[9px] shrink-0">x{entry.count}</span>
+                  <span :if={entry.count > 1} class="text-[#ffa44c] text-[9px] shrink-0">
+                    x{entry.count}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Metrics -->
+          
+    <!-- Metrics -->
           <div :if={@remote.running} class="grid grid-cols-3 gap-4">
             <div class="bg-surface-container-low p-4 border-t-2 border-[#00eefc]">
               <p class="font-label text-[9px] text-[#494847] mb-1">SESSION_STATUS</p>
@@ -321,11 +350,16 @@ defmodule CrucibleWeb.RemoteLive do
             </div>
             <div class="bg-surface-container-low p-4 border-t-2 border-[#00FF41]">
               <p class="font-label text-[9px] text-[#494847] mb-1">STARTED_AT</p>
-              <p class="font-headline font-bold text-[#00FF41] text-sm">{format_started_at(@remote.startedAt)}</p>
+              <p class="font-headline font-bold text-[#00FF41] text-sm">
+                {format_started_at(@remote.startedAt)}
+              </p>
             </div>
           </div>
 
-          <div :if={@remote.running} class="text-[10px] font-label text-[#adaaaa]/40 uppercase tracking-widest">
+          <div
+            :if={@remote.running}
+            class="text-[10px] font-label text-[#adaaaa]/40 uppercase tracking-widest"
+          >
             CWD: {to_string(@remote.cwd || "—")}
           </div>
         </div>

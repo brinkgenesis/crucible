@@ -103,7 +103,10 @@ defmodule Crucible.PhaseRunner.Telemetry do
     end
   rescue
     e ->
-      Logger.warning("Telemetry: failed to read session tokens for #{session_id}: #{Exception.message(e)}")
+      Logger.warning(
+        "Telemetry: failed to read session tokens for #{session_id}: #{Exception.message(e)}"
+      )
+
       %{input_tokens: 0, output_tokens: 0, cache_read_tokens: 0}
   end
 

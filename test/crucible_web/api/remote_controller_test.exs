@@ -51,8 +51,8 @@ defmodule CrucibleWeb.Api.RemoteControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = post(conn, "/api/v1/remote/start")
-      assert conn.status in [401, 503]
+        conn = post(conn, "/api/v1/remote/start")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -76,8 +76,8 @@ defmodule CrucibleWeb.Api.RemoteControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/remote/status")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/remote/status")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -95,8 +95,8 @@ defmodule CrucibleWeb.Api.RemoteControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = post(conn, "/api/v1/remote/stop")
-      assert conn.status in [401, 503]
+        conn = post(conn, "/api/v1/remote/stop")
+        assert conn.status in [401, 503]
       end)
     end
   end

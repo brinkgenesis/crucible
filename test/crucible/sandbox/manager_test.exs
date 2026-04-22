@@ -26,12 +26,16 @@ defmodule Crucible.Sandbox.ManagerTest do
   end
 
   test "acquire returns a sandbox ID", %{pid: _pid} do
-    assert {:ok, sandbox_id} = Manager.acquire("run-1", [workspace_path: "/tmp/test"], :test_sandbox_manager)
+    assert {:ok, sandbox_id} =
+             Manager.acquire("run-1", [workspace_path: "/tmp/test"], :test_sandbox_manager)
+
     assert is_binary(sandbox_id)
   end
 
   test "release succeeds for acquired sandbox", %{pid: _pid} do
-    {:ok, sandbox_id} = Manager.acquire("run-2", [workspace_path: "/tmp/test"], :test_sandbox_manager)
+    {:ok, sandbox_id} =
+      Manager.acquire("run-2", [workspace_path: "/tmp/test"], :test_sandbox_manager)
+
     assert :ok = Manager.release(sandbox_id, :test_sandbox_manager)
   end
 

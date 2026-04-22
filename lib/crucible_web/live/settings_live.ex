@@ -248,7 +248,11 @@ defmodule CrucibleWeb.SettingsLive do
           </div>
           <div class="flex gap-2">
             <.hud_stat label="GLOBAL_HEALTH" value={health_pct(assigns)} color="primary" />
-            <.hud_stat label="GENSERVERS" value={"#{Enum.count(@genserver_status, & &1.alive)}/#{length(@genserver_status)}"} color="secondary" />
+            <.hud_stat
+              label="GENSERVERS"
+              value={"#{Enum.count(@genserver_status, & &1.alive)}/#{length(@genserver_status)}"}
+              color="secondary"
+            />
           </div>
         </div>
 
@@ -260,7 +264,10 @@ defmodule CrucibleWeb.SettingsLive do
               <div class="flex items-center gap-3">
                 <span class={[
                   "w-3 h-3",
-                  if(@api_server_up, do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]", else: "bg-[#ff7351] shadow-[0_0_8px_rgba(255,115,81,0.6)]")
+                  if(@api_server_up,
+                    do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]",
+                    else: "bg-[#ff7351] shadow-[0_0_8px_rgba(255,115,81,0.6)]"
+                  )
                 ]} />
                 <div class="font-mono text-[10px]">
                   <div class="text-white">API_SERVER</div>
@@ -272,7 +279,10 @@ defmodule CrucibleWeb.SettingsLive do
               <div :for={gs <- @genserver_status} class="flex items-center gap-3">
                 <span class={[
                   "w-3 h-3",
-                  if(gs.alive, do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]", else: "bg-[#494847]")
+                  if(gs.alive,
+                    do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]",
+                    else: "bg-[#494847]"
+                  )
                 ]} />
                 <div class="font-mono text-[10px]">
                   <div class="text-white">{String.upcase(gs.name)}</div>
@@ -331,7 +341,9 @@ defmodule CrucibleWeb.SettingsLive do
               <div>
                 <div class="flex justify-between font-mono text-[10px] mb-1">
                   <span class="text-white">POOL_AVAILABLE</span>
-                  <span class="text-[#00eefc]">{@sandbox_status.pool_available}/{@sandbox_status.pool_target}</span>
+                  <span class="text-[#00eefc]">
+                    {@sandbox_status.pool_available}/{@sandbox_status.pool_target}
+                  </span>
                 </div>
                 <div class="h-1 w-full bg-surface-container-highest">
                   <div
@@ -384,7 +396,10 @@ defmodule CrucibleWeb.SettingsLive do
               :for={alert <- @alert_history}
               class={[
                 "flex items-center justify-between p-3 font-mono text-[11px]",
-                if(alert.severity == :critical, do: "bg-[#ff7351]/5", else: "bg-surface-container-high")
+                if(alert.severity == :critical,
+                  do: "bg-[#ff7351]/5",
+                  else: "bg-surface-container-high"
+                )
               ]}
             >
               <div class="flex items-center gap-2">
@@ -417,7 +432,10 @@ defmodule CrucibleWeb.SettingsLive do
             >
               <span class={[
                 "w-2 h-2",
-                if(env.set, do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]", else: "bg-[#494847]")
+                if(env.set,
+                  do: "bg-[#00FF41] shadow-[0_0_8px_rgba(0,255,65,0.6)]",
+                  else: "bg-[#494847]"
+                )
               ]} />
               <span class="font-mono text-[10px] truncate text-white">{env.name}</span>
             </div>
@@ -444,15 +462,18 @@ defmodule CrucibleWeb.SettingsLive do
         <.hud_card>
           <.hud_header icon="info" label="System Info" class="mb-4" />
           <div class="space-y-2">
-            <div :for={
-              {label, val} <- [
-                {"ELIXIR", System.version()},
-                {"OTP", :erlang.system_info(:otp_release) |> to_string()},
-                {"PHOENIX", Application.spec(:phoenix, :vsn) |> to_string()},
-                {"VAULT_PATH", @config.vault_path},
-                {"AUTH", if(@config.api_key_set, do: "ENABLED", else: "DISABLED")}
-              ]
-            } class="flex items-center justify-between font-mono text-[11px]">
+            <div
+              :for={
+                {label, val} <- [
+                  {"ELIXIR", System.version()},
+                  {"OTP", :erlang.system_info(:otp_release) |> to_string()},
+                  {"PHOENIX", Application.spec(:phoenix, :vsn) |> to_string()},
+                  {"VAULT_PATH", @config.vault_path},
+                  {"AUTH", if(@config.api_key_set, do: "ENABLED", else: "DISABLED")}
+                ]
+              }
+              class="flex items-center justify-between font-mono text-[11px]"
+            >
               <span class="text-[#ffa44c]/60 uppercase">{label}</span>
               <span class="text-white">{val}</span>
             </div>

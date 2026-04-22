@@ -133,7 +133,13 @@ defmodule Crucible.Router.CostTable do
           cache_read_tokens :: non_neg_integer(),
           cache_write_tokens :: non_neg_integer()
         ) :: float()
-  def estimate_cost(model_id, input_tokens, output_tokens, cache_read_tokens \\ 0, cache_write_tokens \\ 0) do
+  def estimate_cost(
+        model_id,
+        input_tokens,
+        output_tokens,
+        cache_read_tokens \\ 0,
+        cache_write_tokens \\ 0
+      ) do
     case get(model_id) do
       nil ->
         0.0

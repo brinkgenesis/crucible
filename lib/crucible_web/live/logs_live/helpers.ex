@@ -70,7 +70,10 @@ defmodule CrucibleWeb.LogsLive.Helpers do
   def tool_hud_class("Grep"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
   def tool_hud_class("Glob"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
   def tool_hud_class("Agent"), do: "bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30"
-  def tool_hud_class("mcp__" <> _), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
+  def tool_hud_class("mcp__" <> _),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
   def tool_hud_class(_), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
 
   @doc "CSS classes for audit status badges."
@@ -81,9 +84,15 @@ defmodule CrucibleWeb.LogsLive.Helpers do
 
   @doc "CSS classes for session event badges."
   @spec session_hud_class(String.t() | nil) :: String.t()
-  def session_hud_class("session_start"), do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
-  def session_hud_class("session_end"), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
-  def session_hud_class("session_stop"), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+  def session_hud_class("session_start"),
+    do: "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
+
+  def session_hud_class("session_end"),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
+  def session_hud_class("session_stop"),
+    do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
+
   def session_hud_class(_), do: "bg-[#494847]/10 text-[#494847] border border-[#494847]/30"
 
   @doc "Color class for savings ratio display."
@@ -111,10 +120,19 @@ defmodule CrucibleWeb.LogsLive.Helpers do
 
   @doc "Returns {css_class, label} for an agent trace event badge."
   @spec agent_event_badge_attrs(String.t() | nil) :: {String.t(), String.t()}
-  def agent_event_badge_attrs("subagent_start"), do: {"bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30", "START"}
-  def agent_event_badge_attrs("subagent_stop"), do: {"bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30", "STOP"}
-  def agent_event_badge_attrs("teammate_idle"), do: {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", "IDLE"}
+  def agent_event_badge_attrs("subagent_start"),
+    do: {"bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30", "START"}
+
+  def agent_event_badge_attrs("subagent_stop"),
+    do: {"bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30", "STOP"}
+
+  def agent_event_badge_attrs("teammate_idle"),
+    do: {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", "IDLE"}
+
   def agent_event_badge_attrs("ghost_agent_detected"), do: {"bg-[#ff7351] text-black", "GHOST"}
-  def agent_event_badge_attrs(e) when is_binary(e), do: {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", String.upcase(e)}
+
+  def agent_event_badge_attrs(e) when is_binary(e),
+    do: {"bg-[#494847]/10 text-[#494847] border border-[#494847]/30", String.upcase(e)}
+
   def agent_event_badge_attrs(_), do: {"bg-[#494847]/10 text-[#494847]", "—"}
 end

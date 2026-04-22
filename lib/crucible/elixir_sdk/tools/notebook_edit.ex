@@ -124,6 +124,7 @@ defmodule Crucible.ElixirSdk.Tools.NotebookEdit do
   # a single string. We use the list form for portability.
   defp to_source_list(nil), do: [""]
   defp to_source_list(""), do: [""]
+
   defp to_source_list(src) when is_binary(src) do
     src
     |> String.split("\n")

@@ -67,7 +67,13 @@ defmodule CrucibleWeb.PoliciesLive do
 
     case WorkspaceProfiles.update_workspace(ws, normalize_policy_params(params)) do
       {:ok, _ws} ->
-        AuditLog.log("policy", ws.id, "updated", %{fields: Map.keys(normalize_policy_params(params))}, actor: "liveview:PoliciesLive")
+        AuditLog.log(
+          "policy",
+          ws.id,
+          "updated",
+          %{fields: Map.keys(normalize_policy_params(params))},
+          actor: "liveview:PoliciesLive"
+        )
 
         {:noreply,
          socket
@@ -141,7 +147,10 @@ defmodule CrucibleWeb.PoliciesLive do
               </.tactical_button>
             </div>
 
-            <div :if={@editing == nil || @editing.id != ws.id} class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div
+              :if={@editing == nil || @editing.id != ws.id}
+              class="grid grid-cols-1 md:grid-cols-3 gap-4"
+            >
               <div class="p-3 bg-surface-container-high border-l-2 border-[#00eefc]/50">
                 <div class="text-[9px] font-mono text-[#00eefc]/70">ALLOWED_MODELS</div>
                 <div class="text-sm font-mono text-white mt-1">
@@ -159,7 +168,9 @@ defmodule CrucibleWeb.PoliciesLive do
               <div class="p-3 bg-surface-container-high border-l-2 border-[#ff725e]/50">
                 <div class="text-[9px] font-mono text-[#ff725e]/70">APPROVAL_THRESHOLD</div>
                 <div class="text-xl font-bold font-mono text-white">
-                  {if ws.approval_threshold, do: "Complexity >= #{ws.approval_threshold}", else: "NONE"}
+                  {if ws.approval_threshold,
+                    do: "Complexity >= #{ws.approval_threshold}",
+                    else: "NONE"}
                 </div>
               </div>
             </div>
@@ -173,7 +184,9 @@ defmodule CrucibleWeb.PoliciesLive do
             >
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label class="block text-[9px] font-mono text-[#00eefc]/70 mb-1">ALLOWED_MODELS (comma-separated)</label>
+                  <label class="block text-[9px] font-mono text-[#00eefc]/70 mb-1">
+                    ALLOWED_MODELS (comma-separated)
+                  </label>
                   <input
                     type="text"
                     name="policy[allowed_models]"
@@ -183,33 +196,59 @@ defmodule CrucibleWeb.PoliciesLive do
                   />
                 </div>
                 <div>
-                  <label class="block text-[9px] font-mono text-[#ffa44c]/70 mb-1">COST_LIMIT_USD</label>
+                  <label class="block text-[9px] font-mono text-[#ffa44c]/70 mb-1">
+                    COST_LIMIT_USD
+                  </label>
                   <input
                     type="text"
                     name="policy[cost_limit_usd]"
                     value={@form[:cost_limit_usd].value}
                     placeholder="50.00"
-                    class={["w-full bg-surface-container-highest border text-white font-mono text-xs px-3 py-2 focus:outline-none",
-                      if(@form[:cost_limit_usd].errors != [], do: "border-[#ff725e] focus:border-[#ff725e]", else: "border-[#494847] focus:border-[#ffa44c]")]}
+                    class={[
+                      "w-full bg-surface-container-highest border text-white font-mono text-xs px-3 py-2 focus:outline-none",
+                      if(@form[:cost_limit_usd].errors != [],
+                        do: "border-[#ff725e] focus:border-[#ff725e]",
+                        else: "border-[#494847] focus:border-[#ffa44c]"
+                      )
+                    ]}
                   />
-                  <p :for={{msg, _} <- @form[:cost_limit_usd].errors} class="text-[9px] font-mono text-[#ff725e] mt-1">{msg}</p>
+                  <p
+                    :for={{msg, _} <- @form[:cost_limit_usd].errors}
+                    class="text-[9px] font-mono text-[#ff725e] mt-1"
+                  >
+                    {msg}
+                  </p>
                 </div>
                 <div>
-                  <label class="block text-[9px] font-mono text-[#ff725e]/70 mb-1">APPROVAL_THRESHOLD (1-10)</label>
+                  <label class="block text-[9px] font-mono text-[#ff725e]/70 mb-1">
+                    APPROVAL_THRESHOLD (1-10)
+                  </label>
                   <input
                     type="text"
                     name="policy[approval_threshold]"
                     value={@form[:approval_threshold].value}
                     placeholder="7"
-                    class={["w-full bg-surface-container-highest border text-white font-mono text-xs px-3 py-2 focus:outline-none",
-                      if(@form[:approval_threshold].errors != [], do: "border-[#ff725e] focus:border-[#ff725e]", else: "border-[#494847] focus:border-[#ff725e]")]}
+                    class={[
+                      "w-full bg-surface-container-highest border text-white font-mono text-xs px-3 py-2 focus:outline-none",
+                      if(@form[:approval_threshold].errors != [],
+                        do: "border-[#ff725e] focus:border-[#ff725e]",
+                        else: "border-[#494847] focus:border-[#ff725e]"
+                      )
+                    ]}
                   />
-                  <p :for={{msg, _} <- @form[:approval_threshold].errors} class="text-[9px] font-mono text-[#ff725e] mt-1">{msg}</p>
+                  <p
+                    :for={{msg, _} <- @form[:approval_threshold].errors}
+                    class="text-[9px] font-mono text-[#ff725e] mt-1"
+                  >
+                    {msg}
+                  </p>
                 </div>
               </div>
               <div class="flex gap-2">
                 <.tactical_button type="submit">SAVE_POLICY</.tactical_button>
-                <.tactical_button variant="ghost" type="button" phx-click="cancel_edit">CANCEL</.tactical_button>
+                <.tactical_button variant="ghost" type="button" phx-click="cancel_edit">
+                  CANCEL
+                </.tactical_button>
               </div>
             </.form>
           </.hud_card>

@@ -62,7 +62,9 @@ defmodule Mix.Tasks.AuditStats do
         from(e in query, where: e.occurred_at >= ^since)
 
       {:error, _} ->
-        Mix.raise("Invalid --since date: #{since_str}. Expected ISO 8601 format (e.g. 2024-01-01)")
+        Mix.raise(
+          "Invalid --since date: #{since_str}. Expected ISO 8601 format (e.g. 2024-01-01)"
+        )
     end
   end
 end

@@ -152,7 +152,9 @@ defmodule Crucible.AlertManager do
       # Fire-and-forget via supervised task — failures are logged, not silent
       Task.Supervisor.start_child(Crucible.TaskSupervisor, fn ->
         case Webhook.send(alert, state.webhook_url, state.webhook_format) do
-          :ok -> :ok
+          :ok ->
+            :ok
+
           {:error, reason} ->
             Logger.warning("AlertManager: webhook delivery failed: #{inspect(reason)}")
         end

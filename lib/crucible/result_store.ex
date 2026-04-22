@@ -92,7 +92,11 @@ defmodule Crucible.ResultStore do
 
       _ ->
         # Serialize transitions through GenServer for atomicity
-        GenServer.call(__MODULE__, {:transition, run_id, next_status, idempotency_key}, @call_timeout)
+        GenServer.call(
+          __MODULE__,
+          {:transition, run_id, next_status, idempotency_key},
+          @call_timeout
+        )
     end
   end
 

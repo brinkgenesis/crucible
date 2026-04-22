@@ -9,11 +9,22 @@ defmodule CrucibleWeb.Api.TokensController do
     description: "Returns aggregated LLM token usage across sessions, models, and projects.",
     tags: ["Tokens"],
     parameters: [
-      runId: [in: :query, type: :string, required: false, description: "Filter to a specific run ID"],
-      includeSubscription: [in: :query, type: :string, required: false, description: "Include subscription sessions (default true)"]
+      runId: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Filter to a specific run ID"
+      ],
+      includeSubscription: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Include subscription sessions (default true)"
+      ]
     ],
     responses: [ok: {"LLM usage summary", "application/json", %OpenApiSpex.Schema{type: :object}}]
   )
+
   def llm(conn, params) do
     summary =
       safe_call(
@@ -33,8 +44,11 @@ defmodule CrucibleWeb.Api.TokensController do
     summary: "Token savings summary",
     description: "Returns global token savings from prompt compaction across all projects.",
     tags: ["Tokens"],
-    responses: [ok: {"Token savings summary", "application/json", %OpenApiSpex.Schema{type: :object}}]
+    responses: [
+      ok: {"Token savings summary", "application/json", %OpenApiSpex.Schema{type: :object}}
+    ]
   )
+
   def savings(conn, _params) do
     summary =
       safe_call(fn -> SavingsReader.build_global_savings() end, %{
@@ -55,10 +69,20 @@ defmodule CrucibleWeb.Api.TokensController do
     description: "Returns token usage aggregated by date for the past N days.",
     tags: ["Tokens"],
     parameters: [
-      days: [in: :query, type: :integer, required: false, description: "Number of past days to include (default 14)"]
+      days: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Number of past days to include (default 14)"
+      ]
     ],
-    responses: [ok: {"Daily token usage", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Daily token usage", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def daily(conn, params) do
     days = parse_days(params, 14)
 
@@ -84,10 +108,20 @@ defmodule CrucibleWeb.Api.TokensController do
     description: "Returns token usage aggregated by model for the past N days.",
     tags: ["Tokens"],
     parameters: [
-      days: [in: :query, type: :integer, required: false, description: "Number of past days to include (default 1)"]
+      days: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Number of past days to include (default 1)"
+      ]
     ],
-    responses: [ok: {"Token usage by model", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Token usage by model", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def by_model(conn, params) do
     days = parse_days(params, 1)
 

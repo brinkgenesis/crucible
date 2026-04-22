@@ -79,7 +79,10 @@ defmodule Crucible.Sandbox.Manager do
 
     case {enabled?, mode} do
       {true, :docker} ->
-        Logger.info("Sandbox.Manager: starting with Docker provider, pool_size=#{state.pool_size}")
+        Logger.info(
+          "Sandbox.Manager: starting with Docker provider, pool_size=#{state.pool_size}"
+        )
+
         send(self(), :warm_pool)
 
       {true, :local} ->
@@ -107,7 +110,10 @@ defmodule Crucible.Sandbox.Manager do
         new_state =
           new_state
           |> put_in([:active, sandbox_id], %{run_id: run_id, started_at: now})
-          |> update_in([:run_map], &Map.update(&1, run_id, [sandbox_id], fn ids -> [sandbox_id | ids] end))
+          |> update_in(
+            [:run_map],
+            &Map.update(&1, run_id, [sandbox_id], fn ids -> [sandbox_id | ids] end)
+          )
 
         # Audit + telemetry
         Events.broadcast_alert_event(:sandbox_started, %{

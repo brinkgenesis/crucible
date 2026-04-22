@@ -61,7 +61,9 @@ defmodule Crucible.Schema.WorkspaceProfile do
     |> cast(attrs, @required ++ @optional)
     |> validate_required(@required)
     |> validate_length(:name, min: 1, max: 255)
-    |> validate_format(:slug, ~r/^[a-z0-9_-]+$/, message: "must be lowercase alphanumeric with hyphens/underscores")
+    |> validate_format(:slug, ~r/^[a-z0-9_-]+$/,
+      message: "must be lowercase alphanumeric with hyphens/underscores"
+    )
     |> unique_constraint(:slug)
     |> validate_policy_fields()
   end

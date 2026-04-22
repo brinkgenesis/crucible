@@ -285,8 +285,8 @@ defmodule CrucibleWeb.CodebaseLive do
     <Layouts.app flash={@flash} current_path={@current_path}>
       <div class="space-y-6">
         <.hud_header icon="code" label="CODEBASE_INTELLIGENCE" />
-
-        <!-- Stat cards -->
+        
+    <!-- Stat cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <.hud_card>
             <.hud_stat label="MODULES" value={to_string(@stats.total_modules)} color="primary" />
@@ -301,8 +301,8 @@ defmodule CrucibleWeb.CodebaseLive do
             <.hud_stat label="LAST INDEXED" value={@stats.last_indexed} color="primary" />
           </.hud_card>
         </div>
-
-        <!-- Controls -->
+        
+    <!-- Controls -->
         <div class="flex flex-wrap items-center gap-3 bg-surface-container-low hud-border p-3">
           <!-- View toggle -->
           <div class="flex border border-[#ffa44c]/20 rounded overflow-hidden">
@@ -328,8 +328,8 @@ defmodule CrucibleWeb.CodebaseLive do
               {label}
             </button>
           </div>
-
-          <!-- Project selector -->
+          
+    <!-- Project selector -->
           <select
             :if={length(@projects) > 1}
             phx-change="switch_project"
@@ -338,8 +338,8 @@ defmodule CrucibleWeb.CodebaseLive do
           >
             <option :for={p <- @projects} value={p} selected={p == @project}>{p}</option>
           </select>
-
-          <!-- Search -->
+          
+    <!-- Search -->
           <form phx-change="search" class="flex-1 max-w-xs">
             <input
               type="text"
@@ -355,8 +355,8 @@ defmodule CrucibleWeb.CodebaseLive do
             {length(@modules)} modules
           </span>
         </div>
-
-        <!-- Prefix filter pills -->
+        
+    <!-- Prefix filter pills -->
         <div :if={@prefixes != []} class="flex flex-wrap gap-1">
           <button
             :for={prefix <- Enum.take(@prefixes, 12)}
@@ -366,7 +366,8 @@ defmodule CrucibleWeb.CodebaseLive do
               "px-2 py-0.5 font-mono text-[9px] tracking-wider uppercase rounded border transition-colors cursor-pointer",
               if(@filter_prefix == prefix,
                 do: "bg-[#ffa44c] text-black border-[#ffa44c]",
-                else: "text-[#e0e0e0]/40 border-[#e0e0e0]/10 hover:border-[#ffa44c]/30 hover:text-[#e0e0e0]/60"
+                else:
+                  "text-[#e0e0e0]/40 border-[#e0e0e0]/10 hover:border-[#ffa44c]/30 hover:text-[#e0e0e0]/60"
               )
             ]}
           >
@@ -381,18 +382,26 @@ defmodule CrucibleWeb.CodebaseLive do
             CLEAR
           </button>
         </div>
-
-        <!-- List view -->
+        
+    <!-- List view -->
         <div :if={@view_mode == "list"}>
           <.hud_card>
             <div class="overflow-x-auto">
               <table class="w-full">
                 <thead>
                   <tr class="border-b border-[#ffa44c]/10">
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Module</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Deps</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Symbols</th>
-                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Exported</th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Module
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Deps
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Symbols
+                    </th>
+                    <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Exported
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -406,20 +415,29 @@ defmodule CrucibleWeb.CodebaseLive do
                     ]}
                   >
                     <td class="font-mono text-[11px] text-[#00eefc] py-2 px-3">{mod.path}</td>
-                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">{mod.dep_count}</td>
-                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">{mod.symbol_count}</td>
-                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">{mod.exported_count}</td>
+                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">
+                      {mod.dep_count}
+                    </td>
+                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">
+                      {mod.symbol_count}
+                    </td>
+                    <td class="text-right font-mono text-[11px] text-[#e0e0e0]/50 py-2 px-3">
+                      {mod.exported_count}
+                    </td>
                   </tr>
                 </tbody>
               </table>
-              <div :if={length(@modules) > 200} class="font-mono text-[10px] text-[#ffa44c]/40 mt-3 text-center">
+              <div
+                :if={length(@modules) > 200}
+                class="font-mono text-[10px] text-[#ffa44c]/40 mt-3 text-center"
+              >
                 SHOWING 200 OF {length(@modules)} — USE SEARCH OR FILTER TO NARROW
               </div>
             </div>
           </.hud_card>
         </div>
-
-        <!-- Graph view -->
+        
+    <!-- Graph view -->
         <div
           :if={@view_mode == "graph"}
           id="codebase-graph"
@@ -429,8 +447,8 @@ defmodule CrucibleWeb.CodebaseLive do
           class="w-full h-[600px] bg-surface-container-low hud-border rounded"
         >
         </div>
-
-        <!-- Intelligence view -->
+        
+    <!-- Intelligence view -->
         <div :if={@view_mode == "intelligence"} class="space-y-4">
           <!-- Query type tabs -->
           <div class="flex border border-[#00eefc]/20 rounded overflow-hidden w-fit">
@@ -455,8 +473,8 @@ defmodule CrucibleWeb.CodebaseLive do
               {label}
             </button>
           </div>
-
-          <!-- Input fields -->
+          
+    <!-- Input fields -->
           <form phx-submit="run_intel_query" class="flex gap-2 items-center">
             <input
               :if={@intel_type == :symbols}
@@ -475,34 +493,53 @@ defmodule CrucibleWeb.CodebaseLive do
               class="flex-1 bg-surface-container border border-[#ffa44c]/20 text-[#e0e0e0] font-mono text-[11px] px-3 py-1.5 rounded focus:border-[#00eefc]/50 focus:outline-none placeholder:text-[#e0e0e0]/20"
             />
             <.tactical_button variant="primary" type="submit" disabled={@intel_loading}>
-              <span :if={@intel_loading} class="inline-block w-3 h-3 border-2 border-[#ffa44c]/30 border-t-[#ffa44c] rounded-full animate-spin mr-1" />
+              <span
+                :if={@intel_loading}
+                class="inline-block w-3 h-3 border-2 border-[#ffa44c]/30 border-t-[#ffa44c] rounded-full animate-spin mr-1"
+              />
               {if @intel_type == :hotspots, do: "LOAD HOTSPOTS", else: "SEARCH"}
             </.tactical_button>
           </form>
-
-          <!-- Error state -->
-          <div :if={@intel_error} class="flex items-center gap-3 px-4 py-2.5 font-mono text-xs text-[#ff7351] border border-[#ff7351]/20 bg-[#ff7351]/5 rounded">
+          
+    <!-- Error state -->
+          <div
+            :if={@intel_error}
+            class="flex items-center gap-3 px-4 py-2.5 font-mono text-xs text-[#ff7351] border border-[#ff7351]/20 bg-[#ff7351]/5 rounded"
+          >
             <span class="material-symbols-outlined text-sm">error</span>
             <span>{@intel_error}</span>
           </div>
-
-          <!-- Results -->
+          
+    <!-- Results -->
           <div :if={@intel_results}>
             <.hud_card>
               <!-- Hotspots results (list) -->
               <div :if={@intel_type == :hotspots && is_list(@intel_results)}>
-                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">TOP FILES BY COMPLEXITY</div>
+                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+                  TOP FILES BY COMPLEXITY
+                </div>
                 <table class="w-full">
                   <thead>
                     <tr class="border-b border-[#ffa44c]/10">
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">File</th>
-                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Syms</th>
-                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Exp</th>
-                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Deps</th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        File
+                      </th>
+                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Syms
+                      </th>
+                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Exp
+                      </th>
+                      <th class="text-right font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Deps
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr :for={item <- Enum.take(@intel_results, 20)} class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5">
+                    <tr
+                      :for={item <- Enum.take(@intel_results, 20)}
+                      class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5"
+                    >
                       <td class="font-mono text-[11px] py-1.5 px-2">
                         <button
                           phx-click="select_module"
@@ -525,10 +562,12 @@ defmodule CrucibleWeb.CodebaseLive do
                   </tbody>
                 </table>
               </div>
-
-              <!-- Hotspots results (map / health endpoint) -->
+              
+    <!-- Hotspots results (map / health endpoint) -->
               <div :if={@intel_type == :hotspots && is_map(@intel_results)} class="space-y-2">
-                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">CODEBASE HEALTH</div>
+                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+                  CODEBASE HEALTH
+                </div>
                 <div
                   :for={{key, val} <- @intel_results}
                   :if={is_binary(key)}
@@ -540,28 +579,48 @@ defmodule CrucibleWeb.CodebaseLive do
                   <span class="font-mono text-[11px] text-[#00eefc]">{inspect(val)}</span>
                 </div>
               </div>
-
-              <!-- Symbols results -->
+              
+    <!-- Symbols results -->
               <div :if={@intel_type == :symbols}>
-                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">SYMBOLS</div>
+                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+                  SYMBOLS
+                </div>
                 <table class="w-full">
                   <thead>
                     <tr class="border-b border-[#ffa44c]/10">
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Name</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Kind</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Line</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Exp</th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Name
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Kind
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Line
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Exp
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr :for={sym <- List.wrap(@intel_results)} class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5">
-                      <td class="font-mono text-[11px] text-[#e0e0e0]/70 py-1.5 px-2">{sym["name"]}</td>
+                    <tr
+                      :for={sym <- List.wrap(@intel_results)}
+                      class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5"
+                    >
+                      <td class="font-mono text-[11px] text-[#e0e0e0]/70 py-1.5 px-2">
+                        {sym["name"]}
+                      </td>
                       <td class="py-1.5 px-2">
-                        <span class={["px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded", kind_hud_badge(sym["kind"])]}>
+                        <span class={[
+                          "px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded",
+                          kind_hud_badge(sym["kind"])
+                        ]}>
                           {sym["kind"]}
                         </span>
                       </td>
-                      <td class="font-mono text-[11px] text-[#e0e0e0]/40 py-1.5 px-2">{sym["line"] || "—"}</td>
+                      <td class="font-mono text-[11px] text-[#e0e0e0]/40 py-1.5 px-2">
+                        {sym["line"] || "—"}
+                      </td>
                       <td class="py-1.5 px-2">
                         <span :if={sym["exported"]} class="text-[#00FF41] text-[10px]">✓</span>
                       </td>
@@ -569,20 +628,31 @@ defmodule CrucibleWeb.CodebaseLive do
                   </tbody>
                 </table>
               </div>
-
-              <!-- References results -->
+              
+    <!-- References results -->
               <div :if={@intel_type == :references}>
-                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">REFERENCES</div>
+                <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+                  REFERENCES
+                </div>
                 <table class="w-full">
                   <thead>
                     <tr class="border-b border-[#ffa44c]/10">
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">File</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Line</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Context</th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        File
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Line
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Context
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr :for={ref <- List.wrap(@intel_results)} class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5">
+                    <tr
+                      :for={ref <- List.wrap(@intel_results)}
+                      class="border-b border-[#ffa44c]/5 hover:bg-[#ffa44c]/5"
+                    >
                       <td class="font-mono text-[11px] py-1.5 px-2">
                         <button
                           phx-click="select_module"
@@ -592,7 +662,9 @@ defmodule CrucibleWeb.CodebaseLive do
                           {ref["file"]}
                         </button>
                       </td>
-                      <td class="font-mono text-[11px] text-[#e0e0e0]/40 py-1.5 px-2">{ref["line"] || "—"}</td>
+                      <td class="font-mono text-[11px] text-[#e0e0e0]/40 py-1.5 px-2">
+                        {ref["line"] || "—"}
+                      </td>
                       <td class="font-mono text-[11px] text-[#e0e0e0]/30 max-w-xs truncate py-1.5 px-2">
                         {ref["context"] || ref["snippet"] || ""}
                       </td>
@@ -601,28 +673,39 @@ defmodule CrucibleWeb.CodebaseLive do
                 </table>
               </div>
 
-              <div :if={@intel_results == []} class="text-center py-4 text-[#e0e0e0]/30 font-mono text-xs">
+              <div
+                :if={@intel_results == []}
+                class="text-center py-4 text-[#e0e0e0]/30 font-mono text-xs"
+              >
                 NO_RESULTS_FOUND
               </div>
             </.hud_card>
           </div>
         </div>
-
-        <!-- Module detail panel -->
+        
+    <!-- Module detail panel -->
         <div :if={@selected_module && @module_detail}>
           <.hud_card accent="secondary">
             <div class="flex items-start justify-between">
               <div>
                 <h3 class="font-mono text-sm font-bold text-[#00eefc]">{@module_detail.path}</h3>
-                <span class="font-mono text-[10px] text-[#e0e0e0]/30">slug: {@module_detail.slug}</span>
+                <span class="font-mono text-[10px] text-[#e0e0e0]/30">
+                  slug: {@module_detail.slug}
+                </span>
               </div>
-              <button phx-click="clear_selection" class="px-2 py-1 text-[#e0e0e0]/30 hover:text-[#ff725e] hover:bg-[#ff725e]/10 rounded transition-colors">
+              <button
+                phx-click="clear_selection"
+                class="px-2 py-1 text-[#e0e0e0]/30 hover:text-[#ff725e] hover:bg-[#ff725e]/10 rounded transition-colors"
+              >
                 <span class="material-symbols-outlined text-sm">close</span>
               </button>
             </div>
-
-            <!-- Purpose from vault note -->
-            <div :if={@module_detail.note} class="mt-3 p-3 bg-surface-container rounded border border-[#ffa44c]/10 font-mono text-[11px] text-[#e0e0e0]/60">
+            
+    <!-- Purpose from vault note -->
+            <div
+              :if={@module_detail.note}
+              class="mt-3 p-3 bg-surface-container rounded border border-[#ffa44c]/10 font-mono text-[11px] text-[#e0e0e0]/60"
+            >
               {@module_detail.note}
             </div>
 
@@ -637,7 +720,9 @@ defmodule CrucibleWeb.CodebaseLive do
                     :for={edge <- @module_detail.edges}
                     class="flex items-center gap-2"
                   >
-                    <span class="px-1 py-0.5 font-mono text-[8px] uppercase text-[#ffa44c]/40 border border-[#ffa44c]/10 rounded">{edge.type}</span>
+                    <span class="px-1 py-0.5 font-mono text-[8px] uppercase text-[#ffa44c]/40 border border-[#ffa44c]/10 rounded">
+                      {edge.type}
+                    </span>
                     <button
                       phx-click="select_module"
                       phx-value-path={edge.target}
@@ -645,17 +730,23 @@ defmodule CrucibleWeb.CodebaseLive do
                     >
                       {edge.target}
                     </button>
-                    <span :if={edge.names != []} class="font-mono text-[10px] text-[#e0e0e0]/20 truncate">
+                    <span
+                      :if={edge.names != []}
+                      class="font-mono text-[10px] text-[#e0e0e0]/20 truncate"
+                    >
                       {Enum.join(edge.names, ", ")}
                     </span>
                   </div>
-                  <div :if={@module_detail.edges == []} class="font-mono text-[11px] text-[#e0e0e0]/20">
+                  <div
+                    :if={@module_detail.edges == []}
+                    class="font-mono text-[11px] text-[#e0e0e0]/20"
+                  >
                     No dependencies
                   </div>
                 </div>
               </div>
-
-              <!-- Dependents -->
+              
+    <!-- Dependents -->
               <div>
                 <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-2">
                   DEPENDENTS ({length(@module_detail.dependents)})
@@ -669,14 +760,17 @@ defmodule CrucibleWeb.CodebaseLive do
                   >
                     {dep}
                   </button>
-                  <div :if={@module_detail.dependents == []} class="font-mono text-[11px] text-[#e0e0e0]/20">
+                  <div
+                    :if={@module_detail.dependents == []}
+                    class="font-mono text-[11px] text-[#e0e0e0]/20"
+                  >
                     No dependents
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Symbols -->
+            
+    <!-- Symbols -->
             <div :if={@module_detail.symbols != []} class="mt-4">
               <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-2">
                 SYMBOLS ({@module_detail.symbol_count})
@@ -685,16 +779,25 @@ defmodule CrucibleWeb.CodebaseLive do
                 <table class="w-full">
                   <thead>
                     <tr class="border-b border-[#ffa44c]/10">
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Name</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Kind</th>
-                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">Exp</th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Name
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Kind
+                      </th>
+                      <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-1.5 px-2">
+                        Exp
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr :for={sym <- @module_detail.symbols} class="border-b border-[#ffa44c]/5">
                       <td class="font-mono text-[11px] text-[#e0e0e0]/70 py-1.5 px-2">{sym.name}</td>
                       <td class="py-1.5 px-2">
-                        <span class={["px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded", kind_hud_badge(sym.kind)]}>
+                        <span class={[
+                          "px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded",
+                          kind_hud_badge(sym.kind)
+                        ]}>
                           {sym.kind}
                         </span>
                       </td>
@@ -810,7 +913,6 @@ defmodule CrucibleWeb.CodebaseLive do
   # ---------------------------------------------------------------------------
   # Helpers
   # ---------------------------------------------------------------------------
-
 
   defp kind_hud_badge("class"), do: "text-[#ffa44c] border-[#ffa44c]/30"
   defp kind_hud_badge("interface"), do: "text-[#00eefc] border-[#00eefc]/30"

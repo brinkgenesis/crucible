@@ -31,8 +31,9 @@ defmodule Crucible.Utils.GroupByTest do
     end
 
     test "handles a single item" do
-      assert GroupBy.group_by([%{status: "done"}], & &1.status) == %{"done" => [%{status: "done"}]}
+      assert GroupBy.group_by([%{status: "done"}], & &1.status) == %{
+               "done" => [%{status: "done"}]
+             }
     end
   end
-
 end

@@ -90,6 +90,7 @@ defmodule Crucible.TraceReader do
           true ->
             # Legacy fallback: 8-char prefix in team_name/session_id
             prefix = String.slice(run_id, 0, 8)
+
             Enum.any?(
               [e["team_name"], e["session_id"]],
               fn v -> is_binary(v) and String.contains?(v, prefix) end
@@ -219,7 +220,9 @@ defmodule Crucible.TraceReader do
                   {:ok, meta} -> meta["agentType"] || agent_id
                   _ -> agent_id
                 end
-              _ -> agent_id
+
+              _ ->
+                agent_id
             end
 
           content = summarize_subagent_transcript(jsonl_path)
@@ -500,9 +503,16 @@ defmodule Crucible.TraceReader do
       )
     end)
   rescue
-    e in [DBConnection.ConnectionError, DBConnection.OwnershipError, Postgrex.Error, File.Error, ArgumentError] ->
+    e in [
+      DBConnection.ConnectionError,
+      DBConnection.OwnershipError,
+      Postgrex.Error,
+      File.Error,
+      ArgumentError
+    ] ->
       require Logger
       Logger.warning("TraceReader.list_runs error: #{Exception.message(e)}")
+
       file_list_runs(opts, Keyword.get(opts, :since))
       |> maybe_filter_runs_workspace(Keyword.get(opts, :workspace))
   end
@@ -529,7 +539,13 @@ defmodule Crucible.TraceReader do
       fn -> do_list_runs_source(opts, since, client_id, workspace) end
     )
   rescue
-    e in [DBConnection.ConnectionError, DBConnection.OwnershipError, Postgrex.Error, File.Error, ArgumentError] ->
+    e in [
+      DBConnection.ConnectionError,
+      DBConnection.OwnershipError,
+      Postgrex.Error,
+      File.Error,
+      ArgumentError
+    ] ->
       require Logger
       Logger.warning("TraceReader.list_runs_source error: #{Exception.message(e)}")
 
@@ -1246,7 +1262,11 @@ defmodule Crucible.TraceReader do
   rescue
     e in [File.Error, Jason.DecodeError] ->
       require Logger
-      Logger.warning("TraceReader.summarize_trace_file error for #{path}: #{Exception.message(e)}")
+
+      Logger.warning(
+        "TraceReader.summarize_trace_file error for #{path}: #{Exception.message(e)}"
+      )
+
       nil
   end
 
@@ -1781,7 +1801,7 @@ defmodule Crucible.TraceReader do
     starts =
       events
       |> Enum.filter(&(&1["eventType"] == "phase_start"))
-      |> Enum.group_by(&(&1["phaseId"]))
+      |> Enum.group_by(& &1["phaseId"])
       |> Enum.map(fn {_id, group} -> List.last(group) end)
       |> Enum.sort_by(&phase_index_from_id(&1["phaseId"]))
 
@@ -1833,12 +1853,17 @@ defmodule Crucible.TraceReader do
   # The first phase keeps its original start; subsequent phases are rebased to
   # start immediately after the previous phase's end.
   defp rebase_phase_timestamps([]), do: []
+
   defp rebase_phase_timestamps([first | rest]) do
     {rebased, _} =
       Enum.map_reduce(rest, first, fn phase, prev ->
         rebased_start = prev.ended_at || phase.started_at
         duration = phase_duration_ms(phase)
-        rebased_end = if duration > 0 and rebased_start, do: shift_iso(rebased_start, duration), else: phase.ended_at
+
+        rebased_end =
+          if duration > 0 and rebased_start,
+            do: shift_iso(rebased_start, duration),
+            else: phase.ended_at
 
         rebased_phase = %{phase | started_at: rebased_start, ended_at: rebased_end}
         {rebased_phase, rebased_phase}
@@ -1855,6 +1880,7 @@ defmodule Crucible.TraceReader do
       _ -> 0
     end
   end
+
   defp phase_duration_ms(_), do: 0
 
   defp shift_iso(iso_string, add_ms) when is_binary(iso_string) and is_integer(add_ms) do
@@ -1863,10 +1889,12 @@ defmodule Crucible.TraceReader do
       _ -> iso_string
     end
   end
+
   defp shift_iso(iso_string, _), do: iso_string
 
   # Extract numeric phase index from phaseId like "run123-p0" → 0
   defp phase_index_from_id(nil), do: 0
+
   defp phase_index_from_id(phase_id) when is_binary(phase_id) do
     case Regex.run(~r/-p(\d+)$/, phase_id) do
       [_, idx] -> String.to_integer(idx)

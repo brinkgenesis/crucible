@@ -81,7 +81,9 @@ defmodule Crucible.ElixirSdk.Client do
   @spec abort(reference()) :: :ok
   def abort(ref) do
     case Process.get({:crucible_sdk_task, ref}) do
-      nil -> :ok
+      nil ->
+        :ok
+
       pid when is_pid(pid) ->
         if Process.alive?(pid), do: Process.exit(pid, :kill)
         Process.delete({:crucible_sdk_task, ref})

@@ -150,7 +150,9 @@ defmodule CrucibleWeb.CoreComponents do
     assigns = assign(assigns, color: color, label: label, size_class: size_class)
 
     ~H"""
-    <span class={["badge", @size_class, @color]} role="status" aria-label={"Status: #{@label}"}>{@label}</span>
+    <span class={["badge", @size_class, @color]} role="status" aria-label={"Status: #{@label}"}>
+      {@label}
+    </span>
     """
   end
 
@@ -196,7 +198,11 @@ defmodule CrucibleWeb.CoreComponents do
     assigns = assign(assigns, :accent_class, accent_class)
 
     ~H"""
-    <div class={["bg-surface-container-low p-5 hud-border relative overflow-hidden", @accent_class, @class]}>
+    <div class={[
+      "bg-surface-container-low p-5 hud-border relative overflow-hidden",
+      @accent_class,
+      @class
+    ]}>
       {render_slot(@inner_block)}
     </div>
     """
@@ -255,7 +261,10 @@ defmodule CrucibleWeb.CoreComponents do
 
   def section_error(assigns) do
     ~H"""
-    <div class={["flex items-center gap-2 px-3 py-2 border border-[#ff725e]/20 bg-[#ff725e]/5 text-[10px] font-label tracking-widest text-[#ff725e]/70", @class]}>
+    <div class={[
+      "flex items-center gap-2 px-3 py-2 border border-[#ff725e]/20 bg-[#ff725e]/5 text-[10px] font-label tracking-widest text-[#ff725e]/70",
+      @class
+    ]}>
       <span class="material-symbols-outlined text-sm" aria-hidden="true">warning</span>
       <span>FAILED_TO_LOAD: {@label}</span>
       <span class="text-[#ff725e]/40">— SHOWING_DEFAULTS</span>
@@ -285,7 +294,10 @@ defmodule CrucibleWeb.CoreComponents do
     assigns = assign(assigns, :display, display)
 
     ~H"""
-    <div class={["flex items-center gap-2 text-[9px] font-label tracking-widest text-[#ffa44c]/40", @class]}>
+    <div class={[
+      "flex items-center gap-2 text-[9px] font-label tracking-widest text-[#ffa44c]/40",
+      @class
+    ]}>
       <span class="material-symbols-outlined text-xs" aria-hidden="true">update</span>
       <span>LAST_UPDATED</span>
       <span class="text-[#00eefc]/60">{@display}</span>
@@ -329,16 +341,25 @@ defmodule CrucibleWeb.CoreComponents do
   def tactical_button(assigns) do
     variant_class =
       case assigns.variant do
-        "ghost" -> "border border-[#ffa44c]/30 text-[#ffa44c] hover:border-[#00eefc] hover:text-[#00eefc]"
-        "danger" -> "bg-[#ff725e] text-black"
-        _ -> "bg-gradient-to-r from-[#ffa44c] to-[#fd9000] text-[#1e0c00] font-black tactical-corner"
+        "ghost" ->
+          "border border-[#ffa44c]/30 text-[#ffa44c] hover:border-[#00eefc] hover:text-[#00eefc]"
+
+        "danger" ->
+          "bg-[#ff725e] text-black"
+
+        _ ->
+          "bg-gradient-to-r from-[#ffa44c] to-[#fd9000] text-[#1e0c00] font-black tactical-corner"
       end
 
     assigns = assign(assigns, :variant_class, variant_class)
 
     ~H"""
     <button
-      class={["px-4 py-2 font-headline text-xs uppercase tracking-widest transition-all", @variant_class, @class]}
+      class={[
+        "px-4 py-2 font-headline text-xs uppercase tracking-widest transition-all",
+        @variant_class,
+        @class
+      ]}
       {@rest}
     >
       {render_slot(@inner_block)}
@@ -569,10 +590,18 @@ defmodule CrucibleWeb.CoreComponents do
 
   def scope_filter_bar(assigns) do
     ~H"""
-    <form phx-change={@event} class="flex flex-wrap items-end gap-3 bg-surface-container-low hud-border p-3">
+    <form
+      phx-change={@event}
+      class="flex flex-wrap items-end gap-3 bg-surface-container-low hud-border p-3"
+    >
       <label class="w-full sm:w-56">
-        <span class="text-[10px] font-label tracking-widest text-[#ffa44c]/60 uppercase block mb-1">CLIENT</span>
-        <select name="client_id" class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none">
+        <span class="text-[10px] font-label tracking-widest text-[#ffa44c]/60 uppercase block mb-1">
+          CLIENT
+        </span>
+        <select
+          name="client_id"
+          class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none"
+        >
           <option
             :for={option <- @client_options}
             value={option.value}
@@ -583,8 +612,13 @@ defmodule CrucibleWeb.CoreComponents do
         </select>
       </label>
       <label class="w-full sm:w-64">
-        <span class="text-[10px] font-label tracking-widest text-[#00eefc]/60 uppercase block mb-1">WORKSPACE</span>
-        <select name="workspace" class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none">
+        <span class="text-[10px] font-label tracking-widest text-[#00eefc]/60 uppercase block mb-1">
+          WORKSPACE
+        </span>
+        <select
+          name="workspace"
+          class="w-full bg-transparent border-b border-[#777575] text-white font-label text-xs py-1 focus:border-[#00eefc] focus:outline-none"
+        >
           <option
             :for={option <- @workspace_options}
             value={option.value}

@@ -48,16 +48,25 @@ defmodule Crucible.SecretsAudit do
             case String.split(line, "=", parts: 2) do
               [key, value] ->
                 is_sensitive?(key) and String.trim(value) in ["", "changeme", "xxx", "TODO"]
-              _ -> false
+
+              _ ->
+                false
             end
           end)
 
         if empty_secrets != [] do
-          keys = Enum.map(empty_secrets, fn line -> line |> String.split("=", parts: 2) |> List.first() end)
-          Logger.warning("SecretsAudit: #{length(keys)} sensitive var(s) have placeholder values: #{Enum.join(keys, ", ")}")
+          keys =
+            Enum.map(empty_secrets, fn line ->
+              line |> String.split("=", parts: 2) |> List.first()
+            end)
+
+          Logger.warning(
+            "SecretsAudit: #{length(keys)} sensitive var(s) have placeholder values: #{Enum.join(keys, ", ")}"
+          )
         end
 
-      _ -> :ok
+      _ ->
+        :ok
     end
   end
 

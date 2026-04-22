@@ -58,7 +58,10 @@ defmodule CrucibleWeb.Api.GithubWebhookController do
         :ignored
       end
     else
-      Logger.debug("GithubWebhook: PR ##{pr_number} branch #{branch} is not a run branch — ignoring")
+      Logger.debug(
+        "GithubWebhook: PR ##{pr_number} branch #{branch} is not a run branch — ignoring"
+      )
+
       :ignored
     end
   end

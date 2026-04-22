@@ -93,7 +93,9 @@ defmodule CrucibleWeb.Api.BudgetController do
     events =
       if client_id || workspace do
         safe_call(
-          fn -> CostEventReader.all_sessions(limit: 1500, client_id: client_id, workspace: workspace) end,
+          fn ->
+            CostEventReader.all_sessions(limit: 1500, client_id: client_id, workspace: workspace)
+          end,
           []
         )
         |> Enum.map(fn session ->
@@ -137,7 +139,12 @@ defmodule CrucibleWeb.Api.BudgetController do
     description: "Returns all active cost-tracking sessions.",
     parameters: [
       client_id: [in: :query, type: :string, required: false, description: "Filter by client ID"],
-      workspace: [in: :query, type: :string, required: false, description: "Filter by workspace path"]
+      workspace: [
+        in: :query,
+        type: :string,
+        required: false,
+        description: "Filter by workspace path"
+      ]
     ],
     responses: [
       ok:
@@ -151,7 +158,10 @@ defmodule CrucibleWeb.Api.BudgetController do
     workspace = blank_to_nil(Map.get(params, "workspace"))
 
     sessions =
-      safe_call(fn -> CostEventReader.all_sessions(client_id: client_id, workspace: workspace) end, [])
+      safe_call(
+        fn -> CostEventReader.all_sessions(client_id: client_id, workspace: workspace) end,
+        []
+      )
 
     json(conn, sessions)
   end

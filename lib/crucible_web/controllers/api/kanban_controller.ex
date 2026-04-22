@@ -310,7 +310,6 @@ defmodule CrucibleWeb.Api.KanbanController do
         # Ensure plan exists — generate one if missing
         {metadata, plan_note, plan_summary} = ensure_plan(card, adapter)
 
-
         complexity =
           get_in(metadata, ["complexity"]) || get_in(metadata, ["ideaPlan", "complexity"])
 

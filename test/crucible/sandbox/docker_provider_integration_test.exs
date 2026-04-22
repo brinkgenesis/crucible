@@ -67,7 +67,10 @@ defmodule Crucible.Sandbox.DockerProviderIntegrationTest do
       {:ok, sandbox_id} = DockerProvider.start_sandbox(opts)
 
       # Verify no network access — may timeout or return error exit code
-      result = DockerProvider.exec(sandbox_id, "wget -q -T 2 -O- http://example.com 2>&1", timeout_ms: 10_000)
+      result =
+        DockerProvider.exec(sandbox_id, "wget -q -T 2 -O- http://example.com 2>&1",
+          timeout_ms: 10_000
+        )
 
       assert match?({:error, _}, result),
              "Expected network to be blocked, got: #{inspect(result)}"
@@ -107,12 +110,20 @@ defmodule Crucible.Sandbox.DockerProviderIntegrationTest do
     end
 
     test "can write file inside container and read it back", %{sandbox_id: sandbox_id} do
-      assert {:ok, _} = DockerProvider.exec(sandbox_id, "echo 'written inside' > /sandbox/from-container.txt")
+      assert {:ok, _} =
+               DockerProvider.exec(
+                 sandbox_id,
+                 "echo 'written inside' > /sandbox/from-container.txt"
+               )
+
       assert {:ok, output} = DockerProvider.exec(sandbox_id, "cat /sandbox/from-container.txt")
       assert String.trim(output) == "written inside"
     end
 
-    test "written file is visible on host filesystem", %{sandbox_id: sandbox_id, workspace: workspace} do
+    test "written file is visible on host filesystem", %{
+      sandbox_id: sandbox_id,
+      workspace: workspace
+    } do
       DockerProvider.exec(sandbox_id, "echo 'host visible' > /sandbox/host-check.txt")
       assert File.read!(Path.join(workspace, "host-check.txt")) |> String.trim() == "host visible"
     end
@@ -167,8 +178,11 @@ defmodule Crucible.Sandbox.DockerProviderIntegrationTest do
       assert {:ok, _} = DockerProvider.exec(sandbox_id, "touch /tmp/ok.txt")
 
       # /root should be read-only
-      assert {:error, {:exit_code, _, output}} = DockerProvider.exec(sandbox_id, "touch /root/nope.txt")
-      assert String.contains?(output, "Read-only file system") or String.contains?(output, "Permission denied")
+      assert {:error, {:exit_code, _, output}} =
+               DockerProvider.exec(sandbox_id, "touch /root/nope.txt")
+
+      assert String.contains?(output, "Read-only file system") or
+               String.contains?(output, "Permission denied")
     end
   end
 end

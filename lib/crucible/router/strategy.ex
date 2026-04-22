@@ -15,7 +15,8 @@ defmodule Crucible.Router.Strategy do
 
   @type decision :: %{model_id: String.t(), provider: String.t(), reason: String.t()}
   @type strategy :: :cost | :quality | :speed
-  @type routing_profile :: :deep_reasoning | :throughput | :verification | :scout | :yolo_classifier
+  @type routing_profile ::
+          :deep_reasoning | :throughput | :verification | :scout | :yolo_classifier
 
   @cost %{
     "1-2" => %{

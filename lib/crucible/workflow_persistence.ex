@@ -32,21 +32,22 @@ defmodule Crucible.WorkflowPersistence do
       version: run.version,
       status: to_string(run.status),
       execution_type: run.execution_type,
-      phases: Enum.map(run.phases, fn phase ->
-        %{
-          id: phase.id,
-          name: phase.name,
-          type: to_string(phase.type),
-          status: to_string(phase.status),
-          phase_index: phase.phase_index,
-          session_id: phase.session_id,
-          retry_count: phase.retry_count || 0,
-          timeout_ms: phase.timeout_ms || 600_000,
-          depends_on: phase.depends_on || [],
-          agents: serialize_agents(phase.agents || []),
-          create_branch: phase.create_branch || false
-        }
-      end),
+      phases:
+        Enum.map(run.phases, fn phase ->
+          %{
+            id: phase.id,
+            name: phase.name,
+            type: to_string(phase.type),
+            status: to_string(phase.status),
+            phase_index: phase.phase_index,
+            session_id: phase.session_id,
+            retry_count: phase.retry_count || 0,
+            timeout_ms: phase.timeout_ms || 600_000,
+            depends_on: phase.depends_on || [],
+            agents: serialize_agents(phase.agents || []),
+            create_branch: phase.create_branch || false
+          }
+        end),
       plan_note: run.plan_note,
       plan_summary: run.plan_summary,
       complexity: run.complexity,

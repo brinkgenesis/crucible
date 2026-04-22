@@ -96,7 +96,12 @@ defmodule Crucible.ControlSessionTest do
     end
 
     test "non-existent cwd resolves to error or empty within 15s" do
-      result = ControlSession.spawn_session(2, "/tmp/crucible_nonexistent_#{System.unique_integer([:positive])}")
+      result =
+        ControlSession.spawn_session(
+          2,
+          "/tmp/crucible_nonexistent_#{System.unique_integer([:positive])}"
+        )
+
       assert result == :ok
 
       # Poll up to 15s for the async task to settle
@@ -118,7 +123,12 @@ defmodule Crucible.ControlSessionTest do
 
     test "cwd that is a regular file (not a directory) produces clean error, not crash" do
       # Create a temp file to use as the bogus cwd
-      tmp_file = Path.join(System.tmp_dir!(), "crucible_file_cwd_#{System.unique_integer([:positive])}.txt")
+      tmp_file =
+        Path.join(
+          System.tmp_dir!(),
+          "crucible_file_cwd_#{System.unique_integer([:positive])}.txt"
+        )
+
       File.write!(tmp_file, "not a directory")
 
       on_exit(fn -> File.rm(tmp_file) end)

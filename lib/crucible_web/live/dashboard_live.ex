@@ -108,17 +108,23 @@ defmodule CrucibleWeb.DashboardLive do
   # PubSub events: reset timer to base interval (data just changed)
   def handle_info({:orchestrator_update, _}, socket) do
     timer = RefreshTimer.reset(socket.assigns[:refresh_timer])
-    {:noreply, assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
+
+    {:noreply,
+     assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
   end
 
   def handle_info({:budget_update, _}, socket) do
     timer = RefreshTimer.reset(socket.assigns[:refresh_timer])
-    {:noreply, assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
+
+    {:noreply,
+     assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
   end
 
   def handle_info({:kpi_updated, _}, socket) do
     timer = RefreshTimer.reset(socket.assigns[:refresh_timer])
-    {:noreply, assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
+
+    {:noreply,
+     assign(load_data(socket), refresh_timer: timer, last_updated_at: DateTime.utc_now())}
   end
 
   @doc """
@@ -141,18 +147,58 @@ defmodule CrucibleWeb.DashboardLive do
 
     # Parallelize independent data fetches — cuts latency from ~9 serial calls to ~3 parallel groups
     tasks = %{
-      budget: Task.async(fn -> safe_call(fn -> BudgetTracker.status() end, %{daily_spent: 0.0, daily_limit: 100.0, daily_remaining: 100.0, is_over_budget: false}) end),
+      budget:
+        Task.async(fn ->
+          safe_call(fn -> BudgetTracker.status() end, %{
+            daily_spent: 0.0,
+            daily_limit: 100.0,
+            daily_remaining: 100.0,
+            is_over_budget: false
+          })
+        end),
       unfiltered_runs: Task.async(fn -> safe_call(fn -> TraceReader.list_runs() end, []) end),
-      trace_runs: Task.async(fn -> safe_call(fn -> TraceReader.list_runs(client_id: client_id, workspace: workspace) end, []) end),
-      run_source: Task.async(fn -> safe_call(fn -> TraceReader.list_runs_source(client_id: client_id, workspace: workspace) end, %{source: :unknown, confidence: "low"}) end),
+      trace_runs:
+        Task.async(fn ->
+          safe_call(
+            fn -> TraceReader.list_runs(client_id: client_id, workspace: workspace) end,
+            []
+          )
+        end),
+      run_source:
+        Task.async(fn ->
+          safe_call(
+            fn -> TraceReader.list_runs_source(client_id: client_id, workspace: workspace) end,
+            %{source: :unknown, confidence: "low"}
+          )
+        end),
       kpi: Task.async(fn -> safe_call(fn -> SelfImprovement.latest_snapshot() end, nil) end),
-      knowledge_loop: Task.async(fn -> safe_call(fn -> SelfImprovement.knowledge_loop() end, nil) end),
+      knowledge_loop:
+        Task.async(fn -> safe_call(fn -> SelfImprovement.knowledge_loop() end, nil) end),
       hints: Task.async(fn -> safe_call(fn -> SelfImprovement.current_hints() end, %{}) end),
       events: Task.async(fn -> safe_call(fn -> BudgetTracker.recent_events(50) end, []) end),
       memory_stats: Task.async(fn -> count_memory_notes() end),
-      cost_stats: Task.async(fn -> safe_call(fn -> CostEventReader.stats(client_id: client_id) end, %{total_sessions: 0, total_tool_calls: 0, total_cost: 0.0}) end),
-      sessions: Task.async(fn -> safe_call(fn -> CostEventReader.all_sessions(client_id: client_id, workspace: workspace) end, []) end),
-      cost_source: Task.async(fn -> safe_call(fn -> CostEventReader.source_status(client_id: client_id, workspace: workspace) end, %{source: :unknown, confidence: "low"}) end)
+      cost_stats:
+        Task.async(fn ->
+          safe_call(fn -> CostEventReader.stats(client_id: client_id) end, %{
+            total_sessions: 0,
+            total_tool_calls: 0,
+            total_cost: 0.0
+          })
+        end),
+      sessions:
+        Task.async(fn ->
+          safe_call(
+            fn -> CostEventReader.all_sessions(client_id: client_id, workspace: workspace) end,
+            []
+          )
+        end),
+      cost_source:
+        Task.async(fn ->
+          safe_call(
+            fn -> CostEventReader.source_status(client_id: client_id, workspace: workspace) end,
+            %{source: :unknown, confidence: "low"}
+          )
+        end)
     }
 
     # Await all — 5s timeout matches refresh interval
@@ -171,14 +217,19 @@ defmodule CrucibleWeb.DashboardLive do
         end
       end)
 
-    budget = results.budget || %{daily_spent: 0.0, daily_limit: 100.0, daily_remaining: 100.0, is_over_budget: false}
+    budget =
+      results.budget ||
+        %{daily_spent: 0.0, daily_limit: 100.0, daily_remaining: 100.0, is_over_budget: false}
+
     unfiltered_scope_runs = results.unfiltered_runs || []
     trace_runs = (results.trace_runs || []) |> maybe_filter_workspace(workspace_filter)
     runs = Enum.map(trace_runs, &trace_run_to_dashboard_row/1)
     hints_data = results.hints
     hints = if is_map(hints_data), do: Map.get(hints_data, :global, []), else: []
     events = results.events || []
-    sessions = (results.sessions || []) |> filter_sessions_by_workspace(trace_runs, workspace_filter)
+
+    sessions =
+      (results.sessions || []) |> filter_sessions_by_workspace(trace_runs, workspace_filter)
 
     active_runs =
       Enum.count(trace_runs, &(normalize_run_status(&1.status) in ["running", "in_progress"]))
@@ -279,7 +330,10 @@ defmodule CrucibleWeb.DashboardLive do
 
         <%!-- Section error indicators --%>
         <div :if={@failed_sections != []} class="space-y-1">
-          <.section_error :for={section <- @failed_sections} label={section |> to_string() |> String.upcase()} />
+          <.section_error
+            :for={section <- @failed_sections}
+            label={section |> to_string() |> String.upcase()}
+          />
         </div>
 
         <%!-- Loading skeleton --%>
@@ -306,7 +360,9 @@ defmodule CrucibleWeb.DashboardLive do
 
           <.hud_card accent="secondary">
             <div class="text-xs font-label text-[#00eefc]/60 mb-2 tracking-widest">ACTIVE_RUNS</div>
-            <div class="text-3xl font-headline font-bold text-[#00eefc] tracking-tighter">{@active_runs}</div>
+            <div class="text-3xl font-headline font-bold text-[#00eefc] tracking-tighter">
+              {@active_runs}
+            </div>
             <div class="flex items-center gap-2 mt-2 text-[10px] font-label text-[#00eefc]">
               <span class="w-2 h-2 bg-[#00eefc] animate-pulse"></span>
               {@pending_runs} PENDING
@@ -316,9 +372,16 @@ defmodule CrucibleWeb.DashboardLive do
           <.hud_stat label="COMPLETED_TASKS" value={to_string(@completed_runs)} />
 
           <.hud_card accent="tertiary">
-            <div class="text-xs font-label text-[#ff725e]/60 mb-2 tracking-widest">SYSTEM_FAILURES</div>
-            <div class="text-3xl font-headline font-bold text-[#ff725e] tracking-tighter">{@failed_runs}</div>
-            <div :if={@failed_runs > 0} class="mt-2 text-[10px] font-label text-[#ff725e]/80 flex items-center gap-1">
+            <div class="text-xs font-label text-[#ff725e]/60 mb-2 tracking-widest">
+              SYSTEM_FAILURES
+            </div>
+            <div class="text-3xl font-headline font-bold text-[#ff725e] tracking-tighter">
+              {@failed_runs}
+            </div>
+            <div
+              :if={@failed_runs > 0}
+              class="mt-2 text-[10px] font-label text-[#ff725e]/80 flex items-center gap-1"
+            >
               <span class="material-symbols-outlined text-xs">warning</span> CRITICAL_STATE_DETECTED
             </div>
           </.hud_card>
@@ -333,7 +396,12 @@ defmodule CrucibleWeb.DashboardLive do
           </.hud_header>
           <div class="grid grid-cols-5 gap-4">
             <.pipeline_column label="PENDING_QUEUE" count={@pending_runs} color="primary" />
-            <.pipeline_column label="ACTIVE_RUNNING" count={@active_runs} color="secondary" active={true} />
+            <.pipeline_column
+              label="ACTIVE_RUNNING"
+              count={@active_runs}
+              color="secondary"
+              active={true}
+            />
             <.pipeline_column label="PENDING_REVIEW" count={@review_runs} color="primary" />
             <.pipeline_column label="COMPLETED_DONE" count={@completed_runs} color="primary" />
             <.pipeline_column label="FAILED_ABORT" count={@failed_runs} color="tertiary" />
@@ -357,14 +425,21 @@ defmodule CrucibleWeb.DashboardLive do
                   ]} />
                   <span class="text-[10px] font-label text-white/70">{provider}</span>
                 </div>
-                <div :if={@system_health["router"] == nil || @system_health["router"] == %{}}
-                  class="col-span-2 text-[10px] font-label text-white/40">
+                <div
+                  :if={@system_health["router"] == nil || @system_health["router"] == %{}}
+                  class="col-span-2 text-[10px] font-label text-white/40"
+                >
                   NO_PROVIDERS_DETECTED
                 </div>
               </div>
               <%!-- Circuit Breakers --%>
-              <div :if={circuit_issues?(@system_health && @system_health["circuits"])} class="mt-4 pt-4 border-t border-white/5">
-                <div class="text-[10px] font-label text-[#ff725e]/80 tracking-widest mb-2">CIRCUIT_BREAKERS</div>
+              <div
+                :if={circuit_issues?(@system_health && @system_health["circuits"])}
+                class="mt-4 pt-4 border-t border-white/5"
+              >
+                <div class="text-[10px] font-label text-[#ff725e]/80 tracking-widest mb-2">
+                  CIRCUIT_BREAKERS
+                </div>
                 <div class="flex flex-wrap gap-2">
                   <span
                     :for={{provider, info} <- (@system_health && @system_health["circuits"]) || %{}}
@@ -383,8 +458,16 @@ defmodule CrucibleWeb.DashboardLive do
               <div class="space-y-5">
                 <.kpi_row label="TOTAL_RUNS" value={to_string(@kpi[:total_runs] || 0)} color="white" />
                 <.kpi_row label="FAIL_RATE" value={format_pct(@kpi[:fail_rate])} color="tertiary" />
-                <.kpi_row label="TIMEOUT_PROB" value={format_pct(@kpi[:timeout_rate])} color="primary" />
-                <.kpi_row label="TOTAL_COST" value={"$#{format_cost(@kpi[:total_cost_usd])}"} color="secondary" />
+                <.kpi_row
+                  label="TIMEOUT_PROB"
+                  value={format_pct(@kpi[:timeout_rate])}
+                  color="primary"
+                />
+                <.kpi_row
+                  label="TOTAL_COST"
+                  value={"$#{format_cost(@kpi[:total_cost_usd])}"}
+                  color="secondary"
+                />
               </div>
             </.hud_card>
           </div>
@@ -395,7 +478,10 @@ defmodule CrucibleWeb.DashboardLive do
             <.hud_card>
               <.hud_header icon="psychology" label="MEMORY_VAULT_SCAN">
                 <:actions>
-                  <.link navigate="/memory" class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10">
+                  <.link
+                    navigate="/memory"
+                    class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10"
+                  >
                     VIEW_VAULT
                   </.link>
                 </:actions>
@@ -404,18 +490,26 @@ defmodule CrucibleWeb.DashboardLive do
                 <div class="relative w-24 h-24 border-2 border-[#ffa44c]/20 flex items-center justify-center">
                   <div class="absolute inset-0 bg-[#ffa44c]/5 animate-pulse"></div>
                   <div class="text-center relative z-10">
-                    <div class="text-2xl font-headline font-bold text-[#ffa44c]">{format_large_number(@memory_stats.total)}</div>
+                    <div class="text-2xl font-headline font-bold text-[#ffa44c]">
+                      {format_large_number(@memory_stats.total)}
+                    </div>
                     <div class="text-[8px] font-label text-[#ffa44c]/60">TOTAL_NOTES</div>
                   </div>
                 </div>
                 <div class="flex-1 space-y-3">
-                  <div :for={{type, count} <- Enum.sort_by(@memory_stats.by_type, fn {_, c} -> -c end) |> Enum.take(3)}>
+                  <div :for={
+                    {type, count} <-
+                      Enum.sort_by(@memory_stats.by_type, fn {_, c} -> -c end) |> Enum.take(3)
+                  }>
                     <div class="flex justify-between text-[9px] font-label text-white/60 mb-1">
                       <span>{String.upcase(type)}</span>
                       <span>{type_pct(@memory_stats.total, count)}%</span>
                     </div>
                     <div class="h-1 bg-surface-container-high w-full">
-                      <div class="h-full bg-[#00eefc]" style={"width: #{type_pct(@memory_stats.total, count)}%"} />
+                      <div
+                        class="h-full bg-[#00eefc]"
+                        style={"width: #{type_pct(@memory_stats.total, count)}%"}
+                      />
                     </div>
                   </div>
                 </div>
@@ -426,7 +520,10 @@ defmodule CrucibleWeb.DashboardLive do
             <.hud_card>
               <.hud_header icon="token" label="TOKEN_USAGE_TELEMETRY">
                 <:actions>
-                  <.link navigate="/cost" class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10">
+                  <.link
+                    navigate="/cost"
+                    class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10"
+                  >
                     DETAILS
                   </.link>
                 </:actions>
@@ -434,11 +531,15 @@ defmodule CrucibleWeb.DashboardLive do
               <div class="space-y-4">
                 <div class="flex justify-between items-center">
                   <div class="text-[10px] font-label text-[#00eefc] uppercase">TOTAL_TOKENS</div>
-                  <div class="text-lg font-headline font-bold text-[#00eefc]">{format_large_number(@total_tokens)}</div>
+                  <div class="text-lg font-headline font-bold text-[#00eefc]">
+                    {format_large_number(@total_tokens)}
+                  </div>
                 </div>
                 <div class="flex justify-between items-center">
                   <div class="text-[10px] font-label text-[#ffa44c] uppercase">API_COST</div>
-                  <div class="text-lg font-headline font-bold text-[#ffa44c]">${Float.round(@total_cost_usd * 1.0, 2)}</div>
+                  <div class="text-lg font-headline font-bold text-[#ffa44c]">
+                    ${Float.round(@total_cost_usd * 1.0, 2)}
+                  </div>
                 </div>
                 <div class="pt-4 border-t border-white/5">
                   <div class="flex justify-between items-center text-[10px] font-label text-white/40">
@@ -454,18 +555,34 @@ defmodule CrucibleWeb.DashboardLive do
               <.hud_card :if={@model_breakdown != []}>
                 <.hud_header icon="payments" label="COST_EXPENDITURE_BY_MODEL">
                   <:actions>
-                    <.link navigate="/budget" class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10">
+                    <.link
+                      navigate="/budget"
+                      class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10"
+                    >
                       DETAILS
                     </.link>
                   </:actions>
                 </.hud_header>
                 <div class="space-y-6">
-                  <div :for={row <- Enum.take(@model_breakdown, 5)} class="grid grid-cols-12 items-center gap-4">
-                    <div class="col-span-3 text-[10px] font-label text-white/70 truncate" title={row.model}>{row.model}</div>
-                    <div class="col-span-7 h-2 bg-surface-container-high relative">
-                      <div class="absolute inset-y-0 left-0 bg-[#ffa44c]" style={"width: #{model_bar_pct(@model_breakdown, row.cost)}%"} />
+                  <div
+                    :for={row <- Enum.take(@model_breakdown, 5)}
+                    class="grid grid-cols-12 items-center gap-4"
+                  >
+                    <div
+                      class="col-span-3 text-[10px] font-label text-white/70 truncate"
+                      title={row.model}
+                    >
+                      {row.model}
                     </div>
-                    <div class="col-span-2 text-right text-[10px] font-label text-[#ffa44c]">${Float.round(row.cost, 2)}</div>
+                    <div class="col-span-7 h-2 bg-surface-container-high relative">
+                      <div
+                        class="absolute inset-y-0 left-0 bg-[#ffa44c]"
+                        style={"width: #{model_bar_pct(@model_breakdown, row.cost)}%"}
+                      />
+                    </div>
+                    <div class="col-span-2 text-right text-[10px] font-label text-[#ffa44c]">
+                      ${Float.round(row.cost, 2)}
+                    </div>
                   </div>
                 </div>
               </.hud_card>
@@ -489,23 +606,40 @@ defmodule CrucibleWeb.DashboardLive do
           <.hud_header icon="hub" label="KNOWLEDGE_LOOP" />
           <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">LEARN</div>
-              <div class="text-xl font-headline font-bold text-white">{@knowledge_loop[:learn_count] || 0}</div>
+              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">
+                LEARN
+              </div>
+              <div class="text-xl font-headline font-bold text-white">
+                {@knowledge_loop[:learn_count] || 0}
+              </div>
               <div class="text-[9px] font-label text-white/30 mt-1">LESSONS + OBSERVATIONS</div>
             </div>
             <div>
-              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">CREATE</div>
-              <div class="text-xl font-headline font-bold text-white">{@knowledge_loop[:create_count] || 0}</div>
+              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">
+                CREATE
+              </div>
+              <div class="text-xl font-headline font-bold text-white">
+                {@knowledge_loop[:create_count] || 0}
+              </div>
               <div class="text-[9px] font-label text-white/30 mt-1">DECISIONS</div>
             </div>
             <div>
-              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">SHARE</div>
-              <div class="text-xl font-headline font-bold text-white">{@knowledge_loop[:share_count] || 0}</div>
+              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">
+                SHARE
+              </div>
+              <div class="text-xl font-headline font-bold text-white">
+                {@knowledge_loop[:share_count] || 0}
+              </div>
               <div class="text-[9px] font-label text-white/30 mt-1">HANDOFFS</div>
             </div>
             <div>
-              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">COMPLETENESS</div>
-              <div class={["text-xl font-headline font-bold", loop_hud_color(@knowledge_loop[:loop_completeness])]}>
+              <div class="text-[10px] font-label text-white/40 uppercase tracking-widest mb-1">
+                COMPLETENESS
+              </div>
+              <div class={[
+                "text-xl font-headline font-bold",
+                loop_hud_color(@knowledge_loop[:loop_completeness])
+              ]}>
                 {format_pct(@knowledge_loop[:loop_completeness])}
               </div>
             </div>
@@ -524,9 +658,13 @@ defmodule CrucibleWeb.DashboardLive do
         <.hud_card>
           <div class="flex justify-between items-center mb-6">
             <h3 class="font-headline font-bold text-[#ffa44c] text-xs tracking-[0.2em] uppercase flex items-center gap-2">
-              <span class="material-symbols-outlined text-base">receipt_long</span> RECENT_OPERATIONAL_RUNS
+              <span class="material-symbols-outlined text-base">receipt_long</span>
+              RECENT_OPERATIONAL_RUNS
             </h3>
-            <.link navigate="/runs" class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10">
+            <.link
+              navigate="/runs"
+              class="text-[10px] font-label text-[#00eefc] border border-[#00eefc]/30 px-3 py-1 hover:bg-[#00eefc]/10"
+            >
               VIEW_FULL_LOGS
             </.link>
           </div>
@@ -583,17 +721,21 @@ defmodule CrucibleWeb.DashboardLive do
         _ -> {"bg-surface-container-high", "text-[#ffa44c]/70", "border-[#ffa44c]/30"}
       end
 
-    assigns = assign(assigns, bg_class: bg_class, text_class: text_class, border_class: border_class)
+    assigns =
+      assign(assigns, bg_class: bg_class, text_class: text_class, border_class: border_class)
 
     ~H"""
     <div class="space-y-3">
       <div class={["p-2 text-[10px] font-label border-b", @bg_class, @text_class, @border_class]}>
         {@label} [{@count}]
       </div>
-      <div :if={@count > 0} class={[
-        "h-24 bg-surface-container-lowest border p-3 flex flex-col justify-between",
-        if(@active, do: "border-[#00eefc]/30 relative overflow-hidden", else: "border-white/5")
-      ]}>
+      <div
+        :if={@count > 0}
+        class={[
+          "h-24 bg-surface-container-lowest border p-3 flex flex-col justify-between",
+          if(@active, do: "border-[#00eefc]/30 relative overflow-hidden", else: "border-white/5")
+        ]}
+      >
         <div :if={@active} class="absolute inset-0 bg-[#00eefc]/5 animate-pulse"></div>
         <div class={["text-[9px] font-label", @text_class]}>{@count} ITEMS</div>
         <div class={["h-1 w-full", if(@active, do: "bg-[#00eefc]", else: "bg-[#ffa44c]/20")]} />
@@ -651,7 +793,6 @@ defmodule CrucibleWeb.DashboardLive do
 
   defp format_cost(nil), do: "—"
   defp format_cost(val) when is_number(val), do: Float.round(val * 1.0, 2) |> to_string()
-
 
   defp model_bar_pct(breakdown, cost) do
     max_cost = breakdown |> Enum.map(& &1.cost) |> Enum.max(fn -> 1 end)
@@ -780,7 +921,6 @@ defmodule CrucibleWeb.DashboardLive do
   defp source_label(:jsonl), do: "JSONL"
   defp source_label(:empty), do: "Empty"
   defp source_label(_), do: "Unknown"
-
 
   defp run_workspace(run) when is_map(run) do
     Map.get(run, :workspace_path)

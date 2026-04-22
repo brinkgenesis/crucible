@@ -112,7 +112,13 @@ defmodule Crucible.ElixirSdk.FinalTest do
 
       notebook = %{
         "cells" => [
-          %{"cell_type" => "code", "source" => ["print('hello')\n"], "metadata" => %{}, "outputs" => [], "execution_count" => nil},
+          %{
+            "cell_type" => "code",
+            "source" => ["print('hello')\n"],
+            "metadata" => %{},
+            "outputs" => [],
+            "execution_count" => nil
+          },
           %{"cell_type" => "markdown", "source" => ["# Heading\n"], "metadata" => %{}}
         ],
         "metadata" => %{},

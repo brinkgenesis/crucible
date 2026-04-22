@@ -52,7 +52,11 @@ defmodule Crucible.Kanban.DbAdapter do
     case result do
       {:ok, card} ->
         broadcast(:card_created, card)
-        AuditLog.log("card", card.id, "created", %{column: card.column, title: card.title}, actor: "system:kanban")
+
+        AuditLog.log("card", card.id, "created", %{column: card.column, title: card.title},
+          actor: "system:kanban"
+        )
+
         {:ok, card}
 
       {:error, reason} ->
@@ -145,7 +149,11 @@ defmodule Crucible.Kanban.DbAdapter do
     case result do
       {:ok, {card, changeset}} ->
         broadcast(:card_updated, card)
-        AuditLog.log("card", id, "updated", AuditLog.diff_payload(changeset), actor: "system:kanban")
+
+        AuditLog.log("card", id, "updated", AuditLog.diff_payload(changeset),
+          actor: "system:kanban"
+        )
+
         {:ok, card}
 
       {:error, reason} ->

@@ -47,7 +47,10 @@ defmodule Crucible.ElixirSdk.AdvancedTest do
     test "mixed tool calls don't trigger" do
       calls = [
         %{name: "Read", input: %{"file_path" => "a.ex"}},
-        %{name: "Edit", input: %{"file_path" => "a.ex", "old_string" => "x", "new_string" => "y"}},
+        %{
+          name: "Edit",
+          input: %{"file_path" => "a.ex", "old_string" => "x", "new_string" => "y"}
+        },
         %{name: "Bash", input: %{"command" => "mix compile"}}
       ]
 
@@ -64,7 +67,12 @@ defmodule Crucible.ElixirSdk.AdvancedTest do
     end
 
     test "register + lookup round-trip" do
-      AgentDef.register(%AgentDef{name: "reviewer", model: "claude-opus-4-6", tools: ["Read", "Grep"]})
+      AgentDef.register(%AgentDef{
+        name: "reviewer",
+        model: "claude-opus-4-6",
+        tools: ["Read", "Grep"]
+      })
+
       def = AgentDef.lookup("reviewer")
       assert def.model == "claude-opus-4-6"
       assert def.tools == ["Read", "Grep"]
@@ -72,7 +80,11 @@ defmodule Crucible.ElixirSdk.AdvancedTest do
 
     test "load_from_yaml accepts string or atom keys" do
       AgentDef.load_from_yaml([
-        %{"name" => "coder", "model" => "claude-sonnet-4-6", "tools" => ["Read", "Write", "Edit", "Bash"]},
+        %{
+          "name" => "coder",
+          "model" => "claude-sonnet-4-6",
+          "tools" => ["Read", "Write", "Edit", "Bash"]
+        },
         %{name: "researcher", model: "claude-haiku-4-5-20251001", tools: ["Read", "Grep", "Glob"]}
       ])
 

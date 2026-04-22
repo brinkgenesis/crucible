@@ -1,7 +1,11 @@
 <div class="bg-surface-container-low hud-border w-full max-w-md p-8">
   <div class="mb-6">
-    <h2 class="text-2xl font-headline font-bold text-[#ffa44c] tracking-widest uppercase">CRUCIBLE</h2>
-    <p class="text-[10px] font-label text-[#00eefc] tracking-widest mt-2">AUTHENTICATION_REQUIRED // SIGN_IN_TO_CONTINUE</p>
+    <h2 class="text-2xl font-headline font-bold text-[#ffa44c] tracking-widest uppercase">
+      CRUCIBLE
+    </h2>
+    <p class="text-[10px] font-label text-[#00eefc] tracking-widest mt-2">
+      AUTHENTICATION_REQUIRED // SIGN_IN_TO_CONTINUE
+    </p>
   </div>
 
   <%= if @error do %>
@@ -19,7 +23,10 @@
     </div>
   <% end %>
 
-  <a href="/auth/google" class="flex items-center justify-center gap-3 w-full py-3 bg-gradient-to-r from-[#ffa44c] to-[#fd9000] text-[#1e0c00] font-headline font-black text-sm uppercase tracking-widest tactical-corner hover:shadow-[0_0_20px_rgba(0,238,252,0.3)] transition-all">
+  <a
+    href="/auth/google"
+    class="flex items-center justify-center gap-3 w-full py-3 bg-gradient-to-r from-[#ffa44c] to-[#fd9000] text-[#1e0c00] font-headline font-black text-sm uppercase tracking-widest tactical-corner hover:shadow-[0_0_20px_rgba(0,238,252,0.3)] transition-all"
+  >
     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

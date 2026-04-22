@@ -35,5 +35,4 @@ defmodule Crucible.Utils.GroupBy do
       end
     end)
   end
-
 end

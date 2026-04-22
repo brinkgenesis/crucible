@@ -14,6 +14,7 @@ defmodule CrucibleWeb.Api.RemoteController do
       ok: {"Session started", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def start(conn, params) do
     start_opts =
       []
@@ -41,6 +42,7 @@ defmodule CrucibleWeb.Api.RemoteController do
     tags: ["Remote"],
     responses: [ok: {"Session status", "application/json", %OpenApiSpex.Schema{type: :object}}]
   )
+
   def status(conn, _params) do
     json(conn, RemoteSessionTracker.status())
   end
@@ -51,6 +53,7 @@ defmodule CrucibleWeb.Api.RemoteController do
     tags: ["Remote"],
     responses: [ok: {"Session stopped", "application/json", %OpenApiSpex.Schema{type: :object}}]
   )
+
   def stop(conn, _params) do
     json(conn, RemoteSessionTracker.stop_session())
   end
@@ -60,10 +63,16 @@ defmodule CrucibleWeb.Api.RemoteController do
     description: "Returns recent output lines from the active remote Claude session.",
     tags: ["Remote"],
     parameters: [
-      limit: [in: :query, type: :integer, required: false, description: "Max output lines to return (default 200, max 1000)"]
+      limit: [
+        in: :query,
+        type: :integer,
+        required: false,
+        description: "Max output lines to return (default 200, max 1000)"
+      ]
     ],
     responses: [ok: {"Session output", "application/json", %OpenApiSpex.Schema{type: :object}}]
   )
+
   def output(conn, params) do
     limit =
       case Integer.parse(params["limit"] || "200") do

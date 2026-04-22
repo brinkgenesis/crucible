@@ -91,7 +91,17 @@ defmodule CrucibleWeb.ConfigLive do
       results = Enum.map(updates, fn {k, v} -> write_env_var(k, v) end)
 
       if Enum.all?(results, &(&1 == :ok)) do
-        AuditLog.log("budget", "limits", "updated", %{daily: limits.daily_limit_usd, agent: limits.agent_limit_usd, task: limits.task_limit_usd}, actor: "liveview:ConfigLive")
+        AuditLog.log(
+          "budget",
+          "limits",
+          "updated",
+          %{
+            daily: limits.daily_limit_usd,
+            agent: limits.agent_limit_usd,
+            task: limits.task_limit_usd
+          },
+          actor: "liveview:ConfigLive"
+        )
 
         {:noreply,
          socket
@@ -186,14 +196,20 @@ defmodule CrucibleWeb.ConfigLive do
     <Layouts.app flash={@flash} current_path={@current_path}>
       <div class="space-y-6">
         <.hud_header icon="settings" label="CONFIGURATION" />
-
-        <!-- Save status -->
-        <div :if={@save_status} class={["flex items-center gap-3 px-4 py-2.5 font-mono text-xs rounded border", save_hud_class(@save_status)]}>
+        
+    <!-- Save status -->
+        <div
+          :if={@save_status}
+          class={[
+            "flex items-center gap-3 px-4 py-2.5 font-mono text-xs rounded border",
+            save_hud_class(@save_status)
+          ]}
+        >
           <span class="material-symbols-outlined text-sm">{save_hud_icon(@save_status)}</span>
           <span>{save_status_text(@save_status)}</span>
         </div>
-
-        <!-- NERV Tabs -->
+        
+    <!-- NERV Tabs -->
         <div class="flex border-b border-[#ffa44c]/10">
           <button
             :for={
@@ -209,7 +225,8 @@ defmodule CrucibleWeb.ConfigLive do
               "flex items-center gap-2 px-4 py-2.5 font-mono text-[10px] tracking-widest uppercase transition-colors border-b-2 -mb-[1px]",
               if(@active_tab == tab,
                 do: "text-[#00eefc] border-[#00eefc] bg-[#00eefc]/5",
-                else: "text-[#e0e0e0]/40 border-transparent hover:text-[#e0e0e0]/60 hover:bg-[#ffa44c]/5"
+                else:
+                  "text-[#e0e0e0]/40 border-transparent hover:text-[#e0e0e0]/60 hover:bg-[#ffa44c]/5"
               )
             ]}
           >
@@ -217,34 +234,41 @@ defmodule CrucibleWeb.ConfigLive do
             {label}
           </button>
         </div>
-
-        <!-- Claude Flow tab (read-only) -->
+        
+    <!-- Claude Flow tab (read-only) -->
         <div :if={@active_tab == "claude-flow"} class="space-y-4">
           <div :if={@claude_flow_config == %{}} class="text-center py-8 text-[#e0e0e0]/30">
             <span class="material-symbols-outlined text-4xl opacity-30 block mb-3">description</span>
             <p class="font-mono text-xs">NO_CONFIG_FOUND</p>
           </div>
           <.hud_card :for={{section, values} <- @claude_flow_config}>
-            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">{section}</div>
+            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+              {section}
+            </div>
             <.config_tree values={values} depth={0} />
           </.hud_card>
         </div>
-
-        <!-- Environment tab -->
+        
+    <!-- Environment tab -->
         <div :if={@active_tab == "environment"} class="space-y-4">
           <div :if={@env_vars == []} class="text-center py-8 text-[#e0e0e0]/30">
             <span class="material-symbols-outlined text-4xl opacity-30 block mb-3">data_object</span>
             <p class="font-mono text-[10px] text-neutral-500">NO_ENV_FILE_FOUND</p>
           </div>
           <.hud_card :for={{category, vars} <- group_env_vars(@env_vars)}>
-            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">{category}</div>
+            <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-3">
+              {category}
+            </div>
             <div class="space-y-2">
               <form
                 :for={var <- vars}
                 phx-submit="update_env"
                 class="flex items-center gap-3"
               >
-                <span class="font-mono text-[11px] text-[#00eefc]/60 w-64 shrink-0 truncate" title={var.key}>
+                <span
+                  class="font-mono text-[11px] text-[#00eefc]/60 w-64 shrink-0 truncate"
+                  title={var.key}
+                >
                   {var.key}
                 </span>
                 <input type="hidden" name="key" value={var.key} />
@@ -254,58 +278,99 @@ defmodule CrucibleWeb.ConfigLive do
                   value={var.value}
                   class="flex-1 bg-surface-container border border-[#ffa44c]/20 text-[#e0e0e0] font-mono text-[11px] px-3 py-1.5 rounded focus:border-[#00eefc]/50 focus:outline-none"
                 />
-                <button type="submit" class="px-2 py-1 text-[#00FF41]/60 hover:text-[#00FF41] hover:bg-[#00FF41]/10 rounded transition-colors">
+                <button
+                  type="submit"
+                  class="px-2 py-1 text-[#00FF41]/60 hover:text-[#00FF41] hover:bg-[#00FF41]/10 rounded transition-colors"
+                >
                   <span class="material-symbols-outlined text-sm">check</span>
                 </button>
               </form>
             </div>
           </.hud_card>
         </div>
-
-        <!-- Budget tab -->
+        
+    <!-- Budget tab -->
         <div :if={@active_tab == "budget"}>
           <.form for={@budget_form} phx-submit="save_budget" phx-change="validate_budget">
             <.hud_card accent="primary">
-              <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-4">BUDGET LIMITS (USD)</div>
+              <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-4">
+                BUDGET LIMITS (USD)
+              </div>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="border-l-2 border-[#ffa44c] pl-3">
-                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-1">Daily Limit</div>
+                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-1">
+                    Daily Limit
+                  </div>
                   <input
                     type="number"
                     name="budget[daily_limit_usd]"
                     value={@budget_form[:daily_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={["w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:daily_limit_usd].errors != [], do: "border-[#ff725e] text-[#ff725e]", else: "border-[#ffa44c]/20 text-[#ffa44c] focus:border-[#ffa44c]/50")]}
+                    class={[
+                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
+                      if(@budget_form[:daily_limit_usd].errors != [],
+                        do: "border-[#ff725e] text-[#ff725e]",
+                        else: "border-[#ffa44c]/20 text-[#ffa44c] focus:border-[#ffa44c]/50"
+                      )
+                    ]}
                   />
-                  <p :for={{msg, _} <- @budget_form[:daily_limit_usd].errors} class="text-[9px] font-mono text-[#ff725e] mt-1">{msg}</p>
+                  <p
+                    :for={{msg, _} <- @budget_form[:daily_limit_usd].errors}
+                    class="text-[9px] font-mono text-[#ff725e] mt-1"
+                  >
+                    {msg}
+                  </p>
                 </div>
                 <div class="border-l-2 border-[#00eefc] pl-3">
-                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#00eefc]/60 mb-1">Per Agent</div>
+                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#00eefc]/60 mb-1">
+                    Per Agent
+                  </div>
                   <input
                     type="number"
                     name="budget[agent_limit_usd]"
                     value={@budget_form[:agent_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={["w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:agent_limit_usd].errors != [], do: "border-[#ff725e] text-[#ff725e]", else: "border-[#00eefc]/20 text-[#00eefc] focus:border-[#00eefc]/50")]}
+                    class={[
+                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
+                      if(@budget_form[:agent_limit_usd].errors != [],
+                        do: "border-[#ff725e] text-[#ff725e]",
+                        else: "border-[#00eefc]/20 text-[#00eefc] focus:border-[#00eefc]/50"
+                      )
+                    ]}
                   />
-                  <p :for={{msg, _} <- @budget_form[:agent_limit_usd].errors} class="text-[9px] font-mono text-[#ff725e] mt-1">{msg}</p>
+                  <p
+                    :for={{msg, _} <- @budget_form[:agent_limit_usd].errors}
+                    class="text-[9px] font-mono text-[#ff725e] mt-1"
+                  >
+                    {msg}
+                  </p>
                 </div>
                 <div class="border-l-2 border-[#ff725e] pl-3">
-                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#ff725e]/60 mb-1">Per Task</div>
+                  <div class="font-mono text-[10px] tracking-widest uppercase text-[#ff725e]/60 mb-1">
+                    Per Task
+                  </div>
                   <input
                     type="number"
                     name="budget[task_limit_usd]"
                     value={@budget_form[:task_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={["w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:task_limit_usd].errors != [], do: "border-[#ff725e] text-[#ff725e]", else: "border-[#ff725e]/20 text-[#ff725e] focus:border-[#ff725e]/50")]}
+                    class={[
+                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
+                      if(@budget_form[:task_limit_usd].errors != [],
+                        do: "border-[#ff725e] text-[#ff725e]",
+                        else: "border-[#ff725e]/20 text-[#ff725e] focus:border-[#ff725e]/50"
+                      )
+                    ]}
                   />
-                  <p :for={{msg, _} <- @budget_form[:task_limit_usd].errors} class="text-[9px] font-mono text-[#ff725e] mt-1">{msg}</p>
+                  <p
+                    :for={{msg, _} <- @budget_form[:task_limit_usd].errors}
+                    class="text-[9px] font-mono text-[#ff725e] mt-1"
+                  >
+                    {msg}
+                  </p>
                 </div>
               </div>
               <div class="mt-4">
@@ -336,7 +401,9 @@ defmodule CrucibleWeb.ConfigLive do
     <div class={["space-y-1", @depth > 0 && "ml-4 border-l border-[#ffa44c]/10 pl-3"]}>
       <div :for={{key, val} <- @items}>
         <div :if={is_map(val) or is_list(val)}>
-          <div class="font-mono text-[10px] font-bold text-[#ffa44c]/50 mt-2 tracking-wider uppercase">{key}</div>
+          <div class="font-mono text-[10px] font-bold text-[#ffa44c]/50 mt-2 tracking-wider uppercase">
+            {key}
+          </div>
           <.config_tree values={val} depth={@depth + 1} />
         </div>
         <div :if={not is_map(val) and not is_list(val)} class="flex items-center gap-3 py-0.5">
@@ -356,7 +423,9 @@ defmodule CrucibleWeb.ConfigLive do
         <span :if={is_map(item)}>
           <.config_tree values={item} depth={@depth + 1} />
         </span>
-        <span :if={not is_map(item)} class="font-mono text-[11px] text-[#00eefc]/70">{inspect(item)}</span>
+        <span :if={not is_map(item)} class="font-mono text-[11px] text-[#00eefc]/70">
+          {inspect(item)}
+        </span>
       </div>
     </div>
     """
@@ -453,7 +522,6 @@ defmodule CrucibleWeb.ConfigLive do
   # Save status helpers
   # ---------------------------------------------------------------------------
 
-
   defp save_hud_class({:ok, _}), do: "text-[#00FF41] border-[#00FF41]/20 bg-[#00FF41]/5"
   defp save_hud_class({:error, _}), do: "text-[#ff7351] border-[#ff7351]/20 bg-[#ff7351]/5"
   defp save_hud_class(_), do: "text-[#e0e0e0]/50 border-[#e0e0e0]/10"
@@ -501,5 +569,4 @@ defmodule CrucibleWeb.ConfigLive do
     repo_root = Keyword.get(config, :repo_root, File.cwd!())
     Path.join(repo_root, ".env")
   end
-
 end

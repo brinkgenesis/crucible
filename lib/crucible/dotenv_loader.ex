@@ -53,7 +53,11 @@ defmodule Crucible.DotenvLoader do
     end
   end
 
-  defp strip_quotes(<<?", _::binary>> = v), do: v |> String.trim_leading("\"") |> String.trim_trailing("\"")
-  defp strip_quotes(<<?', _::binary>> = v), do: v |> String.trim_leading("'") |> String.trim_trailing("'")
+  defp strip_quotes(<<?", _::binary>> = v),
+    do: v |> String.trim_leading("\"") |> String.trim_trailing("\"")
+
+  defp strip_quotes(<<?', _::binary>> = v),
+    do: v |> String.trim_leading("'") |> String.trim_trailing("'")
+
   defp strip_quotes(v), do: v
 end

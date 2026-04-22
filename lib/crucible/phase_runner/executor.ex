@@ -131,12 +131,15 @@ defmodule Crucible.PhaseRunner.Executor do
       %{run_id: run.id, phase_id: phase.id, phase_type: phase.type, status: phase_status}
     )
 
-    session_id = case result do
-      {:ok, %{session_id: sid}} when is_binary(sid) and sid != "" -> sid
-      _ -> nil
-    end
+    session_id =
+      case result do
+        {:ok, %{session_id: sid}} when is_binary(sid) and sid != "" -> sid
+        _ -> nil
+      end
 
-    metrics = Telemetry.build_token_metrics(result, phase, duration_ms, session_resumed, session_id)
+    metrics =
+      Telemetry.build_token_metrics(result, phase, duration_ms, session_resumed, session_id)
+
     Telemetry.emit_trace(run, phase, "token_efficiency", Map.from_struct(metrics))
 
     Telemetry.enrich_result(result, metrics)
@@ -264,8 +267,11 @@ defmodule Crucible.PhaseRunner.Executor do
   defp ensure_sentinel({:ok, result}, sentinel_path) do
     # Elixir is the authoritative sentinel writer — always write with metadata
     data =
-      %{"status" => "done", "writer" => "elixir",
-        "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()}
+      %{
+        "status" => "done",
+        "writer" => "elixir",
+        "timestamp" => DateTime.utc_now() |> DateTime.to_iso8601()
+      }
       |> maybe_put("cost_usd", result[:cost_usd])
       |> maybe_put("turns", result[:turns])
       |> maybe_put("session_id", result[:session_id])

@@ -60,7 +60,9 @@ defmodule Crucible.Sandbox.E2ESandboxTest do
   end
 
   describe "full lifecycle: acquire → use → release" do
-    test "manager acquires Docker sandbox, backend reads/writes, manager releases", %{workspace: workspace} do
+    test "manager acquires Docker sandbox, backend reads/writes, manager releases", %{
+      workspace: workspace
+    } do
       run_id = "e2e-run-#{:rand.uniform(100_000)}"
 
       # Step 1: Acquire sandbox through the Manager
@@ -74,7 +76,8 @@ defmodule Crucible.Sandbox.E2ESandboxTest do
       assert status.active_runs == 1
 
       # Step 2: Use DockerBackend to write a file (simulates write_file tool)
-      assert :ok = DockerBackend.write("result.json", ~s({"status": "ok"}), container_id: sandbox_id)
+      assert :ok =
+               DockerBackend.write("result.json", ~s({"status": "ok"}), container_id: sandbox_id)
 
       # Step 3: Verify file exists in container
       assert DockerBackend.exists?("result.json", container_id: sandbox_id)
@@ -154,7 +157,9 @@ defmodule Crucible.Sandbox.E2ESandboxTest do
       {:ok, pid2} = Manager.start_link(name: :test_strict_manager)
 
       run_id = "e2e-strict-#{:rand.uniform(100_000)}"
-      {:ok, sandbox_id} = Manager.acquire(run_id, [workspace_path: workspace], :test_strict_manager)
+
+      {:ok, sandbox_id} =
+        Manager.acquire(run_id, [workspace_path: workspace], :test_strict_manager)
 
       # Network should be blocked
       assert {:error, _} =

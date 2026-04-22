@@ -70,7 +70,10 @@ defmodule CrucibleWeb.ControlLive do
     {:noreply, assign(socket, slots: slots, refresh_timer: timer)}
   end
 
-  def handle_info({:voice_command_received, %{transcript: transcript, session_id: session_id}}, socket) do
+  def handle_info(
+        {:voice_command_received, %{transcript: transcript, session_id: session_id}},
+        socket
+      ) do
     now = DateTime.utc_now()
     timestamp = Calendar.strftime(now, "%H:%M:%S")
 
@@ -230,9 +233,17 @@ defmodule CrucibleWeb.ControlLive do
         <%!-- Header --%>
         <div class="flex justify-between items-end border-b border-[#ffa44c]/5 pb-4">
           <div>
-            <h1 class="text-4xl font-headline font-black text-[#ffa44c] tracking-tighter uppercase mb-1">SESSION_CONTROL</h1>
+            <h1 class="text-4xl font-headline font-black text-[#ffa44c] tracking-tighter uppercase mb-1">
+              SESSION_CONTROL
+            </h1>
             <p class="font-label text-[#00eefc] text-xs uppercase tracking-[0.3em]">
-              <span :if={@active_count > 0}>Active Terminal Instances: {String.pad_leading(to_string(@active_count), 2, "0")}/{String.pad_leading(to_string(@max_slots), 2, "0")}</span>
+              <span :if={@active_count > 0}>
+                Active Terminal Instances: {String.pad_leading(to_string(@active_count), 2, "0")}/{String.pad_leading(
+                  to_string(@max_slots),
+                  2,
+                  "0"
+                )}
+              </span>
               <span :if={@active_count == 0}>NO_ACTIVE_SESSIONS // CAPACITY: {@max_slots} UNITS</span>
             </p>
           </div>
@@ -256,7 +267,11 @@ defmodule CrucibleWeb.ControlLive do
               <span :if={not @host_status.claude}>
                 <code class="text-[#ffa44c]">claude</code> CLI is not on <code>PATH</code>.
               </span>
-              If you're running Crucible via <code>docker compose</code>, the container can't spawn terminals you can see — run natively with <code class="text-[#00eefc]">mix phx.server</code> after installing <code>tmux</code> and the <code>claude</code> CLI.
+              If you're running Crucible via <code>docker compose</code>, the container can't spawn terminals you can see — run natively with
+              <code class="text-[#00eefc]">mix phx.server</code>
+              after installing <code>tmux</code>
+              and the <code>claude</code>
+              CLI.
             </div>
           </div>
         </div>
@@ -265,7 +280,9 @@ defmodule CrucibleWeb.ControlLive do
         <details class="bg-surface-container-low border border-[#494847]/20 group">
           <summary class="flex items-center gap-2 p-3 cursor-pointer select-none hover:bg-surface-container transition-colors">
             <span class="w-1 h-3 bg-[#00eefc]"></span>
-            <span class="font-label text-[9px] text-[#00eefc] uppercase font-bold tracking-widest">RECENT_VOICE_COMMANDS</span>
+            <span class="font-label text-[9px] text-[#00eefc] uppercase font-bold tracking-widest">
+              RECENT_VOICE_COMMANDS
+            </span>
             <span class="ml-auto font-label text-[9px] text-[#adaaaa]/40">
               {length(@voice_log)} entries
             </span>
@@ -292,10 +309,16 @@ defmodule CrucibleWeb.ControlLive do
             class="w-20 h-20 bg-[#ffa44c]/10 border border-[#ffa44c]/20 flex items-center justify-center hover:scale-110 transition-transform group"
             title="New session"
           >
-            <span class="material-symbols-outlined text-[#ffa44c] text-4xl group-hover:text-[#00eefc] transition-colors">add</span>
+            <span class="material-symbols-outlined text-[#ffa44c] text-4xl group-hover:text-[#00eefc] transition-colors">
+              add
+            </span>
           </button>
-          <span class="font-headline font-bold text-sm text-[#ffa44c] tracking-widest uppercase mt-4">SPAWN_NEW_SESSION</span>
-          <span class="font-label text-[9px] text-[#ffa44c]/40 mt-2 uppercase">Remaining Capacity: {String.pad_leading(to_string(@max_slots), 2, "0")} Units</span>
+          <span class="font-headline font-bold text-sm text-[#ffa44c] tracking-widest uppercase mt-4">
+            SPAWN_NEW_SESSION
+          </span>
+          <span class="font-label text-[9px] text-[#ffa44c]/40 mt-2 uppercase">
+            Remaining Capacity: {String.pad_leading(to_string(@max_slots), 2, "0")} Units
+          </span>
         </div>
 
         <%!-- Active sessions grid --%>
@@ -322,7 +345,9 @@ defmodule CrucibleWeb.ControlLive do
             <div class="w-16 h-16 bg-[#ffa44c]/10 border border-[#ffa44c]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <span class="material-symbols-outlined text-[#ffa44c] text-4xl">add</span>
             </div>
-            <span class="font-headline font-bold text-sm text-[#ffa44c] tracking-widest uppercase">SPAWN_NEW_SESSION</span>
+            <span class="font-headline font-bold text-sm text-[#ffa44c] tracking-widest uppercase">
+              SPAWN_NEW_SESSION
+            </span>
             <span class="font-label text-[9px] text-[#ffa44c]/40 mt-2 uppercase">
               Remaining Capacity: {String.pad_leading(to_string(@max_slots - @active_count), 2, "0")} Units
             </span>
@@ -434,7 +459,11 @@ defmodule CrucibleWeb.ControlLive do
         >{@slot.last_output}</pre>
 
         <%!-- Cursor --%>
-        <span :if={@slot.status == :ready} class="animate-pulse inline-block w-2 h-4 bg-[#00eefc] ml-1"></span>
+        <span
+          :if={@slot.status == :ready}
+          class="animate-pulse inline-block w-2 h-4 bg-[#00eefc] ml-1"
+        >
+        </span>
 
         <%!-- Refresh overlay --%>
         <button
@@ -453,7 +482,9 @@ defmodule CrucibleWeb.ControlLive do
         <%!-- Model selector + Stop --%>
         <div :if={@slot.status in [:ready, :starting]} class="grid grid-cols-2 gap-3">
           <div class="space-y-1">
-            <label class="text-[9px] text-[#ffa44c]/40 font-label tracking-tighter">MODEL_ENGINE</label>
+            <label class="text-[9px] text-[#ffa44c]/40 font-label tracking-tighter">
+              MODEL_ENGINE
+            </label>
             <select
               class="w-full bg-black border border-[#ffa44c]/20 text-[#00eefc] font-label text-[10px] p-2 focus:border-[#00eefc] outline-none"
               phx-change="change_model"
@@ -488,7 +519,9 @@ defmodule CrucibleWeb.ControlLive do
           class="relative"
         >
           <input type="hidden" name="slot" value={@slot.id} />
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#ffa44c] font-label text-xs font-bold">&gt;</span>
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#ffa44c] font-label text-xs font-bold">
+            &gt;
+          </span>
           <input
             type="text"
             name="input"
@@ -531,7 +564,10 @@ defmodule CrucibleWeb.ControlLive do
           <h2 class="font-headline font-bold text-[#ffa44c] text-sm uppercase tracking-widest flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">rocket_launch</span> SPAWN_PARAM
           </h2>
-          <button phx-click="close_spawn_modal" class="text-[#ffa44c]/40 hover:text-[#ffa44c] transition-colors">
+          <button
+            phx-click="close_spawn_modal"
+            class="text-[#ffa44c]/40 hover:text-[#ffa44c] transition-colors"
+          >
             <span class="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
@@ -539,7 +575,9 @@ defmodule CrucibleWeb.ControlLive do
         <div class="space-y-6">
           <%!-- Model selector --%>
           <div class="space-y-2">
-            <label class="text-[10px] text-[#ffa44c]/60 font-label font-bold block">MODEL_SELECTOR</label>
+            <label class="text-[10px] text-[#ffa44c]/60 font-label font-bold block">
+              MODEL_SELECTOR
+            </label>
             <div class="grid grid-cols-1 gap-2">
               <label
                 :for={m <- @models}
@@ -561,24 +599,40 @@ defmodule CrucibleWeb.ControlLive do
 
           <%!-- Codebase picker --%>
           <div class="space-y-2">
-            <label class="text-[10px] text-[#ffa44c]/60 font-label font-bold block">CODEBASE_PATH</label>
+            <label class="text-[10px] text-[#ffa44c]/60 font-label font-bold block">
+              CODEBASE_PATH
+            </label>
 
             <%= if @browse_mode do %>
               <div class="space-y-2">
                 <div class="flex items-center gap-1 bg-black p-2 border border-[#ffa44c]/10">
-                  <button phx-click="browse_back" class="text-[#ffa44c]/40 hover:text-[#ffa44c] p-1" title="Back">
+                  <button
+                    phx-click="browse_back"
+                    class="text-[#ffa44c]/40 hover:text-[#ffa44c] p-1"
+                    title="Back"
+                  >
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
                   </button>
-                  <button phx-click="browse_up" class="text-[#ffa44c]/40 hover:text-[#ffa44c] p-1" title="Up">
+                  <button
+                    phx-click="browse_up"
+                    class="text-[#ffa44c]/40 hover:text-[#ffa44c] p-1"
+                    title="Up"
+                  >
                     <span class="material-symbols-outlined text-sm">arrow_upward</span>
                   </button>
-                  <span class="font-label text-[9px] text-white/60 truncate flex-1" title={@browse_path}>
+                  <span
+                    class="font-label text-[9px] text-white/60 truncate flex-1"
+                    title={@browse_path}
+                  >
                     {@browse_path}
                   </span>
                 </div>
 
                 <div class="space-y-0.5 max-h-[200px] overflow-y-auto border border-[#ffa44c]/10 p-1">
-                  <div :if={@browse_entries == []} class="text-center text-[9px] text-white/30 font-label py-4">
+                  <div
+                    :if={@browse_entries == []}
+                    class="text-center text-[9px] text-white/30 font-label py-4"
+                  >
                     NO_SUBDIRECTORIES
                   </div>
                   <button
@@ -591,7 +645,12 @@ defmodule CrucibleWeb.ControlLive do
                       {if entry.is_git, do: "code", else: "folder"}
                     </span>
                     <span class="text-xs text-white/80 truncate font-label">{entry.name}</span>
-                    <span :if={entry.is_git} class="ml-auto text-[8px] font-label text-[#00eefc] border border-[#00eefc]/20 px-1">GIT</span>
+                    <span
+                      :if={entry.is_git}
+                      class="ml-auto text-[8px] font-label text-[#00eefc] border border-[#00eefc]/20 px-1"
+                    >
+                      GIT
+                    </span>
                   </button>
                 </div>
 
@@ -619,8 +678,12 @@ defmodule CrucibleWeb.ControlLive do
               </div>
 
               <div class="border-t border-[#ffa44c]/10 pt-3 mt-3">
-                <button phx-click="open_browser" class="w-full border border-[#ffa44c]/30 text-[#ffa44c] font-label text-[10px] uppercase tracking-widest py-2 hover:bg-[#ffa44c]/10 transition-colors">
-                  <span class="material-symbols-outlined text-sm align-middle mr-1">folder_open</span> BROWSE_FOLDERS
+                <button
+                  phx-click="open_browser"
+                  class="w-full border border-[#ffa44c]/30 text-[#ffa44c] font-label text-[10px] uppercase tracking-widest py-2 hover:bg-[#ffa44c]/10 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-sm align-middle mr-1">folder_open</span>
+                  BROWSE_FOLDERS
                 </button>
               </div>
             <% end %>

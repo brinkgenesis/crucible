@@ -67,7 +67,9 @@ defmodule Crucible.Workspace do
         Logger.warning("Workspace: worktree remove failed: #{String.trim(output)}")
         # Force-remove the directory if git worktree remove didn't work
         case File.rm_rf(worktree_path) do
-          {:ok, _} -> :ok
+          {:ok, _} ->
+            :ok
+
           {:error, reason, _} ->
             Logger.error("Workspace: rm_rf also failed for #{worktree_path}: #{inspect(reason)}")
         end
@@ -123,9 +125,7 @@ defmodule Crucible.Workspace do
         {:ok, worktree_path}
 
       {output, code} ->
-        Logger.error(
-          "Workspace: git worktree add failed (#{code}): #{String.trim(output)}"
-        )
+        Logger.error("Workspace: git worktree add failed (#{code}): #{String.trim(output)}")
 
         {:error, {:git_error, code, output}}
     end
@@ -140,7 +140,9 @@ defmodule Crucible.Workspace do
 
     if File.exists?(git_path) and not File.dir?(git_path) do
       case System.cmd("git", ["rev-parse", "--git-dir"],
-             cd: worktree_path, stderr_to_stdout: true) do
+             cd: worktree_path,
+             stderr_to_stdout: true
+           ) do
         {output, 0} -> String.contains?(String.trim(output), "/worktrees/")
         _ -> false
       end

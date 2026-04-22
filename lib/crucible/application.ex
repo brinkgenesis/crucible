@@ -66,8 +66,7 @@ defmodule Crucible.Application do
       CrucibleWeb.RouteMetrics,
 
       # Legacy DNS cluster (retained for non-libcluster environments)
-      {DNSCluster,
-       query: Application.get_env(:crucible, :dns_cluster_query) || :ignore},
+      {DNSCluster, query: Application.get_env(:crucible, :dns_cluster_query) || :ignore},
 
       # PubSub for real-time updates to LiveView dashboard
       # When manifold_pubsub is enabled, uses ManifoldAdapter for parallel fan-out;
@@ -229,9 +228,7 @@ defmodule Crucible.Application do
   end
 
   defp pubsub_child(true = _manifold) do
-    {Phoenix.PubSub,
-     name: Crucible.PubSub,
-     adapter: Crucible.PubSub.ManifoldAdapter}
+    {Phoenix.PubSub, name: Crucible.PubSub, adapter: Crucible.PubSub.ManifoldAdapter}
   end
 
   defp pubsub_child(false = _manifold) do

@@ -27,8 +27,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -44,8 +44,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/symbols")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/symbols")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -61,8 +61,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/references")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/references")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -79,8 +79,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/callgraph")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/callgraph")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -97,8 +97,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/impact")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/impact")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -115,8 +115,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/health")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/health")
+        assert conn.status in [401, 503]
       end)
     end
   end
@@ -133,8 +133,8 @@ defmodule CrucibleWeb.Api.CodebaseControllerTest do
 
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
-      conn = get(conn, "/api/v1/codebase/graph")
-      assert conn.status in [401, 503]
+        conn = get(conn, "/api/v1/codebase/graph")
+        assert conn.status in [401, 503]
       end)
     end
   end

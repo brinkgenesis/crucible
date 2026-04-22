@@ -131,7 +131,9 @@ defmodule Crucible.TraceEventWriter do
     end
   rescue
     e ->
-      Logger.warning("TraceEventWriter: DB flush failed (#{length(events)} events): #{Exception.message(e)}")
+      Logger.warning(
+        "TraceEventWriter: DB flush failed (#{length(events)} events): #{Exception.message(e)}"
+      )
   end
 
   defp truncate_detail(nil), do: nil

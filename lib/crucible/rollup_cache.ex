@@ -5,7 +5,7 @@ defmodule Crucible.RollupCache do
 
   @table :infra_rollup_cache
 
-  @spec fetch(term(), non_neg_integer(), (() -> term())) :: term()
+  @spec fetch(term(), non_neg_integer(), (-> term())) :: term()
   def fetch(key, ttl_ms, fun) when is_integer(ttl_ms) and ttl_ms >= 0 and is_function(fun, 0) do
     ensure_table()
     now = System.monotonic_time(:millisecond)
@@ -35,7 +35,14 @@ defmodule Crucible.RollupCache do
   defp ensure_table do
     case :ets.whereis(@table) do
       :undefined ->
-        :ets.new(@table, [:named_table, :set, :public, read_concurrency: true, write_concurrency: true])
+        :ets.new(@table, [
+          :named_table,
+          :set,
+          :public,
+          read_concurrency: true,
+          write_concurrency: true
+        ])
+
         :ok
 
       _tid ->

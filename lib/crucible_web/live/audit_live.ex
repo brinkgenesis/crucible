@@ -123,11 +123,13 @@ defmodule CrucibleWeb.AuditLive do
     <Layouts.app flash={@flash} current_path={@current_path}>
       <div class="space-y-6">
         <.hud_header icon="security" label="AUDIT_TRAIL" />
-
-        <!-- Health check banner -->
+        
+    <!-- Health check banner -->
         <div class="flex items-center gap-4 bg-surface-container-low hud-border p-3">
           <span class="material-symbols-outlined text-sm text-[#00FF41]/60">monitor_heart</span>
-          <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">DB Health</span>
+          <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+            DB Health
+          </span>
           <span class="font-mono text-[11px] text-[#e0e0e0]/70">
             {@health.event_count} events
           </span>
@@ -135,15 +137,15 @@ defmodule CrucibleWeb.AuditLive do
             Latest: {format_health_ts(@health.latest_timestamp)}
           </span>
         </div>
-
-        <!-- Header stats -->
+        
+    <!-- Header stats -->
         <div class="flex items-center gap-6">
           <.hud_stat label="TOTAL EVENTS" value={Integer.to_string(@total)} color="primary" />
           <.hud_stat label="FILTER" value={String.upcase(@action_filter)} color="secondary" />
           <.hud_stat label="PAGE" value={"#{@page}/#{@total_pages}"} color="tertiary" />
         </div>
-
-        <!-- Loading -->
+        
+    <!-- Loading -->
         <div :if={@loading} class="bg-surface-container-low hud-border animate-pulse">
           <div class="p-5"><div class="h-48 bg-surface-container rounded" /></div>
         </div>
@@ -151,7 +153,9 @@ defmodule CrucibleWeb.AuditLive do
         <div :if={!@loading} class="space-y-4">
           <!-- Filter bar -->
           <div class="flex items-center gap-4 flex-wrap bg-surface-container-low hud-border p-3">
-            <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">Action Filter</span>
+            <span class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60">
+              Action Filter
+            </span>
             <select
               phx-change="filter_action"
               name="action"
@@ -165,22 +169,34 @@ defmodule CrucibleWeb.AuditLive do
               {Integer.to_string(@total)} records
             </span>
           </div>
-
-          <!-- Events table -->
+          
+    <!-- Events table -->
           <.hud_card>
             <div :if={@events == []} class="text-center py-8 text-[#e0e0e0]/30">
-              <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">verified_user</span>
+              <span class="material-symbols-outlined text-3xl opacity-30 block mb-2">
+                verified_user
+              </span>
               <p class="font-mono text-[10px] text-neutral-500">NO_AUDIT_EVENTS_FOUND</p>
             </div>
             <div :if={@events != []} class="overflow-x-auto">
               <table class="w-full">
                 <thead>
                   <tr class="border-b border-[#ffa44c]/10">
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Timestamp</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Action</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">User</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Resource</th>
-                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">Details</th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Timestamp
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Action
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      User
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Resource
+                    </th>
+                    <th class="text-left font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 py-2 px-3">
+                      Details
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -192,11 +208,16 @@ defmodule CrucibleWeb.AuditLive do
                       {format_ts(evt)}
                     </td>
                     <td class="py-2 px-3">
-                      <span class={["px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded", action_hud_badge(evt)]}>
+                      <span class={[
+                        "px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase border rounded",
+                        action_hud_badge(evt)
+                      ]}>
                         {evt.event_type}
                       </span>
                     </td>
-                    <td class="font-mono text-[11px] text-[#e0e0e0]/70 py-2 px-3">{evt.actor || "—"}</td>
+                    <td class="font-mono text-[11px] text-[#e0e0e0]/70 py-2 px-3">
+                      {evt.actor || "—"}
+                    </td>
                     <td class="font-mono text-[11px] text-[#00eefc]/60 truncate max-w-[200px] py-2 px-3">
                       {evt.entity_type}/{evt.entity_id}
                     </td>
@@ -207,9 +228,12 @@ defmodule CrucibleWeb.AuditLive do
                 </tbody>
               </table>
             </div>
-
-            <!-- Pagination -->
-            <div :if={@total_pages > 1} class="flex justify-center items-center gap-2 mt-4 pt-3 border-t border-[#ffa44c]/10">
+            
+    <!-- Pagination -->
+            <div
+              :if={@total_pages > 1}
+              class="flex justify-center items-center gap-2 mt-4 pt-3 border-t border-[#ffa44c]/10"
+            >
               <button
                 :if={@page > 1}
                 phx-click="page"
@@ -257,15 +281,23 @@ defmodule CrucibleWeb.AuditLive do
 
   defp action_hud_badge(evt) do
     case evt.event_type do
-      "login" -> "text-[#00FF41] border-[#00FF41]/30"
-      "logout" -> "text-[#e0e0e0]/40 border-[#e0e0e0]/10"
+      "login" ->
+        "text-[#00FF41] border-[#00FF41]/30"
+
+      "logout" ->
+        "text-[#e0e0e0]/40 border-[#e0e0e0]/10"
+
       a when a in ~w(deleted client.delete remote.session.kill cancelled failed) ->
         "text-[#ff7351] border-[#ff7351]/30"
+
       a when a in ~w(updated config.update env.update budget.update status_changed moved) ->
         "text-[#ffa44c] border-[#ffa44c]/30"
+
       a when a in ~w(created completed restored) ->
         "text-[#00FF41] border-[#00FF41]/30"
-      _ -> "text-[#00eefc] border-[#00eefc]/30"
+
+      _ ->
+        "text-[#00eefc] border-[#00eefc]/30"
     end
   end
 end

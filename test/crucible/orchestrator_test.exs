@@ -46,7 +46,7 @@ defmodule Crucible.OrchestratorTest do
       assert is_map(snapshot.circuit_breakers)
     end
 
-  @tag :skip
+    @tag :skip
     test "submit_run returns :ok with valid manifest" do
       manifest = %{
         "workflow_name" => "coding-sprint",

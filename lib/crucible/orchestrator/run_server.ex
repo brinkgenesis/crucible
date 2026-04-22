@@ -300,6 +300,7 @@ defmodule Crucible.Orchestrator.RunServer do
 
             {:error, reason} = result ->
               PhasePersistence.record_run_failed(run.id)
+
               Events.broadcast_run_event(run.id, :failed, %{
                 workflow_type: run.workflow_type,
                 reason: inspect(reason)
@@ -525,12 +526,20 @@ defmodule Crucible.Orchestrator.RunServer do
           end
 
         %WorkflowRun{run_id: run_id}
-        |> Ecto.Changeset.change(Map.merge(manifest_attrs, %{status: status, updated_at: DateTime.utc_now() |> DateTime.truncate(:second)}))
+        |> Ecto.Changeset.change(
+          Map.merge(manifest_attrs, %{
+            status: status,
+            updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          })
+        )
         |> Repo.insert!(on_conflict: {:replace, [:status, :updated_at]}, conflict_target: :run_id)
 
       run ->
         run
-        |> Ecto.Changeset.change(%{status: status, updated_at: DateTime.utc_now() |> DateTime.truncate(:second)})
+        |> Ecto.Changeset.change(%{
+          status: status,
+          updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
         |> Repo.update!()
     end
 
@@ -560,10 +569,15 @@ defmodule Crucible.Orchestrator.RunServer do
             :ok
 
           not (is_nil(card.run_id) or card.run_id == run_id) ->
-            Logger.debug("RunServer: skipped card move — card #{card_id} owned by run #{card.run_id}, not #{run_id}")
+            Logger.debug(
+              "RunServer: skipped card move — card #{card_id} owned by run #{card.run_id}, not #{run_id}"
+            )
 
-          Map.get(@column_order, column, 0) <= Map.get(@column_order, card.column, 0) and column != "done" ->
-            Logger.debug("RunServer: skipped backward card move #{card.column} → #{column} for card #{card_id}")
+          Map.get(@column_order, column, 0) <= Map.get(@column_order, card.column, 0) and
+              column != "done" ->
+            Logger.debug(
+              "RunServer: skipped backward card move #{card.column} → #{column} for card #{card_id}"
+            )
 
           true ->
             DbAdapter.update_card(card_id, %{column: column})

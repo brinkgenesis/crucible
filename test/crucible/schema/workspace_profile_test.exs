@@ -53,19 +53,39 @@ defmodule Crucible.Schema.WorkspaceProfileTest do
     end
 
     test "validates cost_limit_usd is non-negative" do
-      cs = WorkspaceProfile.changeset(%WorkspaceProfile{}, Map.put(@valid_attrs, :cost_limit_usd, -5))
+      cs =
+        WorkspaceProfile.changeset(
+          %WorkspaceProfile{},
+          Map.put(@valid_attrs, :cost_limit_usd, -5)
+        )
+
       refute cs.valid?
       assert cs.errors[:cost_limit_usd]
     end
 
     test "validates approval_threshold range" do
-      cs = WorkspaceProfile.changeset(%WorkspaceProfile{}, Map.put(@valid_attrs, :approval_threshold, 0))
+      cs =
+        WorkspaceProfile.changeset(
+          %WorkspaceProfile{},
+          Map.put(@valid_attrs, :approval_threshold, 0)
+        )
+
       refute cs.valid?
 
-      cs = WorkspaceProfile.changeset(%WorkspaceProfile{}, Map.put(@valid_attrs, :approval_threshold, 11))
+      cs =
+        WorkspaceProfile.changeset(
+          %WorkspaceProfile{},
+          Map.put(@valid_attrs, :approval_threshold, 11)
+        )
+
       refute cs.valid?
 
-      cs = WorkspaceProfile.changeset(%WorkspaceProfile{}, Map.put(@valid_attrs, :approval_threshold, 5))
+      cs =
+        WorkspaceProfile.changeset(
+          %WorkspaceProfile{},
+          Map.put(@valid_attrs, :approval_threshold, 5)
+        )
+
       assert cs.valid?
     end
 

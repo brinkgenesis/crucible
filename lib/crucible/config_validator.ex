@@ -105,8 +105,7 @@ defmodule Crucible.ConfigValidator do
         end
 
         cluster_config = [
-          cluster_dns_poll_interval:
-            Application.get_env(:crucible, :cluster_dns_poll_interval)
+          cluster_dns_poll_interval: Application.get_env(:crucible, :cluster_dns_poll_interval)
         ]
 
         case validate_positive_integer(cluster_config, :cluster_dns_poll_interval) do

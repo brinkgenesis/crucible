@@ -132,9 +132,11 @@ defmodule CrucibleWeb.TracesLive do
   def handle_params(%{"run_id" => run_id} = params, _uri, socket) do
     # Subscribe to run-specific PubSub for real-time updates
     prev_id = socket.assigns[:selected]
+
     if prev_id && prev_id != run_id do
       Phoenix.PubSub.unsubscribe(Crucible.PubSub, "run:#{prev_id}")
     end
+
     if connected?(socket), do: Phoenix.PubSub.subscribe(Crucible.PubSub, "run:#{run_id}")
 
     window = normalize_window(Map.get(params, "window", "7d"))
@@ -687,7 +689,8 @@ defmodule CrucibleWeb.TracesLive do
             "px-3 py-1.5 font-mono text-[10px] tracking-widest transition-all",
             if(@time_window == w,
               do: "bg-[#ffa44c] text-black font-bold",
-              else: "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
+              else:
+                "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
             )
           ]}
         >
@@ -731,14 +734,18 @@ defmodule CrucibleWeb.TracesLive do
           <span class="font-mono text-[10px] text-[#ffa44c] tracking-widest">AVG_DURATION</span>
           <span class="material-symbols-outlined text-[#ffa44c] opacity-50">timer</span>
         </div>
-        <div class="text-4xl font-headline font-black text-white">{format_duration_ms(@summary.avg_duration_ms)}</div>
+        <div class="text-4xl font-headline font-black text-white">
+          {format_duration_ms(@summary.avg_duration_ms)}
+        </div>
       </div>
       <div class="bg-surface-container-low border-t-2 border-[#ffa44c] p-4 hud-border flex flex-col justify-between min-h-[140px]">
         <div class="flex justify-between items-start">
           <span class="font-mono text-[10px] text-[#ffa44c] tracking-widest">TOTAL_COST</span>
           <span class="material-symbols-outlined text-[#ffa44c] opacity-50">payments</span>
         </div>
-        <div class="text-4xl font-headline font-black text-white">${Float.round(@summary.total_cost * 1.0, 2)}</div>
+        <div class="text-4xl font-headline font-black text-white">
+          ${Float.round(@summary.total_cost * 1.0, 2)}
+        </div>
       </div>
       <div class="bg-surface-container-low border-t-2 border-[#ff725e] p-4 hud-border relative overflow-hidden">
         <div class="relative z-10 flex flex-col h-full justify-between">
@@ -747,10 +754,15 @@ defmodule CrucibleWeb.TracesLive do
             <span class="material-symbols-outlined text-[#ff725e] opacity-50">verified_user</span>
           </div>
           <div class="flex items-end gap-4">
-            <div class="text-4xl font-headline font-black text-white">{Float.round(@summary.success_rate * 100, 0)}%</div>
+            <div class="text-4xl font-headline font-black text-white">
+              {Float.round(@summary.success_rate * 100, 0)}%
+            </div>
             <div class="flex-1 mb-2">
               <div class="h-2 w-full bg-surface-container-highest">
-                <div class="h-full bg-[#ff725e] shadow-[0_0_10px_rgba(255,114,94,0.5)]" style={"width: #{Float.round(@summary.success_rate * 100, 0)}%"} />
+                <div
+                  class="h-full bg-[#ff725e] shadow-[0_0_10px_rgba(255,114,94,0.5)]"
+                  style={"width: #{Float.round(@summary.success_rate * 100, 0)}%"}
+                />
               </div>
             </div>
           </div>
@@ -764,11 +776,12 @@ defmodule CrucibleWeb.TracesLive do
       class="bg-surface-container-low border border-[#494847]/10 p-6 hud-border relative"
     >
       <div class="absolute top-0 right-0 p-2 bg-[#ff725e]/10 border-b border-l border-[#ff725e]/20">
-        <span class="font-mono text-[10px] text-[#ff725e] animate-pulse font-bold tracking-tighter">REGRESSION_DETECTED</span>
+        <span class="font-mono text-[10px] text-[#ff725e] animate-pulse font-bold tracking-tighter">
+          REGRESSION_DETECTED
+        </span>
       </div>
       <h3 class="font-headline text-lg font-bold text-white uppercase mb-6 flex items-center gap-2">
-        <span class="w-1.5 h-6 bg-[#ff725e]" />
-        REGRESSION_ANALYSIS
+        <span class="w-1.5 h-6 bg-[#ff725e]" /> REGRESSION_ANALYSIS
       </h3>
       <div :if={@regression_panel.regressed != []} class="space-y-2 mb-4">
         <div class="text-[10px] text-[#ff725e] font-mono font-bold uppercase">REGRESSIONS</div>
@@ -782,7 +795,15 @@ defmodule CrucibleWeb.TracesLive do
           </div>
           <.link
             :if={row.latest_run_id && row.baseline_run_id}
-            patch={trace_compare_path(row.latest_run_id, row.baseline_run_id, @time_window, @client_filter, @workspace_filter)}
+            patch={
+              trace_compare_path(
+                row.latest_run_id,
+                row.baseline_run_id,
+                @time_window,
+                @client_filter,
+                @workspace_filter
+              )
+            }
             class="px-2 py-1 border border-[#494847]/30 text-[#777575] font-mono text-[9px] hover:text-[#00eefc] hover:border-[#00eefc] transition-all"
           >
             COMPARE
@@ -802,7 +823,15 @@ defmodule CrucibleWeb.TracesLive do
           <div class="flex items-center gap-2 shrink-0">
             <.link
               :if={row.latest_run_id && row.baseline_run_id}
-              patch={trace_compare_path(row.latest_run_id, row.baseline_run_id, @time_window, @client_filter, @workspace_filter)}
+              patch={
+                trace_compare_path(
+                  row.latest_run_id,
+                  row.baseline_run_id,
+                  @time_window,
+                  @client_filter,
+                  @workspace_filter
+                )
+              }
               class="px-2 py-1 border border-[#494847]/30 text-[#777575] font-mono text-[9px] hover:text-[#00eefc] hover:border-[#00eefc] transition-all"
             >
               COMPARE
@@ -829,11 +858,13 @@ defmodule CrucibleWeb.TracesLive do
       <p class="text-[10px] font-mono text-neutral-500 mt-2">NO_TRACES_FOUND_FOR_THIS_WINDOW</p>
     </div>
 
-    <div :if={@trace_runs != []} class="bg-surface-container-low border border-[#494847]/10 hud-border overflow-hidden">
+    <div
+      :if={@trace_runs != []}
+      class="bg-surface-container-low border border-[#494847]/10 hud-border overflow-hidden"
+    >
       <div class="p-6 border-b border-[#494847]/10 flex justify-between items-center bg-surface-container">
         <h3 class="font-headline text-lg font-bold text-white uppercase flex items-center gap-2">
-          <span class="w-1.5 h-6 bg-[#ffa44c]" />
-          DETAILED_EXECUTION_LOG
+          <span class="w-1.5 h-6 bg-[#ffa44c]" /> DETAILED_EXECUTION_LOG
         </h3>
       </div>
       <div class="overflow-x-auto">
@@ -852,18 +883,34 @@ defmodule CrucibleWeb.TracesLive do
                   checked={MapSet.size(@selected_runs) == length(@trace_runs) && @trace_runs != []}
                 />
               </th>
-              <th class="px-4 py-4 font-normal cursor-pointer hover:text-[#00eefc]" phx-click="sort" phx-value-by="time">
+              <th
+                class="px-4 py-4 font-normal cursor-pointer hover:text-[#00eefc]"
+                phx-click="sort"
+                phx-value-by="time"
+              >
                 RUN_ID {sort_indicator("time", @sort_by, @sort_dir)}
               </th>
               <th class="px-4 py-4 font-normal">WORKFLOW</th>
-              <th class="px-4 py-4 font-normal text-right cursor-pointer hover:text-[#00eefc]" phx-click="sort" phx-value-by="duration">
+              <th
+                class="px-4 py-4 font-normal text-right cursor-pointer hover:text-[#00eefc]"
+                phx-click="sort"
+                phx-value-by="duration"
+              >
                 DURATION {sort_indicator("duration", @sort_by, @sort_dir)}
               </th>
-              <th class="px-4 py-4 font-normal text-right cursor-pointer hover:text-[#00eefc]" phx-click="sort" phx-value-by="tokens">
+              <th
+                class="px-4 py-4 font-normal text-right cursor-pointer hover:text-[#00eefc]"
+                phx-click="sort"
+                phx-value-by="tokens"
+              >
                 TOKENS {sort_indicator("tokens", @sort_by, @sort_dir)}
               </th>
               <th class="px-4 py-4 font-normal">EVENTS</th>
-              <th class="px-4 py-4 font-normal cursor-pointer hover:text-[#00eefc]" phx-click="sort" phx-value-by="status">
+              <th
+                class="px-4 py-4 font-normal cursor-pointer hover:text-[#00eefc]"
+                phx-click="sort"
+                phx-value-by="status"
+              >
                 STATUS {sort_indicator("status", @sort_by, @sort_dir)}
               </th>
               <th class="px-4 py-4 font-normal">STARTED</th>
@@ -882,24 +929,35 @@ defmodule CrucibleWeb.TracesLive do
               </td>
               <td class="px-4 py-3">
                 <.link
-                  patch={trace_detail_path(run.run_id, @time_window, @client_filter, @workspace_filter)}
+                  patch={
+                    trace_detail_path(run.run_id, @time_window, @client_filter, @workspace_filter)
+                  }
                   class="text-white font-bold hover:text-[#00eefc] transition-colors"
                 >
                   {String.slice(run.run_id, 0, 12)}
                 </.link>
               </td>
               <td class="px-4 py-3 text-white">{run.workflow_name}</td>
-              <td class="px-4 py-3 text-right text-[#00eefc]">{format_duration_ms(run.duration_ms || 0)}</td>
+              <td class="px-4 py-3 text-right text-[#00eefc]">
+                {format_duration_ms(run.duration_ms || 0)}
+              </td>
               <td class="px-4 py-3 text-right text-white">{format_tokens(run.total_tokens || 0)}</td>
               <td class="px-4 py-3 text-[#777575]">{run.event_count}</td>
               <td class="px-4 py-3">
                 <span class={[
                   "px-2 py-0.5 border font-bold uppercase text-[9px]",
                   case to_string(run.status) do
-                    s when s in ["done", "completed"] -> "bg-[#00FF41]/10 text-[#00FF41] border-[#00FF41]/30"
-                    "failed" -> "bg-[#ff725e]/20 text-[#ff725e] border-[#ff725e]/30"
-                    s when s in ["running", "in_progress"] -> "bg-[#ffa44c]/20 text-[#ffa44c] border-[#ffa44c]/30"
-                    _ -> "bg-[#494847]/10 text-[#777575] border-[#494847]/30"
+                    s when s in ["done", "completed"] ->
+                      "bg-[#00FF41]/10 text-[#00FF41] border-[#00FF41]/30"
+
+                    "failed" ->
+                      "bg-[#ff725e]/20 text-[#ff725e] border-[#ff725e]/30"
+
+                    s when s in ["running", "in_progress"] ->
+                      "bg-[#ffa44c]/20 text-[#ffa44c] border-[#ffa44c]/30"
+
+                    _ ->
+                      "bg-[#494847]/10 text-[#777575] border-[#494847]/30"
                   end
                 ]}>
                   {run.status}
@@ -967,7 +1025,9 @@ defmodule CrucibleWeb.TracesLive do
         <span class="material-symbols-outlined text-sm">arrow_back</span> BACK
       </.link>
       <div>
-        <h1 class="text-2xl font-headline font-bold text-white tracking-tighter uppercase">TRACE_COMPARE</h1>
+        <h1 class="text-2xl font-headline font-bold text-white tracking-tighter uppercase">
+          TRACE_COMPARE
+        </h1>
         <div class="text-[10px] text-[#777575] font-mono">
           {@compare.left_run_id} VS {@compare.right_run_id}
         </div>
@@ -977,13 +1037,19 @@ defmodule CrucibleWeb.TracesLive do
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-surface-container-low p-5 hud-border border-t-2 border-[#ffa44c]">
         <div class="text-[9px] font-mono text-[#ffa44c]/70 uppercase mb-2">DURATION_DELTA</div>
-        <div class={["text-2xl font-headline font-bold", hud_delta_class(@compare.totals.duration_delta_ms)]}>
+        <div class={[
+          "text-2xl font-headline font-bold",
+          hud_delta_class(@compare.totals.duration_delta_ms)
+        ]}>
           {format_signed_duration(@compare.totals.duration_delta_ms)}
         </div>
       </div>
       <div class="bg-surface-container-low p-5 hud-border border-t-2 border-[#00eefc]">
         <div class="text-[9px] font-mono text-[#00eefc]/70 uppercase mb-2">TOKEN_DELTA</div>
-        <div class={["text-2xl font-headline font-bold", hud_delta_class(@compare.totals.tokens_delta)]}>
+        <div class={[
+          "text-2xl font-headline font-bold",
+          hud_delta_class(@compare.totals.tokens_delta)
+        ]}>
           {format_signed_tokens(@compare.totals.tokens_delta)}
         </div>
       </div>
@@ -998,8 +1064,7 @@ defmodule CrucibleWeb.TracesLive do
     <div class="bg-surface-container-low border border-[#494847]/10 hud-border overflow-hidden">
       <div class="p-6 border-b border-[#494847]/10 bg-surface-container">
         <h3 class="font-headline text-lg font-bold text-white uppercase flex items-center gap-2">
-          <span class="w-1.5 h-6 bg-[#ffa44c]" />
-          PHASE_BY_PHASE
+          <span class="w-1.5 h-6 bg-[#ffa44c]" /> PHASE_BY_PHASE
         </h3>
       </div>
       <div :if={@compare.rows == []} class="text-center py-8">
@@ -1025,8 +1090,12 @@ defmodule CrucibleWeb.TracesLive do
           <tbody class="divide-y divide-[#494847]/5">
             <tr :for={row <- @compare.rows} class="hover:bg-[#00eefc]/5 transition-colors">
               <td class="px-4 py-3 text-white font-bold">{row.phase_name}</td>
-              <td class="px-4 py-3 text-right text-white">{format_duration_ms(row.left_duration_ms)}</td>
-              <td class="px-4 py-3 text-right text-[#777575]">{format_duration_ms(row.right_duration_ms)}</td>
+              <td class="px-4 py-3 text-right text-white">
+                {format_duration_ms(row.left_duration_ms)}
+              </td>
+              <td class="px-4 py-3 text-right text-[#777575]">
+                {format_duration_ms(row.right_duration_ms)}
+              </td>
               <td class={["px-4 py-3 text-right", hud_delta_class(row.duration_delta_ms)]}>
                 {format_signed_duration(row.duration_delta_ms)}
               </td>
@@ -1036,7 +1105,9 @@ defmodule CrucibleWeb.TracesLive do
                 {format_signed_tokens(row.tokens_delta)}
               </td>
               <td class="px-4 py-3 text-right text-white">${Float.round(row.left_cost_usd, 4)}</td>
-              <td class="px-4 py-3 text-right text-[#777575]">${Float.round(row.right_cost_usd, 4)}</td>
+              <td class="px-4 py-3 text-right text-[#777575]">
+                ${Float.round(row.right_cost_usd, 4)}
+              </td>
               <td class={["px-4 py-3 text-right", hud_delta_class(row.cost_delta)]}>
                 {format_signed_cost(row.cost_delta)}
               </td>
@@ -1093,7 +1164,9 @@ defmodule CrucibleWeb.TracesLive do
     <div :if={@run_summary} class="grid grid-cols-2 md:grid-cols-5 gap-3">
       <div class="bg-surface-container-low p-4 hud-border border-t-2 border-[#ffa44c]">
         <div class="text-[9px] font-mono text-[#ffa44c]/70 uppercase">DURATION</div>
-        <div class="text-xl font-bold font-mono text-white">{format_duration_ms(@run_summary.duration_ms)}</div>
+        <div class="text-xl font-bold font-mono text-white">
+          {format_duration_ms(@run_summary.duration_ms)}
+        </div>
       </div>
       <div class="bg-surface-container-low p-4 hud-border border-t-2 border-[#00eefc]">
         <div class="text-[9px] font-mono text-[#00eefc]/70 uppercase">PHASES</div>
@@ -1109,7 +1182,9 @@ defmodule CrucibleWeb.TracesLive do
       </div>
       <div class="bg-surface-container-low p-4 hud-border border-t-2 border-[#ff725e]">
         <div class="text-[9px] font-mono text-[#ff725e]/70 uppercase">OUTPUT_TOKENS</div>
-        <div class="text-xl font-bold font-mono text-white">{format_tokens(@total_tokens.output)}</div>
+        <div class="text-xl font-bold font-mono text-white">
+          {format_tokens(@total_tokens.output)}
+        </div>
       </div>
     </div>
 
@@ -1211,7 +1286,9 @@ defmodule CrucibleWeb.TracesLive do
         </div>
 
         <div class="bg-surface-container-low p-6 border-t-2 border-[#00eefc] hud-border">
-          <h3 class="text-[#00eefc] font-mono text-xs tracking-widest uppercase mb-4">MCP_TOOL_RELIABILITY</h3>
+          <h3 class="text-[#00eefc] font-mono text-xs tracking-widest uppercase mb-4">
+            MCP_TOOL_RELIABILITY
+          </h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left font-mono text-[10px]">
               <thead class="border-b border-[#494847]/30 text-neutral-500">
@@ -1231,7 +1308,9 @@ defmodule CrucibleWeb.TracesLive do
                   <td class="py-3 text-right text-[#00FF41]">{stat.succeeded}</td>
                   <td class="py-3 text-right text-[#ff725e]">{stat.failed}</td>
                   <td class="py-3 text-right text-[#ffa44c]">{stat.denied}</td>
-                  <td class="py-3 text-right text-neutral-400">{if stat.avg_duration_ms >= 1, do: "#{stat.avg_duration_ms}ms", else: "<1ms"}</td>
+                  <td class="py-3 text-right text-neutral-400">
+                    {if stat.avg_duration_ms >= 1, do: "#{stat.avg_duration_ms}ms", else: "<1ms"}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1239,7 +1318,9 @@ defmodule CrucibleWeb.TracesLive do
         </div>
 
         <div class="bg-surface-container-low p-6 border-l border-[#494847]/20 hud-border">
-          <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">RECENT_MCP_EVENTS</h3>
+          <h3 class="text-neutral-400 font-mono text-[10px] tracking-widest uppercase mb-4">
+            RECENT_MCP_EVENTS
+          </h3>
           <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
             <table class="w-full text-left font-mono text-[10px]">
               <thead class="border-b border-[#494847]/30 text-neutral-500 sticky top-0 bg-surface-container-low">
@@ -1257,7 +1338,9 @@ defmodule CrucibleWeb.TracesLive do
                   <td class={"py-2 #{if(evt.status == "success", do: "text-[#00FF41]", else: if(evt.status == "denied", do: "text-[#ffa44c]", else: "text-[#ff725e]"))}"}>
                     {String.upcase(evt.status)}
                   </td>
-                  <td class="py-2 text-right text-neutral-400">{if evt.duration_ms > 0, do: "#{evt.duration_ms}ms", else: "<1ms"}</td>
+                  <td class="py-2 text-right text-neutral-400">
+                    {if evt.duration_ms > 0, do: "#{evt.duration_ms}ms", else: "<1ms"}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -1347,7 +1430,9 @@ defmodule CrucibleWeb.TracesLive do
         class="grid grid-cols-[minmax(0,12rem)_minmax(0,1fr)_auto] items-center gap-3"
       >
         <div class="min-w-0">
-          <div class="truncate text-[11px] font-mono font-bold text-white uppercase">{phase.name}</div>
+          <div class="truncate text-[11px] font-mono font-bold text-white uppercase">
+            {phase.name}
+          </div>
           <div class="font-mono text-[9px] text-[#777575]">
             +{format_timeline_ms(phase.offset_ms)} → +{format_timeline_ms(phase.end_ms)}
           </div>
@@ -1359,7 +1444,10 @@ defmodule CrucibleWeb.TracesLive do
             style={"left: #{tick.left_pct}%"}
           />
           <div
-            class={["absolute inset-y-0 text-[9px] font-mono text-black/80", hud_phase_bar_color(phase.status)]}
+            class={[
+              "absolute inset-y-0 text-[9px] font-mono text-black/80",
+              hud_phase_bar_color(phase.status)
+            ]}
             style={"left: #{phase.offset_pct}%; width: #{phase.width_pct}%"}
           >
             <div :if={phase.width_pct >= 7} class="flex h-full items-center truncate px-2 font-bold">
@@ -1371,10 +1459,17 @@ defmodule CrucibleWeb.TracesLive do
         <span class={[
           "px-2 py-0.5 text-[8px] font-mono font-bold border",
           case to_string(phase.status) do
-            s when s in ["done", "completed"] -> "bg-[#00FF41]/10 text-[#00FF41] border-[#00FF41]/30"
-            "failed" -> "bg-[#ff725e]/10 text-[#ff725e] border-[#ff725e]/30"
-            s when s in ["running", "in_progress"] -> "bg-[#00eefc]/10 text-[#00eefc] border-[#00eefc]/30"
-            _ -> "bg-[#494847]/10 text-[#777575] border-[#494847]/30"
+            s when s in ["done", "completed"] ->
+              "bg-[#00FF41]/10 text-[#00FF41] border-[#00FF41]/30"
+
+            "failed" ->
+              "bg-[#ff725e]/10 text-[#ff725e] border-[#ff725e]/30"
+
+            s when s in ["running", "in_progress"] ->
+              "bg-[#00eefc]/10 text-[#00eefc] border-[#00eefc]/30"
+
+            _ ->
+              "bg-[#494847]/10 text-[#777575] border-[#494847]/30"
           end
         ]}>
           {String.upcase(to_string(phase.status))}
@@ -1399,7 +1494,10 @@ defmodule CrucibleWeb.TracesLive do
       <div :for={{tool, count} <- @tools} class="flex items-center gap-3">
         <div class="w-28 text-[10px] font-mono truncate text-right text-[#777575]">{tool}</div>
         <div class="flex-1 h-4 bg-black/40">
-          <div class="h-full bg-[#ffa44c] transition-all" style={"width: #{count / @max_count * 100}%"} />
+          <div
+            class="h-full bg-[#ffa44c] transition-all"
+            style={"width: #{count / @max_count * 100}%"}
+          />
         </div>
         <span class="text-[10px] font-mono w-10 text-right text-[#00eefc]">{count}</span>
       </div>
@@ -1452,7 +1550,12 @@ defmodule CrucibleWeb.TracesLive do
       <p class="text-[10px] font-mono text-neutral-500 mt-2">NO_COST_DATA_AVAILABLE</p>
     </div>
     <div :if={@costs != []} class="bg-surface-container-low p-6 hud-border">
-      <.hud_header :if={@has_transcript_tokens} icon="receipt_long" label="Phase Cost Breakdown [Trace Events]" class="mb-4" />
+      <.hud_header
+        :if={@has_transcript_tokens}
+        icon="receipt_long"
+        label="Phase Cost Breakdown [Trace Events]"
+        class="mb-4"
+      />
       <div class="overflow-x-auto">
         <table class="w-full text-left font-mono text-[11px]">
           <thead>
@@ -1468,10 +1571,16 @@ defmodule CrucibleWeb.TracesLive do
           <tbody class="divide-y divide-[#494847]/5">
             <tr :for={c <- @costs} class="hover:bg-[#00eefc]/5 transition-colors">
               <td class="px-4 py-3 text-[#00eefc] uppercase">{c.phase_id}</td>
-              <td class="px-4 py-3 text-right text-white">{format_tokens(c.input_tokens - Map.get(c, :cache_read_tokens, 0))}</td>
-              <td class="px-4 py-3 text-right text-[#777575]">{format_tokens(Map.get(c, :cache_read_tokens, 0))}</td>
+              <td class="px-4 py-3 text-right text-white">
+                {format_tokens(c.input_tokens - Map.get(c, :cache_read_tokens, 0))}
+              </td>
+              <td class="px-4 py-3 text-right text-[#777575]">
+                {format_tokens(Map.get(c, :cache_read_tokens, 0))}
+              </td>
               <td class="px-4 py-3 text-right text-white">{format_tokens(c.output_tokens)}</td>
-              <td class="px-4 py-3 text-right text-[#ffa44c] font-bold">${Float.round(c.cost_usd * 1.0, 4)}</td>
+              <td class="px-4 py-3 text-right text-[#ffa44c] font-bold">
+                ${Float.round(c.cost_usd * 1.0, 4)}
+              </td>
               <td class="px-4 py-3 text-right text-[#777575]">{format_duration_ms(c.duration_ms)}</td>
             </tr>
           </tbody>
@@ -1523,7 +1632,10 @@ defmodule CrucibleWeb.TracesLive do
       </p>
     </div>
 
-    <div :if={@filtered != []} class="bg-surface-container-low hud-border max-h-[600px] overflow-y-auto">
+    <div
+      :if={@filtered != []}
+      class="bg-surface-container-low hud-border max-h-[600px] overflow-y-auto"
+    >
       <div class="space-y-0">
         <div
           :for={event <- @filtered}
@@ -1535,16 +1647,28 @@ defmodule CrucibleWeb.TracesLive do
           <span class={[
             "px-1.5 py-0.5 text-[8px] font-bold shrink-0",
             case event["eventType"] do
-              "phase_start" -> "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
-              "phase_end" -> "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
-              t when t in ["verify_fail", "budget_exceeded", "loop_detected"] -> "bg-[#ff725e]/10 text-[#ff725e] border border-[#ff725e]/30"
-              "verify_pass" -> "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
-              _ -> "bg-[#494847]/10 text-[#777575] border border-[#494847]/30"
+              "phase_start" ->
+                "bg-[#00eefc]/10 text-[#00eefc] border border-[#00eefc]/30"
+
+              "phase_end" ->
+                "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
+
+              t when t in ["verify_fail", "budget_exceeded", "loop_detected"] ->
+                "bg-[#ff725e]/10 text-[#ff725e] border border-[#ff725e]/30"
+
+              "verify_pass" ->
+                "bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
+
+              _ ->
+                "bg-[#494847]/10 text-[#777575] border border-[#494847]/30"
             end
           ]}>
             {event["eventType"]}
           </span>
-          <span :if={event["tool"]} class="px-1.5 py-0.5 text-[8px] border border-[#494847]/30 text-[#777575] shrink-0">
+          <span
+            :if={event["tool"]}
+            class="px-1.5 py-0.5 text-[8px] border border-[#494847]/30 text-[#777575] shrink-0"
+          >
             {event["tool"]}
           </span>
           <span class="text-[#777575] truncate">
@@ -1600,7 +1724,9 @@ defmodule CrucibleWeb.TracesLive do
     <div :if={@tasks == []} class="text-center py-12">
       <span class="material-symbols-outlined text-4xl text-[#494847]/30">assignment</span>
       <p class="text-[10px] font-mono text-neutral-500 mt-2">NO_TASK_EVENTS</p>
-      <p class="text-[9px] font-mono text-neutral-600 mt-1">SDK SUBAGENT RUNS DO NOT USE TASKCREATE/TASKUPDATE</p>
+      <p class="text-[9px] font-mono text-neutral-600 mt-1">
+        SDK SUBAGENT RUNS DO NOT USE TASKCREATE/TASKUPDATE
+      </p>
     </div>
     <div :if={@tasks != []} class="bg-surface-container-low hud-border overflow-hidden">
       <div class="overflow-x-auto">
@@ -1635,7 +1761,6 @@ defmodule CrucibleWeb.TracesLive do
     </div>
     """
   end
-
 
   # ---------------------------------------------------------------------------
   # Agents tab components
@@ -1687,9 +1812,16 @@ defmodule CrucibleWeb.TracesLive do
     </div>
 
     <div :if={@all_agent_names != [] or @spawn_count > 0} class="space-y-4">
-      <.hud_header icon="smart_toy" label={"Agents (#{max(length(@all_agent_names), @spawn_count)})"} class="mb-4" />
+      <.hud_header
+        icon="smart_toy"
+        label={"Agents (#{max(length(@all_agent_names), @spawn_count)})"}
+        class="mb-4"
+      />
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        <div :for={name <- @all_agent_names} class="bg-surface-container-low p-4 hud-border border-l-2 border-[#ffa44c]/30">
+        <div
+          :for={name <- @all_agent_names}
+          class="bg-surface-container-low p-4 hud-border border-l-2 border-[#ffa44c]/30"
+        >
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-[#ffa44c]">smart_toy</span>
             <span class="font-mono text-[11px] font-bold text-white">{name}</span>
@@ -1769,10 +1901,16 @@ defmodule CrucibleWeb.TracesLive do
           <span class="px-1.5 py-0.5 text-[8px] font-mono bg-[#494847]/10 border border-[#494847]/30 text-[#777575]">
             {@tool_count} TOOLS
           </span>
-          <span :if={@files_created != []} class="px-1.5 py-0.5 text-[8px] font-mono bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30">
+          <span
+            :if={@files_created != []}
+            class="px-1.5 py-0.5 text-[8px] font-mono bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30"
+          >
             {length(@files_created)} CREATED
           </span>
-          <span :if={@files_modified != []} class="px-1.5 py-0.5 text-[8px] font-mono bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30">
+          <span
+            :if={@files_modified != []}
+            class="px-1.5 py-0.5 text-[8px] font-mono bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30"
+          >
             {length(@files_modified)} MODIFIED
           </span>
         </div>
@@ -1781,11 +1919,15 @@ defmodule CrucibleWeb.TracesLive do
       <div :if={@is_expanded} class="px-4 pb-4 border-t border-[#494847]/10">
         <div :if={@files_created != [] or @files_modified != []} class="mb-3 mt-3 space-y-1">
           <div :for={f <- @files_created} class="flex items-center gap-2 text-[10px] font-mono">
-            <span class="px-1 py-0.5 text-[8px] bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30">CREATED</span>
+            <span class="px-1 py-0.5 text-[8px] bg-[#00FF41]/10 text-[#00FF41] border border-[#00FF41]/30">
+              CREATED
+            </span>
             <span class="text-white truncate">{f}</span>
           </div>
           <div :for={f <- @files_modified} class="flex items-center gap-2 text-[10px] font-mono">
-            <span class="px-1 py-0.5 text-[8px] bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30">MODIFIED</span>
+            <span class="px-1 py-0.5 text-[8px] bg-[#ffa44c]/10 text-[#ffa44c] border border-[#ffa44c]/30">
+              MODIFIED
+            </span>
             <span class="text-white truncate">{f}</span>
           </div>
         </div>

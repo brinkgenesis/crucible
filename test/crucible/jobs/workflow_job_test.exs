@@ -7,7 +7,9 @@ defmodule Crucible.Jobs.WorkflowJobTest do
 
   describe "new/1" do
     test "builds valid job changeset" do
-      changeset = WorkflowJob.new(%{run_id: "test-run-1", infra_home: "/tmp", workflow_name: "default"})
+      changeset =
+        WorkflowJob.new(%{run_id: "test-run-1", infra_home: "/tmp", workflow_name: "default"})
+
       assert changeset.valid?
       # Args may be stored as atom or string keys depending on Oban version
       args = changeset.changes.args
@@ -34,7 +36,10 @@ defmodule Crucible.Jobs.WorkflowJobTest do
 
       File.write!(cb_file, Jason.encode!(cb_state))
 
-      job = %Oban.Job{args: %{"run_id" => "test-run", "infra_home" => tmp_dir, "workflow_name" => "default"}}
+      job = %Oban.Job{
+        args: %{"run_id" => "test-run", "infra_home" => tmp_dir, "workflow_name" => "default"}
+      }
+
       result = WorkflowJob.perform(job)
 
       # Should snooze (circuit breaker blocks) or proceed if CB implementation differs
@@ -48,7 +53,14 @@ defmodule Crucible.Jobs.WorkflowJobTest do
       cb_dir = Path.join(tmp_dir, ".claude-flow")
       File.mkdir_p!(cb_dir)
 
-      job = %Oban.Job{args: %{"run_id" => "nonexistent-run", "infra_home" => tmp_dir, "workflow_name" => "default"}}
+      job = %Oban.Job{
+        args: %{
+          "run_id" => "nonexistent-run",
+          "infra_home" => tmp_dir,
+          "workflow_name" => "default"
+        }
+      }
+
       result = WorkflowJob.perform(job)
 
       # Should fail because run doesn't exist in DB, or snooze if locked

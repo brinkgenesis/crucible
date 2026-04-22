@@ -39,7 +39,10 @@ defmodule Crucible.Jobs.LogRotationJobTest do
   end
 
   describe "perform/1 — large file rotation" do
-    test "rotates file that exceeds 10MB threshold", %{audit_path: audit_path, cost_path: cost_path} do
+    test "rotates file that exceeds 10MB threshold", %{
+      audit_path: audit_path,
+      cost_path: cost_path
+    } do
       # Write >10MB to audit log
       big_data = String.duplicate("x", 11 * 1024 * 1024)
       File.write!(audit_path, big_data)

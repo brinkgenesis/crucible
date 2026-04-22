@@ -43,6 +43,7 @@ defmodule Crucible.Router.Providers.OpenAICompat do
   # ── helpers ─────────────────────────────────────────────────────────────
 
   defp maybe_add_auth(headers, ""), do: headers
+
   defp maybe_add_auth(headers, key) when is_binary(key),
     do: [{"authorization", "Bearer " <> key} | headers]
 

@@ -582,7 +582,10 @@ defmodule Crucible.Claude.Session do
         pid
 
       {:error, reason} ->
-        Logger.warning("Claude.Session: FileSystem watcher failed (#{inspect(reason)}), using polling fallback")
+        Logger.warning(
+          "Claude.Session: FileSystem watcher failed (#{inspect(reason)}), using polling fallback"
+        )
+
         nil
     end
   end

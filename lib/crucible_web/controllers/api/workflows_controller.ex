@@ -8,8 +8,13 @@ defmodule CrucibleWeb.Api.WorkflowsController do
     summary: "List workflows",
     description: "Returns all workflow definitions from the workflow store.",
     tags: ["Workflows"],
-    responses: [ok: {"Workflow list", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Workflow list", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def index(conn, _params) do
     workflows = safe_call(fn -> WorkflowStore.list() end, [])
     json(conn, workflows)
@@ -27,6 +32,7 @@ defmodule CrucibleWeb.Api.WorkflowsController do
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def show(conn, %{"name" => name}) do
     case safe_call(fn -> WorkflowStore.get(name) end, nil) do
       nil ->

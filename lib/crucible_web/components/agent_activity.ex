@@ -13,9 +13,14 @@ defmodule CrucibleWeb.Components.AgentActivity do
 
   def run_activity(assigns) do
     ~H"""
-    <div :if={!@ts_api_up} class="bg-[#ff7351]/10 border border-[#ff7351]/20 p-3 flex items-center gap-2">
+    <div
+      :if={!@ts_api_up}
+      class="bg-[#ff7351]/10 border border-[#ff7351]/20 p-3 flex items-center gap-2"
+    >
       <span class="material-symbols-outlined text-sm text-[#ff7351]">signal_disconnected</span>
-      <span class="text-[10px] font-label tracking-widest text-[#ff7351]">ACTIVITY_DATA_UNAVAILABLE</span>
+      <span class="text-[10px] font-label tracking-widest text-[#ff7351]">
+        ACTIVITY_DATA_UNAVAILABLE
+      </span>
     </div>
 
     <div :if={@ts_api_up and @sessions == []} class="text-center py-8">
@@ -40,7 +45,9 @@ defmodule CrucibleWeb.Components.AgentActivity do
             </div>
           </div>
           <.tool_badge tool={session["lastTool"]} />
-          <span class="text-[10px] font-label text-[#adaaaa]/40">{session["toolCount"] || 0} CALLS</span>
+          <span class="text-[10px] font-label text-[#adaaaa]/40">
+            {session["toolCount"] || 0} CALLS
+          </span>
           <span class="text-[10px] font-label text-[#ffa44c]/40">
             {format_session_duration(session["firstSeen"], session["lastSeen"])}
           </span>
@@ -146,7 +153,10 @@ defmodule CrucibleWeb.Components.AgentActivity do
     assigns = assign(assigns, :label, short_tool_name(assigns.tool))
 
     ~H"""
-    <span :if={@tool} class={["px-1.5 py-0.5 text-[9px] font-label tracking-wider border shrink-0", @class]}>
+    <span
+      :if={@tool}
+      class={["px-1.5 py-0.5 text-[9px] font-label tracking-wider border shrink-0", @class]}
+    >
       {@label}
     </span>
     """

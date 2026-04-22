@@ -58,19 +58,25 @@ defmodule Crucible.Workspace.DockerBackendIntegrationTest do
 
   describe "write/3" do
     test "writes file inside container", %{sandbox_id: sandbox_id, workspace: workspace} do
-      assert :ok = DockerBackend.write("new-file.txt", "sandbox content", container_id: sandbox_id)
+      assert :ok =
+               DockerBackend.write("new-file.txt", "sandbox content", container_id: sandbox_id)
 
       # Verify through docker exec
       assert {:ok, output} = DockerProvider.exec(sandbox_id, "cat /sandbox/new-file.txt")
       assert String.trim(output) == "sandbox content"
 
       # Verify on host
-      assert File.read!(Path.join(workspace, "new-file.txt")) |> String.trim() == "sandbox content"
+      assert File.read!(Path.join(workspace, "new-file.txt")) |> String.trim() ==
+               "sandbox content"
     end
 
     test "creates parent directories", %{sandbox_id: sandbox_id} do
-      assert :ok = DockerBackend.write("deep/nested/dir/file.txt", "nested", container_id: sandbox_id)
-      assert {:ok, output} = DockerProvider.exec(sandbox_id, "cat /sandbox/deep/nested/dir/file.txt")
+      assert :ok =
+               DockerBackend.write("deep/nested/dir/file.txt", "nested", container_id: sandbox_id)
+
+      assert {:ok, output} =
+               DockerProvider.exec(sandbox_id, "cat /sandbox/deep/nested/dir/file.txt")
+
       assert String.trim(output) == "nested"
     end
 

@@ -77,6 +77,7 @@ defmodule CrucibleWeb.VisualLive do
   @impl true
   def handle_info(:refresh_runs, socket) do
     Process.send_after(self(), :refresh_runs, @refresh_interval)
+
     if socket.assigns.selected_run do
       {:noreply, socket}
     else
@@ -139,23 +140,23 @@ defmodule CrucibleWeb.VisualLive do
       >
         <div class="min-w-0">
           <p class="text-sm text-[#e0dfde] truncate group-hover:text-[#ffa44c] transition-colors font-mono">
-            <%= String.slice(run.run_id, 0..11) %>
+            {String.slice(run.run_id, 0..11)}
           </p>
           <p :if={run[:task_description]} class="text-[10px] text-[#555] truncate mt-0.5">
-            <%= String.slice(run[:task_description] || "", 0..80) %>
+            {String.slice(run[:task_description] || "", 0..80)}
           </p>
         </div>
         <span class="text-xs text-[#777575] self-center truncate font-mono">
-          <%= run[:workflow_name] || "--" %>
+          {run[:workflow_name] || "--"}
         </span>
         <span class="self-center">
           <.vis_status_badge status={run.status} />
         </span>
         <span class="text-xs text-[#777575] self-center font-mono">
-          <%= format_duration(run[:duration_ms] || 0) %>
+          {format_duration(run[:duration_ms] || 0)}
         </span>
         <span class="text-[10px] text-[#555] self-center font-mono">
-          <%= format_ago(run[:started_at]) %>
+          {format_ago(run[:started_at])}
         </span>
       </button>
     </div>
@@ -174,22 +175,22 @@ defmodule CrucibleWeb.VisualLive do
         &larr; BACK
       </.link>
       <h1 class="text-2xl font-headline font-black text-[#ffa44c]">
-        <%= String.upcase(@summary[:workflow_name] || @run_id) %>
+        {String.upcase(@summary[:workflow_name] || @run_id)}
       </h1>
-      <span class="text-[#555] font-mono text-xs"><%= @run_id %></span>
+      <span class="text-[#555] font-mono text-xs">{@run_id}</span>
     </div>
 
     <!-- Metadata bar -->
     <div class="flex flex-wrap items-center gap-4 p-4 bg-[#131313] border border-[#494847]/20">
       <.vis_status_badge status={@manifest["status"] || @summary[:status] || "unknown"} />
       <span class="text-xs text-[#777575] font-mono">
-        <%= format_duration(@summary[:duration_ms] || 0) %>
+        {format_duration(@summary[:duration_ms] || 0)}
       </span>
       <span class="text-xs text-[#777575] font-mono">
-        <%= length(@summary[:phases] || []) %> phases
+        {length(@summary[:phases] || [])} phases
       </span>
       <span class="text-xs text-[#777575] font-mono">
-        <%= length(@detail.events) %> events
+        {length(@detail.events)} events
       </span>
       <button
         phx-click="replay"
@@ -270,7 +271,7 @@ defmodule CrucibleWeb.VisualLive do
                 class="text-sm font-bold"
                 style={"color: #{phase_color(phase[:type])};"}
               >
-                <%= String.first(phase[:name] || "?") |> String.upcase() %>
+                {String.first(phase[:name] || "?") |> String.upcase()}
               </span>
             </div>
             <!-- Status dot -->
@@ -281,8 +282,8 @@ defmodule CrucibleWeb.VisualLive do
           </div>
           <!-- Label -->
           <div class="text-center -ml-2">
-            <div class="text-xs text-[#e0dfde] font-mono"><%= phase[:name] %></div>
-            <div class="text-[10px] text-[#555]"><%= phase[:type] %></div>
+            <div class="text-xs text-[#e0dfde] font-mono">{phase[:name]}</div>
+            <div class="text-[10px] text-[#555]">{phase[:type]}</div>
           </div>
           <!-- Arrow (except last) -->
           <div :if={phase != List.last(@phases)} class="text-[#494847] text-lg mx-2">
@@ -306,7 +307,7 @@ defmodule CrucibleWeb.VisualLive do
       style={"color: #{@color}; background: #{@color}1a;"}
     >
       <span class="w-1.5 h-1.5 rounded-full" style={"background: #{@color};"} />
-      <%= @status %>
+      {@status}
     </span>
     """
   end
@@ -404,8 +405,12 @@ defmodule CrucibleWeb.VisualLive do
 
   defp format_duration(ms) when is_number(ms) do
     cond do
-      ms < 1000 -> "#{ms}ms"
-      ms < 60_000 -> "#{Float.round(ms / 1000, 1)}s"
+      ms < 1000 ->
+        "#{ms}ms"
+
+      ms < 60_000 ->
+        "#{Float.round(ms / 1000, 1)}s"
+
       true ->
         mins = div(trunc(ms), 60_000)
         secs = rem(trunc(ms), 60_000) |> div(1000)

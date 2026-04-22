@@ -121,7 +121,9 @@ defmodule Crucible.RemoteSessionTrackerTest do
     test "extracts URL from text with OSC sequences" do
       regex = ~r/https:\/\/claude\.ai\/code\/(?:session_[A-Za-z0-9_-]{20,}|[A-Za-z0-9_-]{20,})/
 
-      osc_text = "\e]8;;https://claude.ai/code/session_abc123def456ghi789jk\ahttps://claude.ai/code/session_abc123def456ghi789jk\e]8;;\a"
+      osc_text =
+        "\e]8;;https://claude.ai/code/session_abc123def456ghi789jk\ahttps://claude.ai/code/session_abc123def456ghi789jk\e]8;;\a"
+
       stripped =
         osc_text
         |> then(&Regex.replace(~r/\e\][^\a\x1b]*(?:\a|\e\\)/, &1, ""))

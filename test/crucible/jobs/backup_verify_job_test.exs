@@ -19,7 +19,10 @@ defmodule Crucible.Jobs.BackupVerifyJobTest do
       File.mkdir_p!(vault_dir)
       File.write!(Path.join(vault_dir, "note.md"), "content")
 
-      sql = "CREATE TABLE users (id serial PRIMARY KEY);\nCOPY users FROM stdin;\n" <> String.duplicate("x", 200)
+      sql =
+        "CREATE TABLE users (id serial PRIMARY KEY);\nCOPY users FROM stdin;\n" <>
+          String.duplicate("x", 200)
+
       gz = :zlib.gzip(sql)
       File.write!(Path.join(pg_dir, "2026-03-30.sql.gz"), gz)
 

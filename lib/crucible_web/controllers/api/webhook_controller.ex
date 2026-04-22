@@ -35,7 +35,11 @@ defmodule CrucibleWeb.Api.WebhookController do
           error_json(conn, 422, "workflow_resolution_failed", message)
 
         {:error, {:validation_failed, errors}} when is_list(errors) ->
-          error_json(conn, 422, "validation_failed", "Manifest validation failed",
+          error_json(
+            conn,
+            422,
+            "validation_failed",
+            "Manifest validation failed",
             Enum.map(errors, fn {field, msg} -> %{field: field, message: msg} end)
           )
 

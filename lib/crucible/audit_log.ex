@@ -41,7 +41,9 @@ defmodule Crucible.AuditLog do
     |> AuditEvent.changeset(attrs)
     |> Repo.insert()
     |> case do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        :ok
+
       {:error, reason} ->
         Logger.warning("AuditLog: failed to log #{entity_type}/#{event_type}: #{inspect(reason)}")
         :ok

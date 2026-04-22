@@ -95,7 +95,7 @@ defmodule CrucibleWeb.Api.HealthControllerTest do
   end
 
   describe "GET /api/v1/health" do
-  @tag :skip
+    @tag :skip
     test "returns the shared system health snapshot", %{conn: conn} do
       conn = conn |> authenticate() |> get("/api/v1/health")
       body = json_response(conn, 200)

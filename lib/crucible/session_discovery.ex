@@ -115,10 +115,14 @@ defmodule Crucible.SessionDiscovery do
   @token_cache_ttl_s 30
 
   defp sessions_dir,
-    do: System.get_env("CRUCIBLE_CLAUDE_CLI_HOME", Path.expand("~/.claude")) |> Path.join("sessions")
+    do:
+      System.get_env("CRUCIBLE_CLAUDE_CLI_HOME", Path.expand("~/.claude"))
+      |> Path.join("sessions")
 
   defp projects_dir,
-    do: System.get_env("CRUCIBLE_CLAUDE_CLI_HOME", Path.expand("~/.claude")) |> Path.join("projects")
+    do:
+      System.get_env("CRUCIBLE_CLAUDE_CLI_HOME", Path.expand("~/.claude"))
+      |> Path.join("projects")
 
   defp scan_enabled?, do: System.get_env("CRUCIBLE_SCAN_LOCAL_SESSIONS") == "1"
 
@@ -136,7 +140,7 @@ defmodule Crucible.SessionDiscovery do
     |> Enum.reduce([], fn line, acc ->
       case Jason.decode(String.trim(line)) do
         {:ok, %{"type" => "assistant", "message" => %{"content" => content}} = data}
-            when is_list(content) ->
+        when is_list(content) ->
           ts = data["timestamp"] || ""
 
           tools =
@@ -204,6 +208,7 @@ defmodule Crucible.SessionDiscovery do
   end
 
   defp truncate_detail(nil), do: nil
+
   defp truncate_detail(input) when is_map(input) do
     # Extract the most useful field from tool input for display
     cond do
@@ -216,6 +221,7 @@ defmodule Crucible.SessionDiscovery do
       true -> nil
     end
   end
+
   defp truncate_detail(_), do: nil
 
   @doc """
@@ -333,7 +339,10 @@ defmodule Crucible.SessionDiscovery do
       Enum.map(processes, fn proc ->
         case find_newest_transcript_for_cwd(proc.cwd) do
           {newest_id, _path} when newest_id != proc.session_id ->
-            Logger.debug("SessionDiscovery: #{proc.session_id} replaced by #{newest_id} in #{proc.cwd}")
+            Logger.debug(
+              "SessionDiscovery: #{proc.session_id} replaced by #{newest_id} in #{proc.cwd}"
+            )
+
             %{proc | session_id: newest_id}
 
           _ ->
@@ -363,10 +372,13 @@ defmodule Crucible.SessionDiscovery do
           |> Enum.map(fn file ->
             path = Path.join(dir, file)
             session_id = String.replace_trailing(file, ".jsonl", "")
-            mtime = case File.stat(path) do
-              {:ok, %{mtime: mtime}} -> mtime
-              _ -> {{2000, 1, 1}, {0, 0, 0}}
-            end
+
+            mtime =
+              case File.stat(path) do
+                {:ok, %{mtime: mtime}} -> mtime
+                _ -> {{2000, 1, 1}, {0, 0, 0}}
+              end
+
             {session_id, path, mtime}
           end)
           |> Enum.max_by(fn {_id, _path, mtime} -> mtime end, fn -> nil end)

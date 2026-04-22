@@ -80,9 +80,11 @@ defmodule CrucibleWeb.RunsLive do
 
     # Subscribe to run-specific events for real-time updates on detail view
     prev_id = socket.assigns[:selected] && socket.assigns.selected.id
+
     if prev_id && prev_id != id do
       Phoenix.PubSub.unsubscribe(Crucible.PubSub, "run:#{prev_id}")
     end
+
     if connected?(socket), do: Phoenix.PubSub.subscribe(Crucible.PubSub, "run:#{id}")
 
     all_runs = safe_list_runs()
@@ -458,7 +460,9 @@ defmodule CrucibleWeb.RunsLive do
   # ---------------------------------------------------------------------------
 
   defp assign_partitioned_runs(socket, runs) do
-    {active, all_completed} = Enum.split_with(runs, &(normalize_status(&1.status) not in @terminal_statuses))
+    {active, all_completed} =
+      Enum.split_with(runs, &(normalize_status(&1.status) not in @terminal_statuses))
+
     show_all = socket.assigns.show_all_completed
     {visible, hidden_count} = visible_completed(all_completed, show_all)
 
@@ -542,7 +546,9 @@ defmodule CrucibleWeb.RunsLive do
           <div class="col-span-12 lg:col-span-8 space-y-6">
             <%!-- Header HUD --%>
             <div class="bg-surface-container-low border-t-2 border-[#ffa44c] p-6 relative overflow-hidden">
-              <span class="material-symbols-outlined text-[100px] text-[#ffa44c]/5 absolute -right-4 -top-4 select-none">memory</span>
+              <span class="material-symbols-outlined text-[100px] text-[#ffa44c]/5 absolute -right-4 -top-4 select-none">
+                memory
+              </span>
               <div class="flex flex-wrap items-center justify-between gap-6 mb-8 relative z-10">
                 <div>
                   <div class="flex items-center gap-3 mb-1">
@@ -553,23 +559,37 @@ defmodule CrucibleWeb.RunsLive do
                   </div>
                   <p class="font-label text-xs text-[#ffa44c]/60 tracking-[0.2em]">
                     {String.upcase(@selected.workflow_type)}
-                    <span :if={@selected.started_at}> // {format_time(@selected.started_at)}</span>
+                    <span :if={@selected.started_at}>
+                       //     {format_time(@selected.started_at)}
+                    </span>
                   </p>
                 </div>
                 <div class="flex gap-8 border-l border-white/10 pl-8">
                   <div class="text-center">
-                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">EXECUTION</p>
-                    <p class="text-xl font-headline font-bold text-[#00eefc] tracking-tighter">{format_duration_ms(@selected.duration_ms)}</p>
-                  </div>
-                  <div class="text-center">
-                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">UNIT_COST</p>
-                    <p class="text-xl font-headline font-bold text-white tracking-tighter">
-                      {if @selected.execution_type == "subscription", do: "\u2014", else: "$#{format_usd(@selected.total_cost_usd || 0.0)}"}
+                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">
+                      EXECUTION
+                    </p>
+                    <p class="text-xl font-headline font-bold text-[#00eefc] tracking-tighter">
+                      {format_duration_ms(@selected.duration_ms)}
                     </p>
                   </div>
                   <div class="text-center">
-                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">TOTAL_TOKENS</p>
-                    <p class="text-xl font-headline font-bold text-white tracking-tighter">{format_tokens(@selected.total_tokens || 0)}</p>
+                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">
+                      UNIT_COST
+                    </p>
+                    <p class="text-xl font-headline font-bold text-white tracking-tighter">
+                      {if @selected.execution_type == "subscription",
+                        do: "\u2014",
+                        else: "$#{format_usd(@selected.total_cost_usd || 0.0)}"}
+                    </p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-[10px] font-label text-white/50 mb-1 uppercase tracking-widest">
+                      TOTAL_TOKENS
+                    </p>
+                    <p class="text-xl font-headline font-bold text-white tracking-tighter">
+                      {format_tokens(@selected.total_tokens || 0)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -605,16 +625,28 @@ defmodule CrucibleWeb.RunsLive do
                   phase_card_border(phase.status)
                 ]}
               >
-                <p class="font-label text-[9px] text-[#00eefc] tracking-widest mb-1">{String.upcase(to_string(phase.type))}</p>
-                <h5 class="font-headline font-bold text-xs uppercase mb-3">{phase.name || phase.id}</h5>
+                <p class="font-label text-[9px] text-[#00eefc] tracking-widest mb-1">
+                  {String.upcase(to_string(phase.type))}
+                </p>
+                <h5 class="font-headline font-bold text-xs uppercase mb-3">
+                  {phase.name || phase.id}
+                </h5>
                 <div class="space-y-1.5 font-label text-[10px]">
                   <div class="flex justify-between">
                     <span class="text-white/50">STATUS</span>
-                    <span class={phase_status_color(phase.status)}>{String.upcase(to_string(phase.status))}</span>
+                    <span class={phase_status_color(phase.status)}>
+                      {String.upcase(to_string(phase.status))}
+                    </span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-white/50">RETRY</span>
-                    <span class="text-white">{String.pad_leading(to_string(phase.retry_count), 2, "0")}/{String.pad_leading(to_string(phase.max_retries), 2, "0")}</span>
+                    <span class="text-white">
+                      {String.pad_leading(to_string(phase.retry_count), 2, "0")}/{String.pad_leading(
+                        to_string(phase.max_retries),
+                        2,
+                        "0"
+                      )}
+                    </span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-white/50">DURATION</span>
@@ -628,12 +660,18 @@ defmodule CrucibleWeb.RunsLive do
             <div class="bg-surface-container-low border border-white/5">
               <div class="flex border-b border-white/5">
                 <button
-                  :for={{tab_id, tab_label} <- [{"timeline", "Timeline_Log"}, {"session", "Session_Output"}]}
+                  :for={
+                    {tab_id, tab_label} <- [
+                      {"timeline", "Timeline_Log"},
+                      {"session", "Session_Output"}
+                    ]
+                  }
                   class={[
                     "px-8 py-4 font-headline font-bold text-xs tracking-[0.2em] uppercase",
                     if(@active_tab == tab_id,
                       do: "border-b-2 border-[#ffa44c] bg-[#ffa44c]/5 text-[#ffa44c]",
-                      else: "text-white/40 hover:text-white transition-colors")
+                      else: "text-white/40 hover:text-white transition-colors"
+                    )
                   ]}
                   phx-click="switch_tab"
                   phx-value-tab={tab_id}
@@ -659,10 +697,13 @@ defmodule CrucibleWeb.RunsLive do
                       <div class="w-24 text-[10px] font-label text-white/50 text-right pt-1">
                         {format_time(event["timestamp"])}
                       </div>
-                      <div class="flex-shrink-0 w-3 h-3 border-2 border-[#ffa44c] rounded-full mt-1.5 bg-black relative z-10"></div>
+                      <div class="flex-shrink-0 w-3 h-3 border-2 border-[#ffa44c] rounded-full mt-1.5 bg-black relative z-10">
+                      </div>
                       <div class="flex-1 pb-6 border-l border-white/10 ml-[-1.125rem] pl-8">
                         <div class="flex items-center gap-3 mb-2">
-                          <span class="text-xs font-bold font-headline uppercase text-white">{event["eventType"]}</span>
+                          <span class="text-xs font-bold font-headline uppercase text-white">
+                            {event["eventType"]}
+                          </span>
                           <span
                             :if={event["tool"]}
                             class="bg-[#00eefc]/10 text-[#00eefc] text-[8px] font-label px-1 border border-[#00eefc]/20"
@@ -670,7 +711,10 @@ defmodule CrucibleWeb.RunsLive do
                             {event["tool"]}
                           </span>
                         </div>
-                        <p :if={event["detail"]} class="text-xs text-white/60 font-label leading-relaxed">
+                        <p
+                          :if={event["detail"]}
+                          class="text-xs text-white/60 font-label leading-relaxed"
+                        >
                           {event["detail"]}
                         </p>
                       </div>
@@ -689,7 +733,9 @@ defmodule CrucibleWeb.RunsLive do
                           "px-4 py-2 font-label text-[10px] uppercase tracking-widest border transition-all",
                           if(@session_log_phase == phase.id,
                             do: "bg-[#ffa44c]/10 border-[#ffa44c]/40 text-[#ffa44c]",
-                            else: "border-white/10 text-white/40 hover:text-white hover:border-white/30")
+                            else:
+                              "border-white/10 text-white/40 hover:text-white hover:border-white/30"
+                          )
                         ]}
                       >
                         {phase.name || phase.id}
@@ -705,8 +751,12 @@ defmodule CrucibleWeb.RunsLive do
                   </div>
 
                   <div :if={!@session_log} class="text-center py-8">
-                    <span class="material-symbols-outlined text-4xl text-[#ffa44c]/20">description</span>
-                    <p class="text-[10px] font-label text-white/30 mt-2">SELECT_PHASE_TO_VIEW_OUTPUT</p>
+                    <span class="material-symbols-outlined text-4xl text-[#ffa44c]/20">
+                      description
+                    </span>
+                    <p class="text-[10px] font-label text-white/30 mt-2">
+                      SELECT_PHASE_TO_VIEW_OUTPUT
+                    </p>
                   </div>
                 </div>
               </div>
@@ -737,7 +787,9 @@ defmodule CrucibleWeb.RunsLive do
             <.hud_card accent="secondary">
               <.hud_header icon="sensors" label={"ACTIVE_PROTOCOLS [#{length(@active_runs)}]"}>
                 <:actions>
-                  <span class="bg-[#00eefc]/10 text-[#00eefc] text-[10px] font-label px-2 py-0.5 border border-[#00eefc]/20">LIVE_SYNC</span>
+                  <span class="bg-[#00eefc]/10 text-[#00eefc] text-[10px] font-label px-2 py-0.5 border border-[#00eefc]/20">
+                    LIVE_SYNC
+                  </span>
                 </:actions>
               </.hud_header>
               <.runs_table
@@ -822,7 +874,10 @@ defmodule CrucibleWeb.RunsLive do
               </.link>
             </td>
             <td class="px-4 py-3">
-              <div class="font-label text-[10px] text-white/40 truncate max-w-xs" title={run_workspace(run)}>
+              <div
+                class="font-label text-[10px] text-white/40 truncate max-w-xs"
+                title={run_workspace(run)}
+              >
                 {run_workspace(run)}
               </div>
               <div class="text-white/80 uppercase">{run.workflow_type}</div>
@@ -831,8 +886,13 @@ defmodule CrucibleWeb.RunsLive do
             <td class="px-4 py-3"><.status_badge status={run.status} /></td>
             <td class="px-4 py-3 text-white/60">{run_phase_count(run)}</td>
             <td class="px-4 py-3 text-white/60">{format_tokens(run.total_tokens || 0)}</td>
-            <td class={["px-4 py-3 text-right", if(run.execution_type == "subscription", do: "text-white/30", else: "text-[#ffa44c]")]}>
-              {if run.execution_type == "subscription", do: "\u2014", else: "$#{format_usd(run.total_cost_usd || 0.0)}"}
+            <td class={[
+              "px-4 py-3 text-right",
+              if(run.execution_type == "subscription", do: "text-white/30", else: "text-[#ffa44c]")
+            ]}>
+              {if run.execution_type == "subscription",
+                do: "\u2014",
+                else: "$#{format_usd(run.total_cost_usd || 0.0)}"}
             </td>
             <td class="px-4 py-3">
               <button
@@ -871,8 +931,12 @@ defmodule CrucibleWeb.RunsLive do
     <section class="bg-surface-container-low p-1 border-l-4 border-[#00eefc] shadow-[0_0_20px_rgba(0,238,252,0.15)]">
       <div class="bg-black p-4 border border-white/5">
         <div class="flex justify-between items-start mb-6">
-          <h2 class="font-headline font-bold text-xl text-[#00eefc] tracking-tight">ACTIVE_PROTOCOLS</h2>
-          <span class="bg-[#00eefc]/10 text-[#00eefc] text-[10px] font-label px-2 py-0.5 border border-[#00eefc]/20">LIVE_SYNC</span>
+          <h2 class="font-headline font-bold text-xl text-[#00eefc] tracking-tight">
+            ACTIVE_PROTOCOLS
+          </h2>
+          <span class="bg-[#00eefc]/10 text-[#00eefc] text-[10px] font-label px-2 py-0.5 border border-[#00eefc]/20">
+            LIVE_SYNC
+          </span>
         </div>
         <div class="space-y-3 max-h-[600px] overflow-y-auto">
           <.link
@@ -884,18 +948,24 @@ defmodule CrucibleWeb.RunsLive do
             ]}
           >
             <div class="flex justify-between items-start mb-2">
-              <span class="font-label text-[10px] text-white/40">RUN_ID: {String.slice(run.id, 0, 12)}</span>
+              <span class="font-label text-[10px] text-white/40">
+                RUN_ID: {String.slice(run.id, 0, 12)}
+              </span>
               <span class={["text-[10px] font-bold font-label", run_status_color(run.status)]}>
                 {String.upcase(normalize_status(run.status))}
               </span>
             </div>
-            <h4 class="font-headline text-sm font-bold text-white/80 mb-1 uppercase truncate">{run.workflow_type}</h4>
+            <h4 class="font-headline text-sm font-bold text-white/80 mb-1 uppercase truncate">
+              {run.workflow_type}
+            </h4>
             <div class="flex justify-between items-end mt-4">
               <div class="text-[9px] font-label text-white/40 space-y-0.5">
                 <p>PHASES: {run_phase_count(run)}</p>
                 <p>TOKENS: {format_tokens(run.total_tokens || 0)}</p>
               </div>
-              <div class="text-[12px] font-label text-white/60">{format_duration_ms(run.duration_ms)}</div>
+              <div class="text-[12px] font-label text-white/60">
+                {format_duration_ms(run.duration_ms)}
+              </div>
             </div>
           </.link>
         </div>
@@ -904,7 +974,9 @@ defmodule CrucibleWeb.RunsLive do
           phx-click="toggle_completed"
           class="w-full mt-6 py-2 border border-white/10 font-label text-[10px] text-white/40 hover:bg-surface-container-high transition-all tracking-[0.2em] uppercase"
         >
-          {if @show_all_completed, do: "SHOW_RECENT", else: "VIEW_ALL_LOGS (+#{@hidden_completed_count})"}
+          {if @show_all_completed,
+            do: "SHOW_RECENT",
+            else: "VIEW_ALL_LOGS (+#{@hidden_completed_count})"}
         </button>
       </div>
     </section>
@@ -945,15 +1017,26 @@ defmodule CrucibleWeb.RunsLive do
 
   defp phase_completion_pct(phases) when is_list(phases) do
     total = length(phases)
-    if total == 0, do: 0, else: round(Enum.count(phases, &(to_string(&1.status) in ["done", "completed"])) / total * 100)
+
+    if total == 0,
+      do: 0,
+      else:
+        round(Enum.count(phases, &(to_string(&1.status) in ["done", "completed"])) / total * 100)
   end
 
   defp phase_bar_class(status) do
     case to_string(status) do
-      s when s in ["done", "completed"] -> "bg-[#ffa44c] shadow-[0_0_8px_rgba(255,164,76,0.5)]"
-      s when s in ["running", "in_progress"] -> "bg-[#00eefc] shadow-[0_0_8px_rgba(0,238,252,0.5)] animate-pulse"
-      "failed" -> "bg-[#ff725e] shadow-[0_0_8px_rgba(255,114,94,0.5)]"
-      _ -> "bg-surface-container-high"
+      s when s in ["done", "completed"] ->
+        "bg-[#ffa44c] shadow-[0_0_8px_rgba(255,164,76,0.5)]"
+
+      s when s in ["running", "in_progress"] ->
+        "bg-[#00eefc] shadow-[0_0_8px_rgba(0,238,252,0.5)] animate-pulse"
+
+      "failed" ->
+        "bg-[#ff725e] shadow-[0_0_8px_rgba(255,114,94,0.5)]"
+
+      _ ->
+        "bg-surface-container-high"
     end
   end
 

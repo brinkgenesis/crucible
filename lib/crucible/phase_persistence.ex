@@ -111,9 +111,14 @@ defmodule Crucible.PhasePersistence do
         |> Ecto.Changeset.change(attrs)
         |> Repo.update()
         |> case do
-          {:ok, _} -> :ok
+          {:ok, _} ->
+            :ok
+
           {:error, changeset} ->
-            Logger.warning("PhasePersistence: update failed for #{run_id}: #{inspect(changeset.errors)}")
+            Logger.warning(
+              "PhasePersistence: update failed for #{run_id}: #{inspect(changeset.errors)}"
+            )
+
             :ok
         end
     end

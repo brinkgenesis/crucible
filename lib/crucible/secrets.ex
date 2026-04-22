@@ -108,7 +108,11 @@ defmodule Crucible.Secrets do
   Returns `%{provider: atom, secret_count: non_neg_integer, initialized_at: DateTime.t() | nil}`.
   If `init!/0` has not yet been called, `initialized_at` is `nil` and `secret_count` is 0.
   """
-  @spec status() :: %{provider: atom, secret_count: non_neg_integer(), initialized_at: DateTime.t() | nil}
+  @spec status() :: %{
+          provider: atom,
+          secret_count: non_neg_integer(),
+          initialized_at: DateTime.t() | nil
+        }
   def status do
     case :persistent_term.get(@status_key, nil) do
       nil ->

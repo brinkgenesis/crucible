@@ -174,9 +174,11 @@ defmodule Crucible.WorkflowRunner do
           deps = Map.get(p, "depends_on", Map.get(p, "dependsOn", []))
           deps = if is_list(deps), do: deps, else: []
           # Normalize: if dep is a name, resolve to id
-          normalized_deps = Enum.map(deps, fn dep ->
-            Map.get(name_to_id, dep, dep)
-          end)
+          normalized_deps =
+            Enum.map(deps, fn dep ->
+              Map.get(name_to_id, dep, dep)
+            end)
+
           {id, normalized_deps}
         end)
 
@@ -186,6 +188,7 @@ defmodule Crucible.WorkflowRunner do
         |> Enum.flat_map(fn {id, p} ->
           deps = Map.get(p, "depends_on", Map.get(p, "dependsOn", []))
           deps = if is_list(deps), do: deps, else: []
+
           Enum.flat_map(deps, fn dep ->
             if MapSet.member?(valid_refs, dep),
               do: [],

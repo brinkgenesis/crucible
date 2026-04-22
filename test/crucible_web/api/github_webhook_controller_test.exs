@@ -8,12 +8,14 @@ defmodule CrucibleWeb.Api.GithubWebhookControllerTest do
     test "moves card to done when associated PR is merged", %{conn: conn} do
       # Create a card with a run_id matching the branch pattern
       run_id = "abc123def456xyz"
-      {:ok, card} = Repo.insert(%Card{
-        id: Ecto.UUID.generate(),
-        title: "Test sprint card",
-        column: "review",
-        run_id: run_id
-      })
+
+      {:ok, card} =
+        Repo.insert(%Card{
+          id: Ecto.UUID.generate(),
+          title: "Test sprint card",
+          column: "review",
+          run_id: run_id
+        })
 
       # Simulate GitHub pull_request merged webhook
       conn =
@@ -77,12 +79,14 @@ defmodule CrucibleWeb.Api.GithubWebhookControllerTest do
 
     test "does not move card already in done", %{conn: conn} do
       run_id = "donealready12345"
-      {:ok, card} = Repo.insert(%Card{
-        id: Ecto.UUID.generate(),
-        title: "Already done card",
-        column: "done",
-        run_id: run_id
-      })
+
+      {:ok, card} =
+        Repo.insert(%Card{
+          id: Ecto.UUID.generate(),
+          title: "Already done card",
+          column: "done",
+          run_id: run_id
+        })
 
       conn =
         conn

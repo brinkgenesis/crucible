@@ -249,43 +249,47 @@ defmodule Crucible.Orchestrator do
   end
 
   def handle_call({:submit_run, run_manifest}, _from, state) do
-    Spans.with_span("orchestrator.submit_run", %{"run.workflow" => run_manifest["name"] || ""}, fn ->
-      alias Crucible.Validation.Manifest
+    Spans.with_span(
+      "orchestrator.submit_run",
+      %{"run.workflow" => run_manifest["name"] || ""},
+      fn ->
+        alias Crucible.Validation.Manifest
 
-      case Manifest.validate(run_manifest) do
-        {:ok, validated} ->
-          # Resolve workflow config + card metadata before persisting,
-          # so the manifest on disk always has phases and plan context
-          resolved = resolve_workflow_config(validated)
+        case Manifest.validate(run_manifest) do
+          {:ok, validated} ->
+            # Resolve workflow config + card metadata before persisting,
+            # so the manifest on disk always has phases and plan context
+            resolved = resolve_workflow_config(validated)
 
-          # Verify that resolution produced phases — otherwise the run will
-          # sit as "pending" forever with no way for the client to discover why
-          case resolved do
-            %{"phases" => [_ | _]} ->
-              case write_run_manifest(state.runs_dir, resolved) do
-                :ok -> {:reply, :ok, state}
-              {:error, _} = err -> {:reply, err, state}
+            # Verify that resolution produced phases — otherwise the run will
+            # sit as "pending" forever with no way for the client to discover why
+            case resolved do
+              %{"phases" => [_ | _]} ->
+                case write_run_manifest(state.runs_dir, resolved) do
+                  :ok -> {:reply, :ok, state}
+                  {:error, _} = err -> {:reply, err, state}
+                end
+
+              _ ->
+                workflow_name =
+                  resolved["workflow_name"] || resolved["workflowName"] || resolved["name"]
+
+                Logger.warning(
+                  "Orchestrator: submit_run rejected — no phases resolved for workflow #{inspect(workflow_name)}"
+                )
+
+                {:reply,
+                 {:error,
+                  {:workflow_resolution_failed,
+                   "No phases found for workflow '#{workflow_name}'. Check that the workflow exists in WorkflowStore."}},
+                 state}
             end
 
-          _ ->
-            workflow_name =
-              resolved["workflow_name"] || resolved["workflowName"] || resolved["name"]
-
-            Logger.warning(
-              "Orchestrator: submit_run rejected — no phases resolved for workflow #{inspect(workflow_name)}"
-            )
-
-            {:reply,
-             {:error,
-              {:workflow_resolution_failed,
-               "No phases found for workflow '#{workflow_name}'. Check that the workflow exists in WorkflowStore."}},
-             state}
+          {:error, errors} ->
+            {:reply, {:error, {:validation_failed, errors}}, state}
         end
-
-      {:error, errors} ->
-        {:reply, {:error, {:validation_failed, errors}}, state}
-    end
-    end)
+      end
+    )
   end
 
   def handle_call(:budget_kill_switch, _from, state) do
@@ -609,9 +613,7 @@ defmodule Crucible.Orchestrator do
 
           state
         else
-          Logger.info(
-            "Orchestrator: dispatching run #{run_id} (#{workflow_type}) on #{node()}"
-          )
+          Logger.info("Orchestrator: dispatching run #{run_id} (#{workflow_type}) on #{node()}")
 
           do_dispatch_run(state, manifest, run_id, tenant_id)
         end
@@ -1242,13 +1244,20 @@ defmodule Crucible.Orchestrator do
 
   # --- Startup cleanup ---
 
-  @trace_max_age_ms 30 * 24 * 60 * 60_000   # 30 days
-  @signal_max_age_ms 60 * 60_000             # 1 hour
+  # 30 days
+  @trace_max_age_ms 30 * 24 * 60 * 60_000
+  # 1 hour
+  @signal_max_age_ms 60 * 60_000
 
   defp purge_stale_artifacts(runs_dir) do
     repo_root = Path.dirname(runs_dir)
     purge_stale_files(Path.join(repo_root, "logs/traces"), @trace_max_age_ms, "traces")
-    purge_stale_files(Path.join([repo_root, "..", ".claude-flow", "signals"]) |> Path.expand(), @signal_max_age_ms, "signals")
+
+    purge_stale_files(
+      Path.join([repo_root, "..", ".claude-flow", "signals"]) |> Path.expand(),
+      @signal_max_age_ms,
+      "signals"
+    )
   rescue
     _ -> :ok
   end
@@ -1264,7 +1273,7 @@ defmodule Crucible.Orchestrator do
 
         case File.stat(path, time: :posix) do
           {:ok, %{mtime: mtime}} ->
-            age_ms = (now - mtime * 1000)
+            age_ms = now - mtime * 1000
 
             if age_ms > max_age_ms do
               File.rm(path)

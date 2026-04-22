@@ -125,7 +125,9 @@ defmodule CrucibleWeb.CostLive do
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_info(:refresh_fast, socket) do
     Process.send_after(self(), :refresh_fast, @refresh_fast)
-    {:noreply, load_native_data(socket) |> load_savings() |> assign(last_updated_at: DateTime.utc_now())}
+
+    {:noreply,
+     load_native_data(socket) |> load_savings() |> assign(last_updated_at: DateTime.utc_now())}
   end
 
   def handle_info(:refresh_slow, socket) do
@@ -296,18 +298,43 @@ defmodule CrucibleWeb.CostLive do
 
         <%!-- Summary stat cards --%>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <.hud_stat label="TOTAL_TOKENS" value={format_tokens(summary_total_tokens(@session_rows))} color="primary" sub={"ACROSS #{length(@session_rows)} SESSIONS"} />
-          <.hud_stat label="INPUT_TOKENS" value={format_tokens(summary_input_tokens(@session_rows))} color="secondary" sub="PROMPT_TOKENS" />
-          <.hud_stat label="OUTPUT_TOKENS" value={format_tokens(summary_output_tokens(@session_rows))} color="tertiary" sub="COMPLETION_TOKENS" />
+          <.hud_stat
+            label="TOTAL_TOKENS"
+            value={format_tokens(summary_total_tokens(@session_rows))}
+            color="primary"
+            sub={"ACROSS #{length(@session_rows)} SESSIONS"}
+          />
+          <.hud_stat
+            label="INPUT_TOKENS"
+            value={format_tokens(summary_input_tokens(@session_rows))}
+            color="secondary"
+            sub="PROMPT_TOKENS"
+          />
+          <.hud_stat
+            label="OUTPUT_TOKENS"
+            value={format_tokens(summary_output_tokens(@session_rows))}
+            color="tertiary"
+            sub="COMPLETION_TOKENS"
+          />
           <div class="bg-surface-container-low p-5 hud-border relative overflow-hidden">
-            <div class="text-xs font-label tracking-widest mb-2 uppercase text-[#ffa44c]/60">CACHE_HIT_RATE</div>
-            <div class="text-3xl font-headline font-bold tracking-tighter text-[#ffa44c]">{cache_hit_rate_rows(@session_rows)}</div>
+            <div class="text-xs font-label tracking-widest mb-2 uppercase text-[#ffa44c]/60">
+              CACHE_HIT_RATE
+            </div>
+            <div class="text-3xl font-headline font-bold tracking-tighter text-[#ffa44c]">
+              {cache_hit_rate_rows(@session_rows)}
+            </div>
             <div class="mt-2 text-[10px] font-label text-[#ffa44c]/60">TOKEN_CACHE_EFFICIENCY</div>
           </div>
           <div class="bg-surface-container-low p-5 hud-border relative overflow-hidden">
-            <div class="text-xs font-label tracking-widest mb-2 uppercase text-[#00eefc]/60">CONTEXT_SAVED</div>
-            <div class="text-3xl font-headline font-bold tracking-tighter text-[#00eefc]">{context_saved_pct(@savings)}</div>
-            <div class="mt-2 text-[10px] font-label text-[#00eefc]/60">{String.upcase(context_saved_subtitle(@savings))}</div>
+            <div class="text-xs font-label tracking-widest mb-2 uppercase text-[#00eefc]/60">
+              CONTEXT_SAVED
+            </div>
+            <div class="text-3xl font-headline font-bold tracking-tighter text-[#00eefc]">
+              {context_saved_pct(@savings)}
+            </div>
+            <div class="mt-2 text-[10px] font-label text-[#00eefc]/60">
+              {String.upcase(context_saved_subtitle(@savings))}
+            </div>
           </div>
         </div>
 
@@ -375,7 +402,8 @@ defmodule CrucibleWeb.CostLive do
                 "px-3 py-1 font-mono text-[10px] tracking-widest transition-all",
                 if(@model_filter == family,
                   do: "bg-[#ffa44c] text-black font-bold",
-                  else: "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
+                  else:
+                    "border border-[#494847]/30 text-neutral-500 hover:border-[#00eefc] hover:text-[#00eefc]"
                 )
               ]}
             >
@@ -399,7 +427,10 @@ defmodule CrucibleWeb.CostLive do
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#494847]/5">
-                <tr :for={row <- model_rows(@session_rows, @model_filter)} class="hover:bg-[#00eefc]/5 transition-colors">
+                <tr
+                  :for={row <- model_rows(@session_rows, @model_filter)}
+                  class="hover:bg-[#00eefc]/5 transition-colors"
+                >
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-2">
                       <span class="w-2 h-2" style={"background:#{model_color(row.model)}"} />
@@ -409,7 +440,9 @@ defmodule CrucibleWeb.CostLive do
                   <td class="px-4 py-3 text-right text-white">{format_tokens(row.input)}</td>
                   <td class="px-4 py-3 text-right text-white">{format_tokens(row.output)}</td>
                   <td class="px-4 py-3 text-right text-[#00eefc]">{format_tokens(row.cache)}</td>
-                  <td class="px-4 py-3 text-right text-white font-bold">{format_tokens(row.total)}</td>
+                  <td class="px-4 py-3 text-right text-white font-bold">
+                    {format_tokens(row.total)}
+                  </td>
                   <td class="px-4 py-3 text-right text-[#777575]">{row.turns}</td>
                 </tr>
               </tbody>
@@ -422,8 +455,7 @@ defmodule CrucibleWeb.CostLive do
           <div class="p-6 border-b border-[#494847]/10 flex flex-col md:flex-row justify-between items-start md:items-center bg-surface-container gap-3">
             <div>
               <h3 class="font-headline text-lg font-bold text-white uppercase flex items-center gap-2">
-                <span class="w-1.5 h-6 bg-[#00eefc]" />
-                SESSION_ANALYTICS
+                <span class="w-1.5 h-6 bg-[#00eefc]" /> SESSION_ANALYTICS
               </h3>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-[10px] font-mono text-[#777575]">SOURCE:</span>
@@ -440,7 +472,10 @@ defmodule CrucibleWeb.CostLive do
               </div>
             </div>
           </div>
-          <div :if={!@llm_usage_loaded} class="px-6 py-2 text-[10px] font-mono text-[#00eefc] animate-pulse">
+          <div
+            :if={!@llm_usage_loaded}
+            class="px-6 py-2 text-[10px] font-mono text-[#00eefc] animate-pulse"
+          >
             LOADING_TRANSCRIPT_TOKEN_MAPPING...
           </div>
           <div :if={@session_rows == []} class="text-center py-12">
@@ -463,7 +498,10 @@ defmodule CrucibleWeb.CostLive do
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#494847]/5">
-                <tr :for={s <- paginated_sessions(@session_rows, @session_page)} class="hover:bg-[#00eefc]/5 transition-colors">
+                <tr
+                  :for={s <- paginated_sessions(@session_rows, @session_page)}
+                  class="hover:bg-[#00eefc]/5 transition-colors"
+                >
                   <td class="px-4 py-3 text-white font-bold">{s.short_id}</td>
                   <td class="px-4 py-3">
                     <span class="px-1.5 py-0.5 bg-[#494847]/10 border border-[#494847]/30 text-[9px] text-[#777575]">
@@ -472,11 +510,23 @@ defmodule CrucibleWeb.CostLive do
                   </td>
                   <td class="px-4 py-3 text-right text-white">{format_tokens(s.input_tokens)}</td>
                   <td class="px-4 py-3 text-right text-white">{format_tokens(s.output_tokens)}</td>
-                  <td class="px-4 py-3 text-right text-white font-bold">{format_tokens(session_total_tokens(s))}</td>
+                  <td class="px-4 py-3 text-right text-white font-bold">
+                    {format_tokens(session_total_tokens(s))}
+                  </td>
                   <td class="px-4 py-3 text-right text-[#777575]">{s.turns}</td>
-                  <td :if={@show_tools_column} class="px-4 py-3 text-right text-[#777575]">{s.tool_count}</td>
-                  <td class={["px-4 py-3 text-right", if(Map.get(s, :execution_type) == "subscription", do: "text-[#494847]", else: "text-[#00eefc]")]}>
-                    {if Map.get(s, :execution_type) == "subscription", do: "—", else: "$#{format_cost(s.total_cost_usd)}"}
+                  <td :if={@show_tools_column} class="px-4 py-3 text-right text-[#777575]">
+                    {s.tool_count}
+                  </td>
+                  <td class={[
+                    "px-4 py-3 text-right",
+                    if(Map.get(s, :execution_type) == "subscription",
+                      do: "text-[#494847]",
+                      else: "text-[#00eefc]"
+                    )
+                  ]}>
+                    {if Map.get(s, :execution_type) == "subscription",
+                      do: "—",
+                      else: "$#{format_cost(s.total_cost_usd)}"}
                   </td>
                   <td class="px-4 py-3 text-[#777575]">{format_date(s.last_seen)}</td>
                 </tr>
@@ -538,7 +588,10 @@ defmodule CrucibleWeb.CostLive do
     assigns = assign(assigns, total_pages: total_pages)
 
     ~H"""
-    <div :if={@total_pages > 1} class="p-4 bg-black/40 border-t border-[#494847]/10 flex items-center justify-between">
+    <div
+      :if={@total_pages > 1}
+      class="p-4 bg-black/40 border-t border-[#494847]/10 flex items-center justify-between"
+    >
       <div class="text-[10px] font-mono text-[#777575]">
         SHOWING {(@page - 1) * @per_page + 1}-{min(@page * @per_page, @total)} OF {@total}
       </div>
@@ -1028,5 +1081,4 @@ defmodule CrucibleWeb.CostLive do
   defp source_label(:jsonl), do: "JSONL"
   defp source_label(:empty), do: "Empty"
   defp source_label(_), do: "Unknown"
-
 end

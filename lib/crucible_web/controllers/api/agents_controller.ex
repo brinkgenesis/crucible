@@ -11,8 +11,13 @@ defmodule CrucibleWeb.Api.AgentsController do
     summary: "List agent definitions",
     description: "Returns all agent YAML definitions found in the agents directory.",
     tags: ["Agents"],
-    responses: [ok: {"Agent list", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Agent list", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def index(conn, _params) do
     agents =
       if File.dir?(agents_dir()) do
@@ -35,13 +40,19 @@ defmodule CrucibleWeb.Api.AgentsController do
     description: "Returns the raw YAML content of a named agent definition.",
     tags: ["Agents"],
     parameters: [
-      name: [in: :path, type: :string, required: true, description: "Agent name (without file extension)"]
+      name: [
+        in: :path,
+        type: :string,
+        required: true,
+        description: "Agent name (without file extension)"
+      ]
     ],
     responses: [
       ok: {"Agent definition", "application/json", %OpenApiSpex.Schema{type: :object}},
       not_found: {"Not found", "application/json", %OpenApiSpex.Schema{type: :object}}
     ]
   )
+
   def show(conn, %{"name" => name}) do
     # Sanitize name to prevent path traversal
     safe_name = Path.basename(name)
@@ -64,10 +75,16 @@ defmodule CrucibleWeb.Api.AgentsController do
 
   operation(:stats,
     summary: "Agent lifecycle stats",
-    description: "Returns event counts and last-seen timestamps aggregated by agent type from recent traces.",
+    description:
+      "Returns event counts and last-seen timestamps aggregated by agent type from recent traces.",
     tags: ["Agents"],
-    responses: [ok: {"Agent stats", "application/json", %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}]
+    responses: [
+      ok:
+        {"Agent stats", "application/json",
+         %OpenApiSpex.Schema{type: :array, items: %OpenApiSpex.Schema{type: :object}}}
+    ]
   )
+
   def stats(conn, _params) do
     # Read agent lifecycle stats from traces
     alias Crucible.TraceReader

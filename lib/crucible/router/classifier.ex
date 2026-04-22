@@ -113,7 +113,8 @@ defmodule Crucible.Router.Classifier do
     %{complexity: score, category: category(score), reasoning: reasoning}
   end
 
-  defp score_from_prompt(_), do: %{complexity: 5, category: "coding", reasoning: "Non-string prompt"}
+  defp score_from_prompt(_),
+    do: %{complexity: 5, category: "coding", reasoning: "Non-string prompt"}
 
   defp count_matches(prompt, regexes),
     do: Enum.count(regexes, &Regex.match?(&1, prompt))
