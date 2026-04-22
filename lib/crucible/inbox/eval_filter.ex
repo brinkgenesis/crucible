@@ -21,11 +21,9 @@ defmodule Crucible.Inbox.EvalFilter do
   @dimensions ~w(actionability relevance specificity strategic_value)
   @labels ~w(bug-fix feature optimization research tooling competitive-intel infrastructure)
 
-  @thresholds %{
-    auto_promote: 7.0,
-    human_review: 4.0,
-    low_priority: 2.0
-  }
+  @auto_promote_threshold 7.0
+  @review_threshold 4.0
+  @low_priority_threshold 2.0
 
   @default_weights %{
     "actionability" => 1.0,
@@ -118,9 +116,9 @@ defmodule Crucible.Inbox.EvalFilter do
 
   @doc "Assign a bucket based on average score."
   @spec assign_bucket(float()) :: String.t()
-  def assign_bucket(score) when score >= 7.0, do: "auto-promote"
-  def assign_bucket(score) when score >= 4.0, do: "review"
-  def assign_bucket(score) when score >= 2.0, do: "low-priority"
+  def assign_bucket(score) when score >= @auto_promote_threshold, do: "auto-promote"
+  def assign_bucket(score) when score >= @review_threshold, do: "review"
+  def assign_bucket(score) when score >= @low_priority_threshold, do: "low-priority"
   def assign_bucket(_score), do: "dismiss"
 
   # --- Private ---

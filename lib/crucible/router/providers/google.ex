@@ -41,7 +41,8 @@ defmodule Crucible.Router.Providers.Google do
   end
 
   @impl true
-  def health_check, do: match?({:ok, _}, send("gemini-2.5-flash", %{prompt: "ping", max_tokens: 1}))
+  def health_check,
+    do: match?({:ok, _}, request("gemini-2.5-flash", %{prompt: "ping", max_tokens: 1}))
 
   # ── helpers ─────────────────────────────────────────────────────────────
 

@@ -129,7 +129,7 @@ defmodule Crucible.ElixirSdk.Mcp.Client do
 
   # ── internals ──────────────────────────────────────────────────────────
 
-  defp boot(state) do
+  defp boot(_state) do
     configs = Application.get_env(:crucible, :mcp_servers, [])
 
     servers =

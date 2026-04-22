@@ -247,13 +247,8 @@ defmodule Crucible.SelfImprovement do
   end
 
   defp maybe_process_benchmark_run(run_id, state) do
-    case BenchmarkAutopilot.process_completed_run(run_id, infra_home: state.infra_home) do
-      {:ok, _result} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.debug("SelfImprovement: benchmark autopilot skipped #{run_id}: #{inspect(reason)}")
-    end
+    {:ok, _} = BenchmarkAutopilot.process_completed_run(run_id, infra_home: state.infra_home)
+    :ok
   rescue
     e ->
       Logger.debug(
@@ -264,17 +259,14 @@ defmodule Crucible.SelfImprovement do
   end
 
   defp maybe_sweep_benchmark_runs(state) do
-    case BenchmarkAutopilot.sweep(
-           infra_home: state.infra_home,
-           lookback_hours: @benchmark_sweep_lookback_hours,
-           limit: @benchmark_sweep_limit
-         ) do
-      {:ok, _result} ->
-        :ok
+    {:ok, _} =
+      BenchmarkAutopilot.sweep(
+        infra_home: state.infra_home,
+        lookback_hours: @benchmark_sweep_lookback_hours,
+        limit: @benchmark_sweep_limit
+      )
 
-      {:error, reason} ->
-        Logger.debug("SelfImprovement: benchmark sweep skipped: #{inspect(reason)}")
-    end
+    :ok
   rescue
     e ->
       Logger.debug("SelfImprovement: benchmark sweep failed: #{Exception.message(e)}")
@@ -282,13 +274,8 @@ defmodule Crucible.SelfImprovement do
   end
 
   defp maybe_ingest_research_benchmarks do
-    case HarborEvalIngestor.sweep(limit: 100) do
-      {:ok, _result} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.debug("SelfImprovement: research benchmark ingest skipped: #{inspect(reason)}")
-    end
+    {:ok, _} = HarborEvalIngestor.sweep(limit: 100)
+    :ok
   rescue
     e ->
       Logger.debug("SelfImprovement: research benchmark ingest failed: #{Exception.message(e)}")

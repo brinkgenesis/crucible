@@ -98,7 +98,8 @@ defmodule Crucible.ElixirSdk.Tools.Grep do
 
     matches =
       path
-      |> Path.wildcard("**/*", match_dot: false)
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: false)
       |> Enum.filter(&File.regular?/1)
       |> Enum.take(1000)
       |> Enum.filter(fn file ->

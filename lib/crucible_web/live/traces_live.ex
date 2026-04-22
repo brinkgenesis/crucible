@@ -333,18 +333,6 @@ defmodule CrucibleWeb.TracesLive do
       })
 
     case result do
-      {:ok, %{card_id: card_id, plan_note: plan_note}} ->
-        {:noreply,
-         put_flash(
-           socket,
-           :info,
-           "Created action card #{String.slice(card_id, 0, 8)} with plan #{plan_note}."
-         )}
-
-      {:error, :duplicate} ->
-        {:noreply,
-         put_flash(socket, :info, "An active action card already exists for this regression.")}
-
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to create action card: #{inspect(reason)}")}
     end

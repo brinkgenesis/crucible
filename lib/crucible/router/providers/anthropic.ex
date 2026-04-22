@@ -44,7 +44,7 @@ defmodule Crucible.Router.Providers.Anthropic do
 
   @impl true
   def health_check do
-    case send("claude-haiku-4-5-20251001", %{prompt: "ping", max_tokens: 1}) do
+    case request("claude-haiku-4-5-20251001", %{prompt: "ping", max_tokens: 1}) do
       {:ok, _} -> true
       _ -> false
     end

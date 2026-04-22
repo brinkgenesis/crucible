@@ -219,10 +219,6 @@ defmodule CrucibleWeb.KanbanLive do
       plan_content =
         if plan_note_path do
           case Crucible.VaultPlanStore.read_note(plan_note_path) do
-            {:ok, note} ->
-              require Logger
-              Logger.debug("[KanbanLive] plan loaded: path=#{plan_note_path} title=#{note.title}")
-              note
             {:error, reason} ->
               require Logger
               Logger.warning("[KanbanLive] plan read failed: path=#{plan_note_path} reason=#{inspect(reason)}")
@@ -256,9 +252,10 @@ defmodule CrucibleWeb.KanbanLive do
   end
 
   def handle_event("open_plan_popup", %{"path" => path, "card_id" => card_id}, socket) do
+    _ = card_id
+
     popup =
       case Crucible.VaultPlanStore.read_note(path) do
-        {:ok, note} -> Map.put(note, :card_id, card_id)
         {:error, _} -> nil
       end
 
@@ -288,18 +285,6 @@ defmodule CrucibleWeb.KanbanLive do
         {:noreply,
          put_flash(socket, :info, "Patrol scan queued — new cards will appear shortly")
          |> load_cards()}
-
-      {:error, %Ecto.Changeset{} = cs} ->
-        # Unique constraint — scan already queued
-        if cs.errors[:worker] do
-          {:noreply,
-           put_flash(socket, :info, "Patrol scan already in progress") |> load_cards()}
-        else
-          {:noreply, put_flash(socket, :error, "Patrol scan failed to queue")}
-        end
-
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Patrol scan failed: #{inspect(reason)}")}
     end
   end
 

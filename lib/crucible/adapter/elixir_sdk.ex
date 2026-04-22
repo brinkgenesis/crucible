@@ -152,16 +152,11 @@ defmodule Crucible.Adapter.ElixirSdk do
 
   defp safe_broadcast_tool(run, phase, ev, status) do
     try do
-      Events.broadcast_trace_event(%{
-        run_id: run.id,
-        phase_id: phase.id,
-        event_type: "mcp_tool_call",
+      Events.broadcast_phase_event(run.id, phase.id, :mcp_tool_call, %{
         tool: Map.get(ev, :name),
-        metadata: %{
-          adapter: "elixir_sdk",
-          status: Atom.to_string(status),
-          tool_use_id: Map.get(ev, :tool_use_id)
-        }
+        adapter: "elixir_sdk",
+        status: Atom.to_string(status),
+        tool_use_id: Map.get(ev, :tool_use_id)
       })
     catch
       _kind, _err -> :ok

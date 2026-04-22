@@ -20,7 +20,8 @@ defmodule Crucible.Router.Providers.MiniMax do
   end
 
   @impl true
-  def health_check, do: match?({:ok, _}, send("MiniMax-M2", %{prompt: "ping", max_tokens: 1}))
+  def health_check,
+    do: match?({:ok, _}, request("MiniMax-M2", %{prompt: "ping", max_tokens: 1}))
 
   defp api_key,
     do: System.get_env("MINIMAX_API_KEY") || Application.get_env(:crucible, :minimax_api_key, "")

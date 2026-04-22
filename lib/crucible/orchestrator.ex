@@ -32,7 +32,7 @@ defmodule Crucible.Orchestrator do
 
   require Logger
 
-  alias Crucible.Orchestrator.{State, CircuitBreaker, RunSupervisor}
+  alias Crucible.Orchestrator.{State, RunSupervisor}
   alias Crucible.{BudgetTracker, Events, Status, Workspace, WorkflowRunner}
   alias Crucible.State.DistributedStore
   alias Crucible.Telemetry.Spans

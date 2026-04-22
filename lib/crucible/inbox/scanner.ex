@@ -34,7 +34,7 @@ defmodule Crucible.Inbox.Scanner do
         }
 
   @doc "Run a full inbox scan with default settings."
-  @spec scan(keyword()) :: {:ok, scan_result()}
+  @spec scan(keyword()) :: {:ok, scan_result()} | {:error, term()}
   def scan(opts \\ []) do
     max_items = Keyword.get(opts, :max_items, @max_items)
     router_fn = Keyword.get(opts, :router_fn)

@@ -17,19 +17,18 @@ defmodule Crucible.Jobs.InboxScanJob do
 
   @impl Oban.Worker
   def perform(_job) do
-    case Scanner.scan() do
-      {:ok, result} ->
-        Logger.info(
-          "InboxScanJob: evaluated=#{result.evaluated} " <>
-            "cards=#{result.cards_created} dismissed=#{result.dismissed} " <>
-            "review=#{result.for_review} errors=#{result.errors}"
-        )
+    {:ok, result} = Scanner.scan()
 
-        :ok
+    Logger.info(
+      "InboxScanJob: evaluated=#{result.evaluated} " <>
+        "cards=#{result.cards_created} dismissed=#{result.dismissed} " <>
+        "review=#{result.for_review} errors=#{result.errors}"
+    )
 
-      {:error, reason} ->
-        Logger.error("InboxScanJob: scan failed: #{inspect(reason)}")
-        {:error, reason}
-    end
+    :ok
+  rescue
+    e ->
+      Logger.error("InboxScanJob: scan failed: #{Exception.message(e)}")
+      {:error, Exception.message(e)}
   end
 end
