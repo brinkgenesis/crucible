@@ -1020,23 +1020,15 @@ defmodule Crucible.SelfImprovement do
     dir = Path.join(infra_home, ".claude-flow/learning")
     File.mkdir_p!(dir)
 
-    # Write latest
     path = Path.join(dir, "workflow-kpi.json")
-
-    case Jason.encode(snapshot, pretty: true) do
-      {:ok, json} -> File.write(path, json)
-      {:error, reason} -> {:error, reason}
-    end
-
-    # Append to history
     history_path = Path.join(dir, "workflow-kpi-history.jsonl")
 
-    case Jason.encode(snapshot) do
-      {:ok, line} -> File.write(history_path, line <> "\n", [:append])
-      _ -> :ok
+    with {:ok, json} <- Jason.encode(snapshot, pretty: true),
+         :ok <- File.write(path, json),
+         {:ok, line} <- Jason.encode(snapshot),
+         :ok <- File.write(history_path, line <> "\n", [:append]) do
+      :ok
     end
-
-    :ok
   end
 
   defp write_hints(infra_home, hints) do
@@ -1044,9 +1036,9 @@ defmodule Crucible.SelfImprovement do
     File.mkdir_p!(dir)
     path = Path.join(dir, "workflow-prompt-hints.json")
 
-    case Jason.encode(hints, pretty: true) do
-      {:ok, json} -> File.write(path, json)
-      {:error, reason} -> {:error, reason}
+    with {:ok, json} <- Jason.encode(hints, pretty: true),
+         :ok <- File.write(path, json) do
+      :ok
     end
   end
 
@@ -1059,7 +1051,7 @@ defmodule Crucible.SelfImprovement do
 
   defp estimate_cycle_cost(state) do
     case state.latest_snapshot do
-      %{cost_summary: %{total_usd: cost}} when is_number(cost) ->
+      %{totals: %{total_cost: cost}} when is_number(cost) ->
         # Rough estimate: 1 USD ≈ 100k tokens at Haiku tier
         tokens = round(cost * 100_000)
         {tokens, cost}

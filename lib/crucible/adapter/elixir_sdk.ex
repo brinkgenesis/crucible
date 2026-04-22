@@ -123,30 +123,26 @@ defmodule Crucible.Adapter.ElixirSdk do
   end
 
   defp link_event_forwarder(_query_pid, run, phase) do
-    me = self()
-
     spawn_link(fn ->
-      forward_loop(me, run, phase)
+      forward_loop(run, phase)
     end)
   end
 
-  defp forward_loop(subscriber, run, phase) do
+  defp forward_loop(run, phase) do
     receive do
       {:crucible_sdk_event, %{type: :tool_call} = ev} ->
         safe_broadcast_tool(run, phase, ev, :start)
-        forward_loop(subscriber, run, phase)
+        forward_loop(run, phase)
 
       {:crucible_sdk_event, %{type: :tool_result} = ev} ->
         safe_broadcast_tool(run, phase, ev, :complete)
-        forward_loop(subscriber, run, phase)
+        forward_loop(run, phase)
 
       {:crucible_sdk_event, %{type: :result}} ->
         :ok
 
       {:crucible_sdk_event, _other} ->
-        forward_loop(subscriber, run, phase)
-    after
-      5_000 -> :ok
+        forward_loop(run, phase)
     end
   end
 

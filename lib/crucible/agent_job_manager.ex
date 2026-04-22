@@ -160,6 +160,24 @@ defmodule Crucible.AgentJobManager do
     }
 
     case TaskTool.spawn_child(parent_run, parent_phase, task_config) do
+      {:ok, result} ->
+        result_map = if is_map(result), do: result, else: %{"value" => inspect(result)}
+
+        job
+        |> AgentJob.changeset(%{
+          status: "completed",
+          result: result_map,
+          completed_at: DateTime.utc_now()
+        })
+        |> Repo.update()
+
+        Events.broadcast_run_event(job.run_id || "", :agent_job_completed, %{
+          job_id: job.id
+        })
+
+        AuditLog.log("agent_job", job.id, "completed", %{})
+        Phoenix.PubSub.broadcast(Crucible.PubSub, "agent_jobs", {:agent_job_completed, job.id})
+
       {:error, reason} ->
         job
         |> AgentJob.changeset(%{

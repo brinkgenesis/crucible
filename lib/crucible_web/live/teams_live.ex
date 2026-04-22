@@ -249,6 +249,18 @@ defmodule CrucibleWeb.TeamsLive do
     name = socket.assigns.team_name
 
     case TeamReader.export_markdown(name) do
+      markdown when is_binary(markdown) ->
+        {:noreply,
+         socket
+         |> push_event("download-text", %{
+           filename: "#{name}.md",
+           content: markdown
+         })
+         |> put_flash(:info, "Team exported.")}
+
+      nil ->
+        {:noreply, put_flash(socket, :error, "Team not found.")}
+
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, "Team export is not available in this build.")}
     end
