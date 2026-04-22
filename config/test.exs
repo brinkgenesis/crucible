@@ -5,9 +5,15 @@ import Config
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
+#
+# DATABASE_URL overrides the default so CI (and ad-hoc setups like a remote
+# Postgres / Neon branch) can point tests at their own database without
+# patching this file. Partitioning is appended to whichever URL is used.
+test_db_url =
+  System.get_env("DATABASE_URL", "postgres://infra:infra@localhost/crucible_test")
+
 config :crucible, Crucible.Repo,
-  url:
-    "postgres://infra:infra@localhost/crucible_test#{System.get_env("MIX_TEST_PARTITION")}",
+  url: test_db_url <> (System.get_env("MIX_TEST_PARTITION") || ""),
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
