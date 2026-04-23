@@ -1,27 +1,28 @@
 defmodule Crucible.PhaseRunner.Telemetry do
   @moduledoc """
-  Handles trace emission, JSONL persistence, token-metric construction, and
-  result enrichment for phase execution.
-
-  All observability concerns live here so the main PhaseRunner stays focused on
-  control-flow.
+  Trace emission, token-metric construction, and result enrichment for phase
+  execution. Persistence is delegated to `Crucible.TraceEventWriter`, which
+  owns both the JSONL log and the `trace_events` table.
   """
 
   require Logger
 
+  alias Crucible.TraceEventWriter
   alias Crucible.Types.{Run, Phase, PhaseTokenMetrics}
 
-  @trace_rel ".claude-flow/logs/traces"
-
-  @doc "Emit a trace event to PubSub and persist it to JSONL."
+  @doc "Emit a trace event to PubSub and persist it via TraceEventWriter (JSONL + DB)."
   @spec emit_trace(Run.t(), Phase.t(), String.t(), map()) :: :ok
   def emit_trace(run, phase, event_type, metadata) do
+    now = DateTime.utc_now() |> DateTime.to_iso8601()
+
     event = %{
-      eventType: event_type,
-      runId: run.id,
-      phaseId: phase.id,
-      timestamp: DateTime.utc_now() |> DateTime.to_iso8601(),
-      metadata: metadata
+      "traceId" => "phase-runner-#{run.id}-#{phase.id}-#{System.unique_integer([:positive])}",
+      "eventType" => event_type,
+      "runId" => run.id,
+      "phaseId" => phase.id,
+      "clientId" => Map.get(run, :client_id),
+      "metadata" => metadata,
+      "timestamp" => now
     }
 
     Phoenix.PubSub.broadcast(
@@ -30,7 +31,8 @@ defmodule Crucible.PhaseRunner.Telemetry do
       {:trace_event, event}
     )
 
-    persist_trace(run.id, event)
+    TraceEventWriter.write(run.id, event)
+    :ok
   rescue
     e ->
       Logger.warning("PhaseRunner: emit_trace failed for run #{run.id}: #{Exception.message(e)}")
@@ -143,30 +145,4 @@ defmodule Crucible.PhaseRunner.Telemetry do
   end
 
   def enrich_result(error, _metrics), do: error
-
-  # --- Private ---
-
-  defp persist_trace(run_id, event) do
-    trace_dir = resolve_path(@trace_rel)
-    File.mkdir_p!(trace_dir)
-    path = Path.join(trace_dir, "#{run_id}.jsonl")
-
-    case Jason.encode(event) do
-      {:ok, json} -> File.write(path, json <> "\n", [:append])
-      _ -> :ok
-    end
-  rescue
-    e ->
-      Logger.warning(
-        "PhaseRunner: persist_trace failed for run #{run_id}: #{Exception.message(e)}"
-      )
-
-      :ok
-  end
-
-  defp resolve_path(rel) do
-    config = Application.get_env(:crucible, :orchestrator, [])
-    repo_root = Keyword.get(config, :repo_root, File.cwd!())
-    Path.join(repo_root, rel)
-  end
 end
