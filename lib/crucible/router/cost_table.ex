@@ -24,6 +24,19 @@ defmodule Crucible.Router.CostTable do
         }
 
   @models %{
+    "claude-opus-4-7" => %{
+      id: "claude-opus-4-7",
+      provider: "anthropic",
+      display_name: "Claude Opus 4.7",
+      pricing: %{
+        input_per_million: 15.0,
+        output_per_million: 75.0,
+        cache_read_per_million: 1.5,
+        cache_write_per_million: 18.75
+      },
+      context_window: 200_000,
+      max_output: 32_000
+    },
     "claude-opus-4-6" => %{
       id: "claude-opus-4-6",
       provider: "anthropic",

@@ -78,7 +78,7 @@ defmodule Crucible.RouterTest do
 
     test "cost: architecture → Opus" do
       r = Strategy.select(10, :cost)
-      assert r.model_id == "claude-opus-4-6"
+      assert r.model_id == "claude-opus-4-7"
     end
 
     test "quality coding → Sonnet, not MiniMax" do
@@ -119,6 +119,7 @@ defmodule Crucible.RouterTest do
   describe "CostTable" do
     test "every expected model is registered" do
       for id <- [
+            "claude-opus-4-7",
             "claude-opus-4-6",
             "claude-sonnet-4-6",
             "claude-sonnet-4-5-20250929",
@@ -132,7 +133,7 @@ defmodule Crucible.RouterTest do
     end
 
     test "estimate_cost for Opus is 15+75 per million" do
-      assert_in_delta CostTable.estimate_cost("claude-opus-4-6", 1_000_000, 1_000_000),
+      assert_in_delta CostTable.estimate_cost("claude-opus-4-7", 1_000_000, 1_000_000),
                       15.0 + 75.0,
                       0.001
     end

@@ -23,6 +23,14 @@ export interface ModelEntry {
 }
 
 export const MODELS: Record<string, ModelEntry> = {
+  "claude-opus-4-7": {
+    id: "claude-opus-4-7",
+    provider: "anthropic",
+    displayName: "Claude Opus 4.7",
+    pricing: { inputPerMillion: 15.0, outputPerMillion: 75.0, cacheReadPerMillion: 1.5, cacheWritePerMillion: 18.75 },
+    contextWindow: 200_000,
+    maxOutput: 32_000,
+  },
   "claude-opus-4-6": {
     id: "claude-opus-4-6",
     provider: "anthropic",

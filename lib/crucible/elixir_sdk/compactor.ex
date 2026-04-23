@@ -66,13 +66,15 @@ defmodule Crucible.ElixirSdk.Compactor do
       middle_msgs ->
         case summarise(middle_msgs, opts) do
           {:ok, summary} ->
-            summary_msg = %{
-              role: "user",
-              content:
-                "[COMPACTED CONTEXT]\n#{length(middle_msgs)} prior turns were summarised to free up context:\n\n#{summary}"
-            }
+            summary_text =
+              "[COMPACTED CONTEXT]\n#{length(middle_msgs)} prior turns were summarised to free up context:\n\n#{summary}"
 
-            new_messages = prefix ++ [summary_msg] ++ suffix
+            # Fold the summary into the last user message of the prefix. This
+            # preserves strict assistant/user alternation (Anthropic rejects
+            # consecutive user-role messages) and keeps any tool_use/tool_result
+            # pairing in the prefix intact.
+            prefix = append_text_to_last_user(prefix, summary_text)
+            new_messages = prefix ++ suffix
             {:compact, new_messages, %{collapsed: length(middle_msgs)}}
 
           {:error, _reason} ->
@@ -81,19 +83,112 @@ defmodule Crucible.ElixirSdk.Compactor do
     end
   end
 
-  defp split_for_compaction(messages, keep_recent) do
-    case messages do
-      [first | rest] ->
+  # Prefix = up to and including the first user message that carries the
+  # actual user prompt (a text block, or a binary content string). This keeps
+  # any leading (assistant tool_use, user tool_result) knowledge-injection
+  # pairs paired together inside the prefix instead of splitting them across
+  # the summary boundary — which previously orphaned the first tool_use and
+  # caused the Anthropic 400 "tool_use without tool_result" error.
+  @doc false
+  def split_for_compaction(messages, keep_recent) do
+    case find_prompt_message_index(messages) do
+      nil ->
+        # No recognisable prompt message — fall back to the old behaviour.
+        case messages do
+          [first | rest] ->
+            total = length(rest)
+            to_keep = min(keep_recent, total)
+            middle = Enum.take(rest, total - to_keep)
+            tail = Enum.drop(rest, total - to_keep)
+            {[first], middle, tail}
+
+          [] ->
+            {[], [], []}
+        end
+
+      idx ->
+        prefix = Enum.take(messages, idx + 1)
+        rest = Enum.drop(messages, idx + 1)
+
         total = length(rest)
         to_keep = min(keep_recent, total)
-        middle_count = total - to_keep
+        middle = Enum.take(rest, total - to_keep)
+        suffix = Enum.drop(rest, total - to_keep)
 
-        middle = Enum.take(rest, middle_count)
-        tail = Enum.drop(rest, middle_count)
-        {[first], middle, tail}
+        # If the suffix starts with a user message, its paired assistant
+        # tool_use is stuck in the middle — move the user into middle so the
+        # suffix opens on an assistant turn.
+        {middle, suffix} = pull_leading_user_to_middle(middle, suffix)
 
-      [] ->
-        {[], [], []}
+        {prefix, middle, suffix}
+    end
+  end
+
+  defp find_prompt_message_index(messages) do
+    Enum.find_index(messages, fn msg ->
+      role = Map.get(msg, :role) || Map.get(msg, "role")
+      content = Map.get(msg, :content) || Map.get(msg, "content")
+      role == "user" and has_text_block?(content)
+    end)
+  end
+
+  defp has_text_block?(content) when is_binary(content), do: true
+
+  defp has_text_block?(content) when is_list(content) do
+    Enum.any?(content, fn
+      %{"type" => "text"} -> true
+      %{type: "text"} -> true
+      _ -> false
+    end)
+  end
+
+  defp has_text_block?(_), do: false
+
+  defp pull_leading_user_to_middle(middle, [first | rest] = suffix) do
+    role = Map.get(first, :role) || Map.get(first, "role")
+
+    if role == "user" do
+      pull_leading_user_to_middle(middle ++ [first], rest)
+    else
+      {middle, suffix}
+    end
+  end
+
+  defp pull_leading_user_to_middle(middle, []), do: {middle, []}
+
+  @doc false
+  def append_text_to_last_user(messages, text) do
+    block = %{"type" => "text", "text" => text}
+
+    case Enum.reverse(messages) do
+      [last | rev_rest] when is_map(last) ->
+        role = Map.get(last, :role) || Map.get(last, "role")
+
+        if role == "user" do
+          content_key = if Map.has_key?(last, :content), do: :content, else: "content"
+          existing = Map.get(last, content_key)
+
+          merged =
+            case existing do
+              blocks when is_list(blocks) ->
+                blocks ++ [block]
+
+              str when is_binary(str) ->
+                [%{"type" => "text", "text" => str}, block]
+
+              _ ->
+                [block]
+            end
+
+          Enum.reverse([Map.put(last, content_key, merged) | rev_rest])
+        else
+          # Prefix doesn't end on user — append a fresh user turn carrying the
+          # summary. Unusual: callers normally ensure a user-tailed prefix.
+          messages ++ [%{role: "user", content: [block]}]
+        end
+
+      _ ->
+        messages ++ [%{role: "user", content: [block]}]
     end
   end
 

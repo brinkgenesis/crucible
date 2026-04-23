@@ -40,9 +40,10 @@ defmodule Crucible.Router.Strategy do
       reason: "Complex task: Sonnet provides strong code review and debugging capabilities"
     },
     "9-10" => %{
-      model_id: "claude-opus-4-6",
+      model_id: "claude-opus-4-7",
       provider: "anthropic",
-      reason: "Architecture/reasoning: Opus provides the highest quality for complex decisions"
+      reason:
+        "Architecture/reasoning: Opus 4.7 provides the highest quality for complex decisions"
     }
   }
 
@@ -63,14 +64,14 @@ defmodule Crucible.Router.Strategy do
       reason: "Quality mode: Sonnet for coding tasks to maximize correctness"
     },
     "7-8" => %{
-      model_id: "claude-opus-4-6",
+      model_id: "claude-opus-4-7",
       provider: "anthropic",
-      reason: "Quality mode: Opus for complex tasks to maximize reasoning quality"
+      reason: "Quality mode: Opus 4.7 for complex tasks to maximize reasoning quality"
     },
     "9-10" => %{
-      model_id: "claude-opus-4-6",
+      model_id: "claude-opus-4-7",
       provider: "anthropic",
-      reason: "Quality mode: Opus for architecture decisions, maximum capability"
+      reason: "Quality mode: Opus 4.7 for architecture decisions, maximum capability"
     }
   }
 
@@ -96,9 +97,9 @@ defmodule Crucible.Router.Strategy do
       reason: "Speed: Sonnet balances capability with reasonable latency"
     },
     "9-10" => %{
-      model_id: "claude-opus-4-6",
+      model_id: "claude-opus-4-7",
       provider: "anthropic",
-      reason: "Speed: Opus is required for this complexity, no faster alternative"
+      reason: "Speed: Opus 4.7 is required for this complexity, no faster alternative"
     }
   }
 
