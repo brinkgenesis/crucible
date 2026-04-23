@@ -82,6 +82,82 @@ defmodule Crucible.ElixirSdk.FinalTest do
     # The summariser path requires a real API key; skipped in unit tests.
   end
 
+  describe "Compactor.split_for_compaction/2" do
+    test "keeps knowledge-injection (tool_use/tool_result) pair in prefix with the prompt" do
+      # Simulates: one knowledge_injection source + prompt merged into last user
+      # message, plus three completed (assistant tool_use, user tool_result) turns.
+      inject_assistant = %{
+        role: "assistant",
+        content: [%{"type" => "tool_use", "id" => "inject_plan_abc", "name" => "_context_loader"}]
+      }
+
+      inject_user_with_prompt = %{
+        role: "user",
+        content: [
+          %{"type" => "tool_result", "tool_use_id" => "inject_plan_abc", "content" => "[plan]\n..."},
+          %{"type" => "text", "text" => "the real prompt"}
+        ]
+      }
+
+      turn = fn id ->
+        [
+          %{role: "assistant", content: [%{"type" => "tool_use", "id" => id, "name" => "Read"}]},
+          %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]}
+        ]
+      end
+
+      messages =
+        [inject_assistant, inject_user_with_prompt] ++
+          turn.("t1") ++ turn.("t2") ++ turn.("t3")
+
+      {prefix, middle, suffix} = Compactor.split_for_compaction(messages, 4)
+
+      # Prefix keeps the knowledge_injection pair AND the prompt together.
+      assert length(prefix) == 2
+      assert List.last(prefix).role == "user"
+
+      # Suffix must open on an assistant turn so tool_use/tool_result stays paired.
+      assert hd(suffix).role == "assistant"
+
+      # Middle contains exactly the collapsible interior turns.
+      assert Enum.all?(middle, &is_map/1)
+      assert length(prefix) + length(middle) + length(suffix) == length(messages)
+    end
+
+    test "falls back to first-message prefix when no prompt text is present" do
+      messages = [
+        %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => "x", "content" => "ok"}]},
+        %{role: "assistant", content: [%{"type" => "tool_use", "id" => "a", "name" => "Read"}]},
+        %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => "a", "content" => "ok"}]}
+      ]
+
+      {prefix, _middle, _suffix} = Compactor.split_for_compaction(messages, 2)
+
+      # No text block anywhere — falls back to the old "keep the first message" behaviour.
+      assert length(prefix) == 1
+    end
+
+    test "realigns suffix to start on an assistant message" do
+      # Build enough turns that middle gets non-empty content.
+      prompt_msg = %{role: "user", content: [%{"type" => "text", "text" => "prompt"}]}
+
+      turn = fn id ->
+        [
+          %{role: "assistant", content: [%{"type" => "tool_use", "id" => id, "name" => "Read"}]},
+          %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]}
+        ]
+      end
+
+      messages = [prompt_msg] ++ turn.("t1") ++ turn.("t2") ++ turn.("t3")
+
+      # keep_recent = 3 would naively place a user message at the suffix head,
+      # orphaning its assistant tool_use in middle. Realignment must fix that.
+      {_prefix, _middle, suffix} = Compactor.split_for_compaction(messages, 3)
+
+      assert hd(suffix).role == "assistant"
+    end
+  end
+
   # ── ToolRegistry MCP prefix routing ────────────────────────────────────
 
   describe "ToolRegistry with MCP prefix" do

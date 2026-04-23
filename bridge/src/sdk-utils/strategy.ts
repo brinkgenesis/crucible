@@ -33,9 +33,9 @@ const COST_ROUTES: Record<string, RouteDecision> = {
     reason: "Complex task: Sonnet provides strong code review and debugging capabilities",
   },
   "9-10": {
-    modelId: "claude-opus-4-6",
+    modelId: "claude-opus-4-7",
     provider: "anthropic",
-    reason: "Architecture/reasoning: Opus provides the highest quality for complex decisions",
+    reason: "Architecture/reasoning: Opus 4.7 provides the highest quality for complex decisions",
   },
 };
 
@@ -56,14 +56,14 @@ const QUALITY_ROUTES: Record<string, RouteDecision> = {
     reason: "Quality mode: Sonnet for coding tasks to maximize correctness",
   },
   "7-8": {
-    modelId: "claude-opus-4-6",
+    modelId: "claude-opus-4-7",
     provider: "anthropic",
-    reason: "Quality mode: Opus for complex tasks to maximize reasoning quality",
+    reason: "Quality mode: Opus 4.7 for complex tasks to maximize reasoning quality",
   },
   "9-10": {
-    modelId: "claude-opus-4-6",
+    modelId: "claude-opus-4-7",
     provider: "anthropic",
-    reason: "Quality mode: Opus for architecture decisions, maximum capability",
+    reason: "Quality mode: Opus 4.7 for architecture decisions, maximum capability",
   },
 };
 
@@ -89,9 +89,9 @@ const SPEED_ROUTES: Record<string, RouteDecision> = {
     reason: "Speed: Sonnet balances capability with reasonable latency",
   },
   "9-10": {
-    modelId: "claude-opus-4-6",
+    modelId: "claude-opus-4-7",
     provider: "anthropic",
-    reason: "Speed: Opus is required for this complexity, no faster alternative",
+    reason: "Speed: Opus 4.7 is required for this complexity, no faster alternative",
   },
 };
 
@@ -161,7 +161,7 @@ export interface ApiPhaseModelConfig {
  * For the API execution path, we use Anthropic models directly. The routing
  * profile determines which model and token budget to use:
  *
- * - deep-reasoning (plan): Opus 4.6 for architecture/planning decisions
+ * - deep-reasoning (plan): Opus 4.7 for architecture/planning decisions
  * - throughput (implement): Sonnet 4.6 for cost-efficient code generation
  * - verification (review): Sonnet 4.6 with lower output budget
  */
@@ -169,7 +169,7 @@ export function selectModelForApiPhase(routingProfile?: string): ApiPhaseModelCo
   switch (routingProfile) {
     case "deep-reasoning":
       return {
-        model: "claude-opus-4-6",
+        model: "claude-opus-4-7",
         maxTokens: 8192,
         thinkingBudget: 16_000,
         contextBudget: 180_000,

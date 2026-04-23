@@ -6,6 +6,18 @@ defmodule Crucible.ModelRegistry do
 
   @models [
     %{
+      id: "claude-opus-4-7",
+      provider: "anthropic",
+      display_name: "Claude Opus 4.7",
+      context_window: 200_000,
+      max_output: 32_000,
+      input_cost_per_1k: 0.015,
+      output_cost_per_1k: 0.075,
+      cache_read_per_1k: 0.0015,
+      cache_write_per_1k: 0.01875,
+      tier: "highest"
+    },
+    %{
       id: "claude-opus-4-6",
       provider: "anthropic",
       display_name: "Claude Opus 4.6",
