@@ -239,7 +239,13 @@ defmodule CrucibleWeb.KanbanLive do
           nil
         end
 
-      default_tab = if plan_content, do: "plan", else: "phases"
+      # Land on the Plan tab whenever we have anything to show there — vault
+      # note, idea plan, or just the LLM-generated plan summary string.
+      has_plan_summary = is_binary(metadata["planSummary"]) and metadata["planSummary"] != ""
+      has_idea_plan = is_map(metadata["ideaPlan"])
+
+      default_tab =
+        if plan_content || has_idea_plan || has_plan_summary, do: "plan", else: "phases"
 
       {:noreply,
        assign(socket,
@@ -1071,16 +1077,40 @@ defmodule CrucibleWeb.KanbanLive do
   defp detail_plan(assigns) do
     metadata = Map.get(assigns.card, :metadata) || %{}
     idea_plan = metadata["ideaPlan"]
+    plan_summary = metadata["planSummary"]
+    plan_note = metadata["planNote"]
+    plan_wiki_link = metadata["planWikiLink"]
+    task_description = Map.get(assigns.card, :title)
+    has_any_plan = idea_plan || assigns[:plan] || plan_summary
 
     assigns =
       assigns
       |> assign(:idea_plan, idea_plan)
-      |> assign(:plan_summary, metadata["planSummary"])
+      |> assign(:plan_summary, plan_summary)
+      |> assign(:plan_note, plan_note)
+      |> assign(:plan_wiki_link, plan_wiki_link)
+      |> assign(:task_description, task_description)
+      |> assign(:has_any_plan, has_any_plan)
 
     ~H"""
-    <div :if={!@plan && !@idea_plan} class="flex flex-col items-center py-12 text-[#adaaaa]/40">
+    <div :if={!@has_any_plan} class="flex flex-col items-center py-12 text-[#adaaaa]/40">
       <span class="material-symbols-outlined text-4xl mb-2">article</span>
       <p class="font-label text-[10px] uppercase tracking-widest">NO_PLAN_DATA</p>
+    </div>
+
+    <%!-- Summary-only fallback: rendered when there's no ideaPlan and no vault note --%>
+    <div :if={@has_any_plan && !@idea_plan && !@plan} class="mb-6">
+      <h3 class="text-[#ffa44c] font-label text-[10px] tracking-[0.3em] uppercase mb-2 flex items-center gap-2">
+        <span class="w-1 h-3 bg-[#ffa44c]"></span> TASK
+      </h3>
+      <p :if={@task_description} class="text-[#adaaaa] text-sm leading-relaxed mb-4">{@task_description}</p>
+      <h3 :if={@plan_summary} class="text-[#ffa44c] font-label text-[10px] tracking-[0.3em] uppercase mb-2 flex items-center gap-2">
+        <span class="w-1 h-3 bg-[#00eefc]"></span> PLAN_SUMMARY
+      </h3>
+      <p :if={@plan_summary} class="text-[#adaaaa] text-sm leading-relaxed">{@plan_summary}</p>
+      <div :if={@plan_note && @plan_note != "noop"} class="mt-4 font-label text-[9px] text-[#ffa44c]/40">
+        vault: {@plan_wiki_link || @plan_note}
+      </div>
     </div>
 
     <div :if={@idea_plan || @plan}>
