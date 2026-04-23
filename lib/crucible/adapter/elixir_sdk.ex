@@ -60,6 +60,13 @@ defmodule Crucible.Adapter.ElixirSdk do
 
     safe_telemetry(fn -> Telemetry.phase_start(run, phase, session_id, agent_names) end)
 
+    # Spawn the forwarder BEFORE starting the Query so the Query emits directly
+    # into the forwarder's mailbox. Setting subscriber to self() used to drop
+    # events on the floor because Query.await/2 blocks the caller in
+    # GenServer.call — no receive loop ran on self(), so the messages piled
+    # up unread and the spawned forward_loop never got anything.
+    forwarder_pid = spawn_event_forwarder(run, phase, session_id)
+
     query_opts = [
       prompt: prompt,
       model: model,
@@ -68,7 +75,7 @@ defmodule Crucible.Adapter.ElixirSdk do
       permission_mode: Keyword.get(opts, :permission_mode, :default),
       max_turns: Keyword.get(opts, :max_turns, 30),
       timeout_ms: timeout_ms,
-      subscriber: self(),
+      subscriber: forwarder_pid,
       session_id: session_id,
       knowledge_sources: knowledge_sources
     ]
@@ -77,10 +84,6 @@ defmodule Crucible.Adapter.ElixirSdk do
 
     case Query.start_link(query_opts) do
       {:ok, pid} ->
-        # Forward streaming events to the PubSub feed + trace stream so
-        # LiveView can render live tool activity.
-        link_event_forwarder(pid, run, phase, session_id)
-
         case Query.await(pid, timeout_ms) do
           {:ok, result} ->
             duration_ms = System.monotonic_time(:millisecond) - started_at
@@ -135,10 +138,8 @@ defmodule Crucible.Adapter.ElixirSdk do
     end
   end
 
-  defp link_event_forwarder(_query_pid, run, phase, session_id) do
-    spawn_link(fn ->
-      forward_loop(run, phase, session_id)
-    end)
+  defp spawn_event_forwarder(run, phase, session_id) do
+    spawn_link(fn -> forward_loop(run, phase, session_id) end)
   end
 
   defp forward_loop(run, phase, session_id) do
