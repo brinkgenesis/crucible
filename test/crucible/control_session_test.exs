@@ -1,6 +1,11 @@
 defmodule Crucible.ControlSessionTest do
   use ExUnit.Case, async: false
 
+  # ControlSession shells out to the `claude` CLI and `tmux`. Excluded by
+  # default so contributors without those binaries can still run `mix test`
+  # clean. Run with `mix test --include claude_cli` to include them.
+  @moduletag :claude_cli
+
   alias Crucible.ControlSession
 
   # App supervisor already starts ControlSession

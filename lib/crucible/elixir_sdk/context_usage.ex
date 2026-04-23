@@ -18,9 +18,9 @@ defmodule Crucible.ElixirSdk.ContextUsage do
   # Mirror Crucible.Router.CostTable — source-of-truth should be the router,
   # but that's a separate package. Kept in sync manually for now.
   @windows %{
-    "claude-opus-4-7" => 200_000,
-    "claude-opus-4-6" => 200_000,
-    "claude-sonnet-4-6" => 200_000,
+    "claude-opus-4-7" => 1_000_000,
+    "claude-opus-4-6" => 1_000_000,
+    "claude-sonnet-4-6" => 1_000_000,
     "claude-sonnet-4-5-20250929" => 200_000,
     "claude-haiku-4-5-20251001" => 200_000,
     "MiniMax-M2" => 204_000,

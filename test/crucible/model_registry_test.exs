@@ -37,7 +37,7 @@ defmodule Crucible.ModelRegistryTest do
     test "returns model by id" do
       model = ModelRegistry.get_model("claude-opus-4-6")
       assert model.provider == "anthropic"
-      assert model.context_window == 200_000
+      assert model.context_window == 1_000_000
     end
 
     test "returns nil for unknown model" do

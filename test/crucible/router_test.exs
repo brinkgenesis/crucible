@@ -132,9 +132,9 @@ defmodule Crucible.RouterTest do
       end
     end
 
-    test "estimate_cost for Opus is 15+75 per million" do
+    test "estimate_cost for Opus is 5+25 per million" do
       assert_in_delta CostTable.estimate_cost("claude-opus-4-7", 1_000_000, 1_000_000),
-                      15.0 + 75.0,
+                      5.0 + 25.0,
                       0.001
     end
 

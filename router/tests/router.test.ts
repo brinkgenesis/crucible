@@ -102,7 +102,7 @@ describe("Cost Table", () => {
 
   it("estimates cost correctly for Opus", () => {
     const cost = estimateCost("claude-opus-4-6", 1_000_000, 1_000_000);
-    expect(cost).toBe(15.0 + 75.0);
+    expect(cost).toBe(5.0 + 25.0);
   });
 
   it("estimates zero cost for local models", () => {

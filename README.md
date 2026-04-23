@@ -122,9 +122,10 @@ You should see an empty kanban. To run your first card end-to-end you need a **w
 ### Running the tests
 
 ```bash
-mix test                    # ~1400 tests, ~45s
-mix test --include docker   # includes sandbox integration tests (requires Docker)
-mix sobelow --config        # security lint
+mix test                       # ~1400 tests, ~45s
+mix test --include docker      # adds sandbox integration tests (requires Docker)
+mix test --include claude_cli  # adds ControlSession tests (requires `claude` and `tmux` on PATH)
+mix sobelow --config           # security lint
 ```
 
 ### Running the whole stack in containers
