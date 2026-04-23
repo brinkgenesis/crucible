@@ -15,6 +15,7 @@ defmodule Crucible.Adapter.ElixirSdk do
 
   require Logger
 
+  alias Crucible.Adapter.ElixirSdk.Telemetry
   alias Crucible.BudgetTracker
   alias Crucible.Claude.Protocol
   alias Crucible.Context.KnowledgeInjector
@@ -48,12 +49,16 @@ defmodule Crucible.Adapter.ElixirSdk do
     runs_dir = Keyword.get(opts, :runs_dir, ".claude-flow/runs")
     model = Keyword.get(opts, :model, Map.get(phase, :primary_model) || @default_model)
     timeout_ms = phase.timeout_ms || 600_000
+    session_id = generate_session_id()
+    agent_names = agent_names_for(phase)
 
     Logger.info(
-      "ElixirSdk: starting native query for run=#{run.id} phase=#{phase.id} (#{phase.type})"
+      "ElixirSdk: starting native query for run=#{run.id} phase=#{phase.id} (#{phase.type}) session=#{session_id}"
     )
 
     knowledge_sources = build_knowledge_sources(run, phase)
+
+    safe_telemetry(fn -> Telemetry.phase_start(run, phase, session_id, agent_names) end)
 
     query_opts = [
       prompt: prompt,
@@ -64,6 +69,7 @@ defmodule Crucible.Adapter.ElixirSdk do
       max_turns: Keyword.get(opts, :max_turns, 30),
       timeout_ms: timeout_ms,
       subscriber: self(),
+      session_id: session_id,
       knowledge_sources: knowledge_sources
     ]
 
@@ -73,13 +79,19 @@ defmodule Crucible.Adapter.ElixirSdk do
       {:ok, pid} ->
         # Forward streaming events to the PubSub feed + trace stream so
         # LiveView can render live tool activity.
-        link_event_forwarder(pid, run, phase)
+        link_event_forwarder(pid, run, phase, session_id)
 
         case Query.await(pid, timeout_ms) do
           {:ok, result} ->
             duration_ms = System.monotonic_time(:millisecond) - started_at
             ExternalCircuitBreaker.record_success(@circuit_breaker_service)
             maybe_record_cost(run.id, result, model)
+
+            enriched_result = Map.put(result, :cost, estimate_cost(model, result.usage))
+
+            safe_telemetry(fn ->
+              Telemetry.phase_end(run, phase, session_id, agent_names, enriched_result, model)
+            end)
 
             sentinel_path = Protocol.sentinel_path(runs_dir, run.id, phase.id)
 
@@ -103,7 +115,8 @@ defmodule Crucible.Adapter.ElixirSdk do
                input_tokens: result.usage.input,
                output_tokens: result.usage.output,
                cache_read_tokens: result.usage.cache_read,
-               cost: estimate_cost(model, result.usage)
+               cost: enriched_result.cost,
+               session_id: session_id
              }}
 
           {:error, :timeout} ->
@@ -122,27 +135,29 @@ defmodule Crucible.Adapter.ElixirSdk do
     end
   end
 
-  defp link_event_forwarder(_query_pid, run, phase) do
+  defp link_event_forwarder(_query_pid, run, phase, session_id) do
     spawn_link(fn ->
-      forward_loop(run, phase)
+      forward_loop(run, phase, session_id)
     end)
   end
 
-  defp forward_loop(run, phase) do
+  defp forward_loop(run, phase, session_id) do
     receive do
       {:crucible_sdk_event, %{type: :tool_call} = ev} ->
         safe_broadcast_tool(run, phase, ev, :start)
-        forward_loop(run, phase)
+        safe_telemetry(fn -> Telemetry.record_tool_call(run, phase, session_id, ev) end)
+        forward_loop(run, phase, session_id)
 
       {:crucible_sdk_event, %{type: :tool_result} = ev} ->
         safe_broadcast_tool(run, phase, ev, :complete)
-        forward_loop(run, phase)
+        safe_telemetry(fn -> Telemetry.record_tool_result(run, phase, ev) end)
+        forward_loop(run, phase, session_id)
 
       {:crucible_sdk_event, %{type: :result}} ->
         :ok
 
       {:crucible_sdk_event, _other} ->
-        forward_loop(run, phase)
+        forward_loop(run, phase, session_id)
     end
   end
 
@@ -158,6 +173,49 @@ defmodule Crucible.Adapter.ElixirSdk do
       _kind, _err -> :ok
     end
   end
+
+  defp safe_telemetry(fun) when is_function(fun, 0) do
+    try do
+      fun.()
+    catch
+      kind, err ->
+        Logger.debug("ElixirSdk telemetry dropped: #{kind} #{inspect(err)}")
+        :ok
+    end
+  end
+
+  defp generate_session_id do
+    :crypto.strong_rand_bytes(12) |> Base.url_encode64(padding: false)
+  end
+
+  defp agent_names_for(phase) do
+    agents = Map.get(phase, :agents) || []
+
+    names =
+      agents
+      |> Enum.map(fn
+        %{role: role} when is_binary(role) -> role
+        %{"role" => role} when is_binary(role) -> role
+        role when is_binary(role) -> role
+        role when is_atom(role) -> Atom.to_string(role)
+        _ -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    if names == [] do
+      # Phases without an explicit agents list (pr_shepherd, review_gate,
+      # preflight) still need one row on the Agents tab so the UI renders
+      # something per phase. Fall back to the phase type.
+      [phase_fallback_name(phase)]
+    else
+      names
+    end
+  end
+
+  defp phase_fallback_name(%{type: t}) when is_atom(t), do: Atom.to_string(t)
+  defp phase_fallback_name(%{type: t}) when is_binary(t), do: t
+  defp phase_fallback_name(%{name: n}) when is_binary(n), do: n
+  defp phase_fallback_name(_), do: "session"
 
   defp check_circuit_breaker do
     ExternalCircuitBreaker.check(@circuit_breaker_service)
