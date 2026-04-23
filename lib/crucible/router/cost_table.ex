@@ -29,26 +29,26 @@ defmodule Crucible.Router.CostTable do
       provider: "anthropic",
       display_name: "Claude Opus 4.7",
       pricing: %{
-        input_per_million: 15.0,
-        output_per_million: 75.0,
-        cache_read_per_million: 1.5,
-        cache_write_per_million: 18.75
+        input_per_million: 5.0,
+        output_per_million: 25.0,
+        cache_read_per_million: 0.5,
+        cache_write_per_million: 6.25
       },
-      context_window: 200_000,
-      max_output: 32_000
+      context_window: 1_000_000,
+      max_output: 128_000
     },
     "claude-opus-4-6" => %{
       id: "claude-opus-4-6",
       provider: "anthropic",
       display_name: "Claude Opus 4.6",
       pricing: %{
-        input_per_million: 15.0,
-        output_per_million: 75.0,
-        cache_read_per_million: 1.5,
-        cache_write_per_million: 18.75
+        input_per_million: 5.0,
+        output_per_million: 25.0,
+        cache_read_per_million: 0.5,
+        cache_write_per_million: 6.25
       },
-      context_window: 200_000,
-      max_output: 32_000
+      context_window: 1_000_000,
+      max_output: 128_000
     },
     "claude-sonnet-4-6" => %{
       id: "claude-sonnet-4-6",
@@ -60,8 +60,8 @@ defmodule Crucible.Router.CostTable do
         cache_read_per_million: 0.3,
         cache_write_per_million: 3.75
       },
-      context_window: 200_000,
-      max_output: 16_000
+      context_window: 1_000_000,
+      max_output: 64_000
     },
     "claude-sonnet-4-5-20250929" => %{
       id: "claude-sonnet-4-5-20250929",
@@ -74,20 +74,20 @@ defmodule Crucible.Router.CostTable do
         cache_write_per_million: 3.75
       },
       context_window: 200_000,
-      max_output: 16_000
+      max_output: 64_000
     },
     "claude-haiku-4-5-20251001" => %{
       id: "claude-haiku-4-5-20251001",
       provider: "anthropic",
       display_name: "Claude Haiku 4.5",
       pricing: %{
-        input_per_million: 0.8,
-        output_per_million: 4.0,
-        cache_read_per_million: 0.08,
-        cache_write_per_million: 1.0
+        input_per_million: 1.0,
+        output_per_million: 5.0,
+        cache_read_per_million: 0.1,
+        cache_write_per_million: 1.25
       },
       context_window: 200_000,
-      max_output: 8_192
+      max_output: 64_000
     },
     "MiniMax-M2" => %{
       id: "MiniMax-M2",

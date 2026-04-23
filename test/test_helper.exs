@@ -1,5 +1,8 @@
-# Exclude docker integration tests by default. Run with: mix test --include docker
-ExUnit.start(exclude: [:docker])
+# Exclude integration tests that need optional binaries by default.
+# - :docker requires the Docker daemon (sandbox tests).
+# - :claude_cli requires the `claude` and `tmux` CLIs (ControlSession tests).
+# Run with `--include docker` or `--include claude_cli` to opt in.
+ExUnit.start(exclude: [:docker, :claude_cli])
 Ecto.Adapters.SQL.Sandbox.mode(Crucible.Repo, :manual)
 
 # Create isolated test directories so ResultWriter/Orchestrator don't pollute

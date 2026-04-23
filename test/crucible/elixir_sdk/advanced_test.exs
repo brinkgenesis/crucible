@@ -109,12 +109,12 @@ defmodule Crucible.ElixirSdk.AdvancedTest do
     test "returns 0% for empty usage" do
       snap = ContextUsage.snapshot(%{input: 0, output: 0}, "claude-sonnet-4-6")
       assert snap.percentage == 0.0
-      assert snap.max_tokens == 200_000
+      assert snap.max_tokens == 1_000_000
     end
 
     test "accumulates input + output against window" do
-      snap = ContextUsage.snapshot(%{input: 100_000, output: 50_000}, "claude-sonnet-4-6")
-      assert snap.total_tokens == 150_000
+      snap = ContextUsage.snapshot(%{input: 500_000, output: 250_000}, "claude-sonnet-4-6")
+      assert snap.total_tokens == 750_000
       assert snap.percentage == 75.0
     end
 

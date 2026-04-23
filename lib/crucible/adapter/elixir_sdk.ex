@@ -245,11 +245,11 @@ defmodule Crucible.Adapter.ElixirSdk do
     end
   end
 
-  defp model_price("claude-opus-4-7"), do: %{input: 15.0, output: 75.0, cache_read: 1.5}
-  defp model_price("claude-opus-4-6"), do: %{input: 15.0, output: 75.0, cache_read: 1.5}
+  defp model_price("claude-opus-4-7"), do: %{input: 5.0, output: 25.0, cache_read: 0.5}
+  defp model_price("claude-opus-4-6"), do: %{input: 5.0, output: 25.0, cache_read: 0.5}
   defp model_price("claude-sonnet-4-6"), do: %{input: 3.0, output: 15.0, cache_read: 0.3}
   defp model_price("claude-sonnet-4-5-20250929"), do: %{input: 3.0, output: 15.0, cache_read: 0.3}
-  defp model_price("claude-haiku-4-5-20251001"), do: %{input: 0.8, output: 4.0, cache_read: 0.08}
+  defp model_price("claude-haiku-4-5-20251001"), do: %{input: 1.0, output: 5.0, cache_read: 0.1}
   defp model_price(_), do: %{input: 0.0, output: 0.0, cache_read: nil}
 
   defp build_knowledge_sources(run, phase) do
