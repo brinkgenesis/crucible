@@ -1,6 +1,6 @@
-# Infra Orchestrator — Deployment Runbook
+# Crucible — Deployment Runbook
 
-Production deployment guide for the Elixir/Phoenix orchestrator (`infra_orchestrator`).
+Production deployment guide for the Elixir/Phoenix application (`crucible`).
 
 ---
 
@@ -14,7 +14,7 @@ Production deployment guide for the Elixir/Phoenix orchestrator (`infra_orchestr
 | Node.js     | 18+ (build only)   | esbuild/tailwind asset compilation              |
 | Docker      | 24+ (optional)     | Multi-stage Dockerfile included                 |
 
-The release is built with `mix release infra_orchestrator`. The Dockerfile uses `hexpm/elixir:1.15.7-erlang-26.2.1-debian-bookworm` as the builder image.
+The release is built with `mix release crucible`. The Dockerfile uses `hexpm/elixir:1.15.7-erlang-26.2.1-debian-bookworm` as the builder image.
 
 ---
 
@@ -28,7 +28,7 @@ Create a Secrets Manager secret (e.g. `infra-orchestrator/prod`) containing a JS
 
 ```json
 {
-  "DATABASE_URL": "ecto://user:pass@rds-host/infra_orchestrator_prod",
+  "DATABASE_URL": "ecto://user:pass@rds-host/crucible_prod",
   "SECRET_KEY_BASE": "<mix phx.gen.secret output>",
   "INFRA_API_KEY": "<your API key>",
   "ANTHROPIC_API_KEY": "sk-ant-...",
@@ -87,7 +87,7 @@ CLUSTER_STRATEGY=k8s        # or dns
 
 | Variable          | Description                                | Example                                      |
 |-------------------|--------------------------------------------|----------------------------------------------|
-| `DATABASE_URL`    | PostgreSQL connection URL                  | `ecto://user:pass@host/infra_orchestrator_prod` |
+| `DATABASE_URL`    | PostgreSQL connection URL                  | `ecto://user:pass@host/crucible_prod` |
 | `SECRET_KEY_BASE` | Cookie signing/encryption key (64+ bytes)  | Generate with `mix phx.gen.secret`           |
 
 ### Server
@@ -111,6 +111,8 @@ CLUSTER_STRATEGY=k8s        # or dns
 | `ECTO_IPV6`           | _(unset)_ | Set to `true` or `1` to enable IPv6 socket options |
 
 ### Authentication
+
+`DASHBOARD_AUTH=false` is only appropriate for local development or a trusted private network. If the dashboard is internet-reachable, enable auth or put it behind an authenticated reverse proxy.
 
 | Variable                      | Default        | Description                                  |
 |-------------------------------|----------------|----------------------------------------------|
@@ -144,19 +146,18 @@ All values are requests per window.
 | `SANDBOX_POOL_SIZE`    | `3`                        | Pre-warmed container pool size                          |
 | `SANDBOX_IMAGE`        | `node:22-alpine`           | Docker image for sandbox containers                     |
 | `SANDBOX_POLICY`       | `standard`                 | Default preset: `strict`, `standard`, `permissive`      |
-| `SANDBOX_ROUTER_HOST`  | `host.docker.internal:4800`| Router endpoint allowed in sandbox network policy       |
-| `SANDBOX_NETWORK_ALLOWLIST` | _(unset)_             | Comma-separated extra allowed endpoints (permissive)    |
+| `SANDBOX_NETWORK_ALLOWLIST` | _(unset)_             | Reserved for future egress filtering; unsupported today |
 
 Also requires `FeatureFlags.enable(:sandbox_enabled)` at runtime (or set in config).
 
 **Policy presets:**
 - `strict`: `--network=none`, `/sandbox` read-write only, read-only rootfs, seccomp hardened, 512MB memory
-- `standard`: bridge network (router endpoint allowed), `/sandbox` + `/tmp`, seccomp hardened, 1GB memory
-- `permissive`: bridge with configurable allowlist, seccomp hardened, 2GB memory
+- `standard`: bridge network, `/sandbox` + `/tmp`, seccomp hardened, 1GB memory
+- `permissive`: bridge network with larger limits, seccomp hardened, 2GB memory
 
-**Per-tenant override:** Set `sandbox_policy` column in `client_config` table per client. Falls back to global `SANDBOX_POLICY` if not set.
+**Per-tenant override:** Not supported in the current schema. All workloads use the global `SANDBOX_POLICY`.
 
-**Graceful degradation:** If Docker daemon is unavailable, the circuit breaker (`:docker_daemon`) opens and the Manager falls back to `LocalProvider` (unsandboxed execution) with an audit log entry. No workflow failures.
+**Failure mode:** If Docker daemon is unavailable, the circuit breaker (`:docker_daemon`) opens and Docker-mode acquisitions fail closed. Crucible does not silently downgrade Docker mode to host execution.
 
 **Seccomp profile:** `priv/sandbox/seccomp-hardened.json` blocks `ptrace`, `mount`, `reboot`, kernel module loading, and privilege escalation syscalls. Applied automatically to all sandbox containers.
 
@@ -168,7 +169,7 @@ Also requires `FeatureFlags.enable(:sandbox_enabled)` at runtime (or set in conf
 | `AWS_SECRET_NAME`   | _(unset)_       | Secrets Manager secret name (JSON blob), e.g. `infra-orchestrator/prod` |
 | `AWS_REGION`        | `us-east-1`     | AWS region for Secrets Manager API calls              |
 
-The secrets provider is bootstrapped at the top of `config/runtime.exs` via `InfraOrchestrator.Secrets.init!/0`. It fetches all 15 sensitive keys in one batch, caches them in `:persistent_term`, and all subsequent reads are zero-cost. The `SECRETS_PROVIDER`, `AWS_REGION`, and `AWS_SECRET_NAME` vars themselves always come from env (bootstrap config — not stored in Secrets Manager).
+The secrets provider is bootstrapped at the top of `config/runtime.exs` via `Crucible.Secrets.init!/0`. It fetches all sensitive keys in one batch, caches them in `:persistent_term`, and serves subsequent reads from memory. The `SECRETS_PROVIDER`, `AWS_REGION`, and `AWS_SECRET_NAME` vars themselves always come from env (bootstrap config — not stored in Secrets Manager).
 
 In production with AWS: create a Secrets Manager secret containing a JSON object with keys matching env var names (e.g. `{"DATABASE_URL": "ecto://...", "SECRET_KEY_BASE": "...", ...}`). Use IAM role authentication on ECS/EKS — no access key env vars needed.
 
@@ -197,12 +198,12 @@ In production with AWS: create a Secrets Manager secret containing a JSON object
 | `CLUSTER_STRATEGY`          | `gossip`              | Clustering mode: `gossip`, `dns`, or `k8s`       |
 | `CLUSTER_DNS_QUERY`         | _(empty)_             | DNS SRV query (required when strategy=dns)       |
 | `CLUSTER_DNS_POLL_INTERVAL` | `5000`                | ms between DNS polling for node discovery        |
-| `CLUSTER_NODE_BASENAME`     | `infra_orchestrator`  | Node base name for DNS-discovered nodes          |
+| `CLUSTER_NODE_BASENAME`     | `crucible`            | Node base name for DNS-discovered nodes          |
 | `CLUSTER_GOSSIP_SECRET`     | _(unset)_             | Shared secret for gossip authentication          |
 | `CLUSTER_GOSSIP_PORT`       | `45892`               | UDP port for gossip protocol                     |
 | `CLUSTER_K8S_NAMESPACE`     | `default`             | Kubernetes namespace for node discovery          |
-| `CLUSTER_K8S_SERVICE`       | `infra-orchestrator`  | Kubernetes service name (required when strategy=k8s) |
-| `CLUSTER_K8S_APP_NAME`      | `infra-orchestrator`  | Kubernetes app label for pod selection           |
+| `CLUSTER_K8S_SERVICE`       | `crucible`            | Kubernetes service name (required when strategy=k8s) |
+| `CLUSTER_K8S_APP_NAME`      | `crucible`            | Kubernetes app label for pod selection           |
 
 ### Distributed State
 
@@ -243,10 +244,10 @@ mix compile
 mix assets.deploy
 
 # Build the OTP release
-mix release infra_orchestrator
+mix release crucible
 ```
 
-The release is output to `_build/prod/rel/infra_orchestrator/`.
+The release is output to `_build/prod/rel/crucible/`.
 
 ### Docker
 
@@ -275,13 +276,13 @@ MIX_ENV=prod mix ecto.migrate
 ### Production Release (no Mix)
 
 ```bash
-bin/infra_orchestrator eval "InfraOrchestrator.Release.migrate()"
+bin/crucible eval "Crucible.Release.migrate()"
 ```
 
 ### Rollback
 
 ```bash
-bin/infra_orchestrator eval "InfraOrchestrator.Release.rollback(InfraOrchestrator.Repo, 20240101000000)"
+bin/crucible eval "Crucible.Release.rollback(Crucible.Repo, 20240101000000)"
 ```
 
 Replace the version number with the target migration timestamp.
@@ -291,7 +292,7 @@ Replace the version number with the target migration timestamp.
 The default Docker CMD runs migrations automatically before start:
 
 ```
-sh -c "bin/infra_orchestrator eval 'InfraOrchestrator.Release.migrate()' && bin/infra_orchestrator start"
+sh -c "bin/crucible eval 'Crucible.Release.migrate()' && bin/crucible start"
 ```
 
 ---
@@ -320,7 +321,7 @@ Nodes are discovered via DNS SRV record polling. Recommended for Docker Compose 
 CLUSTER_STRATEGY=dns
 CLUSTER_DNS_QUERY=infra-orchestrator.default.svc.cluster.local
 CLUSTER_DNS_POLL_INTERVAL=5000
-CLUSTER_NODE_BASENAME=infra_orchestrator
+CLUSTER_NODE_BASENAME=crucible
 ```
 
 **Required**: `CLUSTER_DNS_QUERY` must be set or startup will raise.
@@ -474,7 +475,7 @@ The orchestrator is designed for zero-downtime rolling deploys:
 
 1. **Run migrations first** (if any):
    ```bash
-   bin/infra_orchestrator eval "InfraOrchestrator.Release.migrate()"
+   bin/crucible eval "Crucible.Release.migrate()"
    ```
    Migrations are forward-compatible -- deploy the new code, run migrations, then restart. Rollback migrations separately if needed.
 
@@ -578,7 +579,7 @@ Available at `/dashboard` in development (dev environment only). Provides real-t
 
 | Schedule    | Worker                               | Description                    |
 |-------------|--------------------------------------|--------------------------------|
-| `0 * * * *` | `InfraOrchestrator.SessionCleaner`  | Hourly session cleanup         |
+| `0 * * * *` | `Crucible.SessionCleaner`           | Hourly session cleanup         |
 
 ### Oban in Production
 
@@ -623,7 +624,7 @@ In distributed mode, these are prepended before the list above:
 
 Before the supervision tree starts, `Application.start/2` runs:
 - `OpentelemetryPhoenix.setup()`, `OpentelemetryEcto.setup()`, `OpentelemetryBandit.setup()` (OTel auto-instrumentation)
-- `InfraOrchestrator.ConfigValidator.validate!()` (fails fast on missing required config in prod)
+- `Crucible.ConfigValidator.validate!()` (fails fast on missing required config in prod)
 - `:ets.new(:rate_limit, ...)` (creates the rate limiter ETS table)
 - `:logger.add_handler(:log_buffer, ...)` (adds LogBuffer backend to Logger)
 
@@ -679,7 +680,7 @@ SELECT id, queue, state, attempted_at FROM oban_jobs WHERE state = 'executing' O
 - Check ETS table sizes: `:ets.info(:rate_limit)`, `:ets.info(:budget_tracker_events)`.
 - In production, use the LiveDashboard (dev only) or connect a remote shell:
   ```bash
-  bin/infra_orchestrator remote
+  bin/crucible remote
   ```
 
 ### Generating a SECRET_KEY_BASE

@@ -428,8 +428,7 @@ defmodule Crucible.TraceReader do
     end
   rescue
     e in [DBConnection.ConnectionError, DBConnection.OwnershipError, Postgrex.Error] ->
-      require Logger
-      Logger.warning("TraceReader.run_manifest DB error: #{Exception.message(e)}")
+      Repo.log_db_error("TraceReader.run_manifest DB error", e)
       file_run_manifest(run_id, opts)
   end
 
@@ -510,8 +509,7 @@ defmodule Crucible.TraceReader do
       File.Error,
       ArgumentError
     ] ->
-      require Logger
-      Logger.warning("TraceReader.list_runs error: #{Exception.message(e)}")
+      log_trace_reader_error("TraceReader.list_runs error", e)
 
       file_list_runs(opts, Keyword.get(opts, :since))
       |> maybe_filter_runs_workspace(Keyword.get(opts, :workspace))
@@ -546,8 +544,7 @@ defmodule Crucible.TraceReader do
       File.Error,
       ArgumentError
     ] ->
-      require Logger
-      Logger.warning("TraceReader.list_runs_source error: #{Exception.message(e)}")
+      log_trace_reader_error("TraceReader.list_runs_source error", e)
 
       file_runs =
         file_list_runs(opts, Keyword.get(opts, :since))
@@ -1565,8 +1562,7 @@ defmodule Crucible.TraceReader do
     end)
   rescue
     e in [DBConnection.ConnectionError, DBConnection.OwnershipError, Postgrex.Error] ->
-      require Logger
-      Logger.warning("TraceReader.session_usage_by_id error: #{Exception.message(e)}")
+      Repo.log_db_error("TraceReader.session_usage_by_id error", e)
       %{}
   end
 
@@ -2354,7 +2350,7 @@ defmodule Crucible.TraceReader do
       read_cap = limit * 3
 
       path
-      |> File.stream!([], :line)
+      |> File.stream!(:line, [])
       |> Stream.map(&parse_mcp_line/1)
       |> Stream.reject(&is_nil/1)
       |> Stream.take(read_cap)
@@ -2421,4 +2417,26 @@ defmodule Crucible.TraceReader do
         nil
     end
   end
+
+  defp log_trace_reader_error(context, exception)
+       when is_struct(exception, File.Error) or is_struct(exception, ArgumentError) do
+    require Logger
+
+    message = "#{context}: #{Exception.message(exception)}"
+
+    if expected_test_ets_error?(exception) do
+      Logger.debug(message)
+    else
+      Logger.warning(message)
+    end
+  end
+
+  defp log_trace_reader_error(context, exception), do: Repo.log_db_error(context, exception)
+
+  defp expected_test_ets_error?(%ArgumentError{message: message}) when is_binary(message) do
+    Mix.env() == :test and
+      String.contains?(message, "the table identifier does not refer to an existing ETS table")
+  end
+
+  defp expected_test_ets_error?(_exception), do: false
 end

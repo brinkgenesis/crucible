@@ -2,6 +2,7 @@ defmodule Crucible.Pipeline.PipelineSupervisorTest do
   use ExUnit.Case, async: true
 
   alias Crucible.Pipeline.{PipelineSupervisor, OutputProducer}
+  @registry Crucible.RunRegistry
 
   setup do
     suffix = System.unique_integer([:positive])
@@ -20,9 +21,9 @@ defmodule Crucible.Pipeline.PipelineSupervisorTest do
     assert Process.alive?(sup_pid)
 
     # Verify all children are running
-    producer = Process.whereis(PipelineSupervisor.producer_name(session))
-    cost_consumer = Process.whereis(:"cost_consumer_#{session}")
-    drift_consumer = Process.whereis(:"drift_consumer_#{session}")
+    producer = GenServer.whereis(PipelineSupervisor.producer_name(session))
+    cost_consumer = GenServer.whereis(PipelineSupervisor.cost_consumer_name(session))
+    drift_consumer = GenServer.whereis(PipelineSupervisor.drift_consumer_name(session))
 
     assert producer != nil
     assert cost_consumer != nil
@@ -45,7 +46,7 @@ defmodule Crucible.Pipeline.PipelineSupervisorTest do
     Process.sleep(50)
 
     refute Process.alive?(sup_pid)
-    assert Process.whereis(PipelineSupervisor.producer_name(session)) == nil
+    assert GenServer.whereis(PipelineSupervisor.producer_name(session)) == nil
   end
 
   test "stop_pipeline is idempotent for non-existent session" do
@@ -81,8 +82,9 @@ defmodule Crucible.Pipeline.PipelineSupervisorTest do
     PipelineSupervisor.stop_pipeline(session)
   end
 
-  test "producer_name/1 returns expected atom", %{session: session} do
-    assert PipelineSupervisor.producer_name(session) == :"producer_#{session}"
+  test "producer_name/1 returns registry-backed name", %{session: session} do
+    assert PipelineSupervisor.producer_name(session) ==
+             {:via, Registry, {@registry, {:pipeline_component, :producer, session}}}
   end
 
   test "passes custom options through to children", %{session: session} do

@@ -38,7 +38,7 @@ defmodule Crucible.Inbox.Ingesters.Github do
   item.
 
   Options:
-    * `:token` — GitHub PAT (defaults to `System.get_env("GITHUB_TOKEN")`).
+    * `:token` — GitHub PAT (defaults to `Crucible.Secrets.get("GITHUB_TOKEN")`).
     * `:state` — `"open"` (default), `"closed"`, or `"all"`.
     * `:since` — ISO 8601 timestamp. Only return issues updated at or after.
     * `:include_prs` — `true` (default) keeps PRs; `false` filters them out.
@@ -48,7 +48,7 @@ defmodule Crucible.Inbox.Ingesters.Github do
   """
   @spec poll(String.t(), String.t(), keyword()) :: {:ok, poll_result()}
   def poll(owner, repo, opts \\ []) when is_binary(owner) and is_binary(repo) do
-    token = Keyword.get(opts, :token, System.get_env("GITHUB_TOKEN"))
+    token = Keyword.get(opts, :token, Crucible.Secrets.get("GITHUB_TOKEN"))
     state = Keyword.get(opts, :state, "open")
     since = Keyword.get(opts, :since)
     include_prs = Keyword.get(opts, :include_prs, true)

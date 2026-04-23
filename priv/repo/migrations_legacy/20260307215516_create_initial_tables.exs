@@ -20,7 +20,7 @@ defmodule Crucible.Repo.Migrations.CreateInitialTables do
       add :email, :text, null: false
       add :name, :text, null: false, default: ""
       add :picture_url, :text
-      add :role, :text, null: false, default: "analyst"
+      add :role, :text, null: false, default: "viewer"
       timestamps(type: :timestamptz)
     end
 

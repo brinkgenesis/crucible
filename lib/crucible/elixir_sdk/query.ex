@@ -311,7 +311,7 @@ defmodule Crucible.ElixirSdk.Query do
 
   defp start_turn(state) do
     Client.stream(
-      api_key: Keyword.get(state.opts, :api_key) || System.get_env("ANTHROPIC_API_KEY"),
+      api_key: Keyword.get(state.opts, :api_key) || Crucible.Secrets.get("ANTHROPIC_API_KEY"),
       base_url: Keyword.get(state.opts, :base_url),
       model: state.model,
       system: cacheable_system(state.system_prompt, Keyword.get(state.opts, :cache_system, true)),

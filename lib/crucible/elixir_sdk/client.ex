@@ -36,6 +36,17 @@ defmodule Crucible.ElixirSdk.Client do
   @default_version "2023-06-01"
   @default_timeout_ms 300_000
   @default_max_retries 5
+  @event_types %{
+    "message_start" => :message_start,
+    "content_block_start" => :content_block_start,
+    "content_block_delta" => :content_block_delta,
+    "content_block_stop" => :content_block_stop,
+    "message_delta" => :message_delta,
+    "message_stop" => :message_stop,
+    "api_retry" => :api_retry,
+    "rate_limit" => :rate_limit,
+    "error" => :error
+  }
 
   # Which status codes trigger a retry. 529 = overloaded.
   @retriable [408, 409, 425, 429, 500, 502, 503, 504, 529]
@@ -52,7 +63,7 @@ defmodule Crucible.ElixirSdk.Client do
   cancel the request mid-stream. The subscriber receives
   `{:crucible_sdk, event, payload}` messages until `:done` or `:error`.
   """
-  @spec stream(keyword()) :: {:ok, reference()} | {:error, term()}
+  @spec stream(keyword()) :: {:ok, reference()} | {:error, :task_start_timeout}
   def stream(opts) do
     subscriber = Keyword.get(opts, :subscriber, self())
     ref = make_ref()
@@ -105,7 +116,7 @@ defmodule Crucible.ElixirSdk.Client do
   end
 
   defp do_stream(opts, subscriber, ref) do
-    api_key = Keyword.get(opts, :api_key) || System.get_env("ANTHROPIC_API_KEY")
+    api_key = Keyword.get(opts, :api_key) || Crucible.Secrets.get("ANTHROPIC_API_KEY")
 
     unless is_binary(api_key) and api_key != "" do
       send(subscriber, {:crucible_sdk, :error, {:missing_api_key, ref}})
@@ -344,25 +355,40 @@ defmodule Crucible.ElixirSdk.Client do
         _ -> nil
       end)
 
-    case {event_type, data_line} do
-      {nil, _} ->
+    case event_atom(event_type) do
+      :ignore ->
         :ok
 
-      {type, nil} ->
-        send(subscriber, {:crucible_sdk, String.to_atom(type), %{ref: ref}})
+      {:ok, event_atom} ->
+        dispatch_event(event_atom, data_line, subscriber, ref)
+    end
+  end
 
-      {type, json} ->
-        case Jason.decode(json) do
-          {:ok, payload} when is_map(payload) ->
-            send(
-              subscriber,
-              {:crucible_sdk, String.to_atom(type), Map.put(payload, :ref, ref)}
-            )
+  defp event_atom(nil), do: :ignore
 
-          {:error, reason} ->
-            Logger.debug("ElixirSdk.Client: bad JSON in event: #{inspect(reason)}")
-            :ok
-        end
+  defp event_atom(type) when is_binary(type) do
+    case @event_types[type] do
+      nil ->
+        Logger.debug("ElixirSdk.Client: ignoring unknown event #{inspect(type)}")
+        :ignore
+
+      event_atom ->
+        {:ok, event_atom}
+    end
+  end
+
+  defp dispatch_event(event_atom, nil, subscriber, ref) do
+    send(subscriber, {:crucible_sdk, event_atom, %{ref: ref}})
+  end
+
+  defp dispatch_event(event_atom, json, subscriber, ref) do
+    case Jason.decode(json) do
+      {:ok, payload} when is_map(payload) ->
+        send(subscriber, {:crucible_sdk, event_atom, Map.put(payload, :ref, ref)})
+
+      {:error, reason} ->
+        Logger.debug("ElixirSdk.Client: bad JSON in event: #{inspect(reason)}")
+        :ok
     end
   end
 end

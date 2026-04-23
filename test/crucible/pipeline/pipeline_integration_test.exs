@@ -87,11 +87,11 @@ defmodule Crucible.Pipeline.PipelineIntegrationTest do
       # Allow DriftConsumer to also finish processing (GenStage consumers run independently)
       Process.sleep(500)
 
-      cost_stats = CostConsumer.get_stats(:"cost_consumer_#{session}")
+      cost_stats = CostConsumer.get_stats(PipelineSupervisor.cost_consumer_name(session))
       assert cost_stats.total_cost == 1.0
       assert cost_stats.input_tokens == 100
 
-      drift_stats = DriftConsumer.get_stats(:"drift_consumer_#{session}")
+      drift_stats = DriftConsumer.get_stats(PipelineSupervisor.drift_consumer_name(session))
       assert drift_stats.window_length == 1
       assert drift_stats.alert_count == 0
     end
@@ -122,7 +122,7 @@ defmodule Crucible.Pipeline.PipelineIntegrationTest do
       assert_receive %{event: :cost_update, total_cost: 0.75}, 3000
       assert PipelineSupervisor.running?(session)
 
-      cost_stats = CostConsumer.get_stats(:"cost_consumer_#{session}")
+      cost_stats = CostConsumer.get_stats(PipelineSupervisor.cost_consumer_name(session))
       assert cost_stats.total_cost == 0.75
       assert cost_stats.input_tokens == 200
     end
@@ -147,8 +147,8 @@ defmodule Crucible.Pipeline.PipelineIntegrationTest do
       assert_receive %{event: :cost_update, total_cost: 1.0, run_id: "run-a"}, 3000
       assert_receive %{event: :cost_update, total_cost: 2.0, run_id: "run-b"}, 3000
 
-      stats_a = CostConsumer.get_stats(:"cost_consumer_#{session_a}")
-      stats_b = CostConsumer.get_stats(:"cost_consumer_#{session_b}")
+      stats_a = CostConsumer.get_stats(PipelineSupervisor.cost_consumer_name(session_a))
+      stats_b = CostConsumer.get_stats(PipelineSupervisor.cost_consumer_name(session_b))
       assert stats_a.total_cost == 1.0
       assert stats_b.total_cost == 2.0
 

@@ -71,6 +71,24 @@ defmodule CrucibleWeb.Api.LogsControllerTest do
       assert body["error"] == "not_found"
     end
 
+    test "prevents sibling prefix escape", %{conn: conn} do
+      File.mkdir_p!(".claude-flow/logs")
+      File.mkdir_p!(".claude-flow/logs_backup")
+      File.write!(".claude-flow/logs_backup/evil.log", "stolen")
+
+      on_exit(fn ->
+        File.rm_rf(".claude-flow/logs_backup")
+      end)
+
+      conn =
+        conn
+        |> authenticate()
+        |> get("/api/v1/logs/stream", file: "../logs_backup/evil.log")
+
+      body = json_response(conn, 404)
+      assert body["error"] == "not_found"
+    end
+
     test "requires authentication", %{conn: conn} do
       with_auth_required(fn ->
         conn = get(conn, "/api/v1/logs/stream", file: "test.log")

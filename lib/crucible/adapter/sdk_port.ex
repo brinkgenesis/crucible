@@ -583,17 +583,7 @@ defmodule Crucible.Adapter.SdkPort do
   end
 
   defp build_port_env do
-    # Pass through env vars needed by the SDK bridge and its child processes
-    needed = ~w(
-      PATH HOME NODE_PATH
-      ANTHROPIC_API_KEY CLAUDE_PROJECT_DIR
-      GITHUB_TOKEN DATABASE_URL
-      GOOGLE_API_KEY MINIMAX_API_KEY OPENAI_API_KEY
-    )
-
-    for {key, val} <- System.get_env(),
-        key in needed,
-        do: {String.to_charlist(key), String.to_charlist(val)}
+    Crucible.Secrets.subprocess_env_overrides(keep: Crucible.Secrets.claude_auth_keys())
   end
 
   defp cancel_timer(nil), do: :ok

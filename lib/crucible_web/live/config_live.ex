@@ -55,7 +55,9 @@ defmodule CrucibleWeb.ConfigLive do
     {:noreply, assign(socket, active_tab: tab, save_status: nil)}
   end
 
-  def handle_event("update_env", %{"key" => key, "value" => value}, socket) do
+  def handle_event("update_env", %{"env" => %{"key" => key, "value" => value}}, socket) do
+    value = normalize_env_submission(key, value, socket.assigns.env_vars)
+
     with :ok <- validate_env_key(key),
          :ok <- validate_env_value(value),
          :ok <- write_env_var(key, value) do
@@ -154,6 +156,7 @@ defmodule CrucibleWeb.ConfigLive do
           |> Enum.map(&parse_env_line/1)
           |> Enum.reject(&is_nil/1)
           |> Enum.map(&categorize_env_var/1)
+          |> Enum.map(&attach_env_form/1)
         end,
         []
       )
@@ -260,8 +263,10 @@ defmodule CrucibleWeb.ConfigLive do
               {category}
             </div>
             <div class="space-y-2">
-              <form
+              <.form
                 :for={var <- vars}
+                for={var.form}
+                id={"env-form-#{dom_id(var.key)}"}
                 phx-submit="update_env"
                 class="flex items-center gap-3"
               >
@@ -271,20 +276,23 @@ defmodule CrucibleWeb.ConfigLive do
                 >
                   {var.key}
                 </span>
-                <input type="hidden" name="key" value={var.key} />
-                <input
-                  type={if var.sensitive, do: "password", else: "text"}
-                  name="value"
-                  value={var.value}
+                <.input field={var.form[:key]} type="hidden" />
+                <.input
+                  field={var.form[:value]}
+                  id={"env-value-#{dom_id(var.key)}"}
+                  type={if(var.sensitive, do: "password", else: "text")}
+                  value={var.display_value}
+                  autocomplete={if(var.sensitive, do: "new-password", else: "off")}
                   class="flex-1 bg-surface-container border border-[#ffa44c]/20 text-[#e0e0e0] font-mono text-[11px] px-3 py-1.5 rounded focus:border-[#00eefc]/50 focus:outline-none"
                 />
                 <button
+                  id={"env-save-#{dom_id(var.key)}"}
                   type="submit"
                   class="px-2 py-1 text-[#00FF41]/60 hover:text-[#00FF41] hover:bg-[#00FF41]/10 rounded transition-colors"
                 >
                   <span class="material-symbols-outlined text-sm">check</span>
                 </button>
-              </form>
+              </.form>
             </div>
           </.hud_card>
         </div>
@@ -301,76 +309,43 @@ defmodule CrucibleWeb.ConfigLive do
                   <div class="font-mono text-[10px] tracking-widest uppercase text-[#ffa44c]/60 mb-1">
                     Daily Limit
                   </div>
-                  <input
+                  <.input
+                    field={@budget_form[:daily_limit_usd]}
+                    id="budget-daily-limit"
                     type="number"
-                    name="budget[daily_limit_usd]"
-                    value={@budget_form[:daily_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={[
-                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:daily_limit_usd].errors != [],
-                        do: "border-[#ff725e] text-[#ff725e]",
-                        else: "border-[#ffa44c]/20 text-[#ffa44c] focus:border-[#ffa44c]/50"
-                      )
-                    ]}
+                    class="w-full bg-surface-container border border-[#ffa44c]/20 text-[#ffa44c] font-mono text-lg px-3 py-2 rounded focus:border-[#ffa44c]/50 focus:outline-none"
+                    error_class="border-[#ff725e] text-[#ff725e]"
                   />
-                  <p
-                    :for={{msg, _} <- @budget_form[:daily_limit_usd].errors}
-                    class="text-[9px] font-mono text-[#ff725e] mt-1"
-                  >
-                    {msg}
-                  </p>
                 </div>
                 <div class="border-l-2 border-[#00eefc] pl-3">
                   <div class="font-mono text-[10px] tracking-widest uppercase text-[#00eefc]/60 mb-1">
                     Per Agent
                   </div>
-                  <input
+                  <.input
+                    field={@budget_form[:agent_limit_usd]}
+                    id="budget-agent-limit"
                     type="number"
-                    name="budget[agent_limit_usd]"
-                    value={@budget_form[:agent_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={[
-                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:agent_limit_usd].errors != [],
-                        do: "border-[#ff725e] text-[#ff725e]",
-                        else: "border-[#00eefc]/20 text-[#00eefc] focus:border-[#00eefc]/50"
-                      )
-                    ]}
+                    class="w-full bg-surface-container border border-[#00eefc]/20 text-[#00eefc] font-mono text-lg px-3 py-2 rounded focus:border-[#00eefc]/50 focus:outline-none"
+                    error_class="border-[#ff725e] text-[#ff725e]"
                   />
-                  <p
-                    :for={{msg, _} <- @budget_form[:agent_limit_usd].errors}
-                    class="text-[9px] font-mono text-[#ff725e] mt-1"
-                  >
-                    {msg}
-                  </p>
                 </div>
                 <div class="border-l-2 border-[#ff725e] pl-3">
                   <div class="font-mono text-[10px] tracking-widest uppercase text-[#ff725e]/60 mb-1">
                     Per Task
                   </div>
-                  <input
+                  <.input
+                    field={@budget_form[:task_limit_usd]}
+                    id="budget-task-limit"
                     type="number"
-                    name="budget[task_limit_usd]"
-                    value={@budget_form[:task_limit_usd].value}
                     step="0.01"
                     min="0"
-                    class={[
-                      "w-full bg-surface-container border font-mono text-lg px-3 py-2 rounded focus:outline-none",
-                      if(@budget_form[:task_limit_usd].errors != [],
-                        do: "border-[#ff725e] text-[#ff725e]",
-                        else: "border-[#ff725e]/20 text-[#ff725e] focus:border-[#ff725e]/50"
-                      )
-                    ]}
+                    class="w-full bg-surface-container border border-[#ff725e]/20 text-[#ff725e] font-mono text-lg px-3 py-2 rounded focus:border-[#ff725e]/50 focus:outline-none"
+                    error_class="border-[#ff725e] text-[#ff725e]"
                   />
-                  <p
-                    :for={{msg, _} <- @budget_form[:task_limit_usd].errors}
-                    class="text-[9px] font-mono text-[#ff725e] mt-1"
-                  >
-                    {msg}
-                  </p>
                 </div>
               </div>
               <div class="mt-4">
@@ -470,11 +445,13 @@ defmodule CrucibleWeb.ConfigLive do
           "Other"
       end
 
-    sensitive =
-      String.contains?(key, "API_KEY") or String.contains?(key, "TOKEN") or
-        String.contains?(key, "SECRET") or String.contains?(key, "PASSWORD")
+    sensitive = Crucible.Secrets.sensitive_key?(key)
 
-    Map.merge(var, %{category: category, sensitive: sensitive})
+    Map.merge(var, %{
+      category: category,
+      sensitive: sensitive,
+      display_value: display_env_value(var, sensitive)
+    })
   end
 
   defp group_env_vars(vars) do
@@ -492,7 +469,7 @@ defmodule CrucibleWeb.ConfigLive do
       content = File.read!(path)
       lines = String.split(content, "\n")
 
-      {found, updated} =
+      {updated, found?} =
         Enum.map_reduce(lines, false, fn line, found ->
           if String.starts_with?(line, "#{key}=") do
             {"#{key}=#{value}", true}
@@ -502,10 +479,13 @@ defmodule CrucibleWeb.ConfigLive do
         end)
 
       new_content =
-        if found do
+        if found? do
           Enum.join(updated, "\n")
         else
-          content <> "\n#{key}=#{value}"
+          case String.trim_trailing(content, "\n") do
+            "" -> "#{key}=#{value}\n"
+            trimmed -> trimmed <> "\n#{key}=#{value}\n"
+          end
         end
 
       File.write!(path, new_content)
@@ -557,6 +537,32 @@ defmodule CrucibleWeb.ConfigLive do
   end
 
   defp validate_env_value(_), do: {:error, "Invalid value"}
+
+  defp attach_env_form(var) do
+    Map.put(var, :form, to_form(%{"key" => var.key, "value" => var.display_value}, as: :env))
+  end
+
+  defp display_env_value(_var, true), do: ""
+  defp display_env_value(var, false), do: var.value
+
+  defp normalize_env_submission(key, "", env_vars) do
+    if Crucible.Secrets.sensitive_key?(key) do
+      case Enum.find(env_vars, &(&1.key == key)) do
+        nil -> ""
+        var -> var.value
+      end
+    else
+      ""
+    end
+  end
+
+  defp normalize_env_submission(_key, value, _env_vars), do: value
+
+  defp dom_id(key) do
+    key
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9]+/, "-")
+  end
 
   defp claude_flow_config_path do
     config = Application.get_env(:crucible, :orchestrator, [])

@@ -25,7 +25,6 @@
       aria-label="Toggle navigation menu"
       aria-expanded="false"
       aria-controls="sidebar"
-      onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
     >
       <span class="material-symbols-outlined text-xl">menu</span>
     </button>
@@ -65,7 +64,6 @@
 <div
   id="sidebar-overlay"
   class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"
-  onclick="window.dispatchEvent(new CustomEvent('toggle-sidebar'))"
   aria-hidden="true"
 >
 </div>
@@ -74,6 +72,7 @@
 <aside
   id="sidebar"
   phx-hook="MobileSidebar"
+  phx-update="ignore"
   class="fixed left-0 top-0 h-full flex-col pt-16 pb-4 overflow-y-auto bg-[#000000] w-56 border-r border-[#ffa44c]/10 z-40 hidden md:flex"
 >
   <nav aria-label="Main navigation" class="flex-1 px-2 pt-2 space-y-0.5 overflow-y-auto">
@@ -146,11 +145,6 @@
           API
         </button>
       </div>
-      <style>
-        .exec-mode-btn { color: rgba(255, 164, 76, 0.5); }
-        .exec-mode-btn:hover { color: #00eefc; background: rgba(0, 238, 252, 0.1); }
-        .exec-mode-btn[data-active="true"] { background: #ffa44c; color: black; font-weight: 700; }
-      </style>
     </div>
   </div>
 </aside>

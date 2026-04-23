@@ -29,6 +29,7 @@ defmodule Crucible.ControlSession do
   @call_timeout_read 5_000
   @call_timeout_fs 10_000
 
+  @type model_option :: %{id: String.t(), name: String.t(), tier: String.t()}
   @type slot_id :: 1..6
   @type slot_status :: :empty | :starting | :ready | :error | :stopped
 
@@ -105,7 +106,7 @@ defmodule Crucible.ControlSession do
   end
 
   @doc "Available models for the model selector. First entry is the default."
-  @spec available_models() :: [map()]
+  @spec available_models() :: [model_option()]
   def available_models do
     [
       %{id: "claude-opus-4-7", name: "Opus 4.7", tier: "highest"},
@@ -117,10 +118,8 @@ defmodule Crucible.ControlSession do
   @doc "Default model id — the initial selection in the spawn modal."
   @spec default_model() :: String.t()
   def default_model do
-    case available_models() do
-      [%{id: id} | _] -> id
-      _ -> "claude-opus-4-7"
-    end
+    [%{id: id} | _] = available_models()
+    id
   end
 
   @doc """
@@ -155,12 +154,23 @@ defmodule Crucible.ControlSession do
   # This lets sessions survive server restarts — tmux outlives the BEAM.
   # No-op in environments without tmux (e.g. container deployments).
   defp reconnect_orphaned_sessions do
-    if System.find_executable("tmux") do
-      do_reconnect_orphaned_sessions()
-    else
-      Logger.info("ControlSession: tmux not available, skipping orphan session reconnect")
-      :ok
+    cond do
+      not reconnect_orphaned_sessions?() ->
+        Logger.info("ControlSession: orphan session reconnect disabled")
+        :ok
+
+      System.find_executable("tmux") ->
+        do_reconnect_orphaned_sessions()
+
+      true ->
+        Logger.info("ControlSession: tmux not available, skipping orphan session reconnect")
+        :ok
     end
+  end
+
+  defp reconnect_orphaned_sessions? do
+    Application.get_env(:crucible, :control_session, [])
+    |> Keyword.get(:reconnect_orphaned_sessions, true)
   end
 
   defp do_reconnect_orphaned_sessions do

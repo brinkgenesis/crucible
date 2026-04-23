@@ -116,6 +116,16 @@ defmodule Crucible.Sandbox.Policy do
     flags
   end
 
+  @doc """
+  Validates whether the current provider stack can enforce this policy.
+  """
+  @spec validate(t) :: :ok | {:error, term()}
+  def validate(%__MODULE__{allowed_endpoints: []}), do: :ok
+
+  def validate(%__MODULE__{allowed_endpoints: endpoints}) do
+    {:error, {:network_allowlist_not_supported, endpoints}}
+  end
+
   defp maybe_add(flags, true, flag), do: flags ++ [flag]
   defp maybe_add(flags, false, _flag), do: flags
 

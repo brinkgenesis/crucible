@@ -18,22 +18,29 @@ defmodule Crucible.Sandbox.DockerProvider do
     %{workspace_path: workspace_path, policy: policy, image: image, labels: labels} = opts
     name = "sandbox-#{:crypto.strong_rand_bytes(6) |> Base.encode16(case: :lower)}"
 
-    flags =
-      Policy.docker_flags(policy, workspace_path: workspace_path) ++
-        ["-w", "/sandbox", "--name", name] ++
-        label_flags(labels) ++
-        ["-d", image, "sleep", "infinity"]
+    case Policy.validate(policy) do
+      :ok ->
+        flags =
+          Policy.docker_flags(policy, workspace_path: workspace_path) ++
+            ["-w", "/sandbox", "--name", name] ++
+            label_flags(labels) ++
+            ["-d", image, "sleep", "infinity"]
 
-    args = ["run"] ++ flags
+        args = ["run"] ++ flags
 
-    case System.cmd("docker", args, stderr_to_stdout: true) do
-      {container_id, 0} ->
-        Logger.info("Sandbox started: #{name} (#{String.trim(container_id)})")
-        {:ok, name}
+        case System.cmd("docker", args, stderr_to_stdout: true) do
+          {container_id, 0} ->
+            Logger.info("Sandbox started: #{name} (#{String.trim(container_id)})")
+            {:ok, name}
 
-      {output, code} ->
-        Logger.error("Sandbox start failed (exit #{code}): #{output}")
-        {:error, {:docker_run_failed, code, output}}
+          {output, code} ->
+            Logger.error("Sandbox start failed (exit #{code}): #{output}")
+            {:error, {:docker_run_failed, code, output}}
+        end
+
+      {:error, reason} ->
+        Logger.error("Sandbox start refused: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 

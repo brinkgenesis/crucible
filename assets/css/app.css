@@ -208,6 +208,10 @@
   color: #00eefc;
 }
 
+.exec-mode-btn { color: rgba(255, 164, 76, 0.5); }
+.exec-mode-btn:hover { color: #00eefc; background: rgba(0, 238, 252, 0.1); }
+.exec-mode-btn[data-active="true"] { background: #ffa44c; color: #000; font-weight: 700; }
+
 /* Badge — tactical colors */
 .badge { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; }
 .badge-info { background: rgba(0, 238, 252, 0.15); color: #00eefc; border: none; }

@@ -236,7 +236,12 @@ async function main(): Promise<void> {
     type: config.phaseType,
     routingProfile: config.routingProfile ?? "throughput",
   } as Parameters<typeof resolvePermissions>[0];
-  const { permissionMode, disallowedTools, allowDangerouslySkipPermissions } = resolvePermissions(phaseStub);
+  const {
+    permissionMode,
+    disallowedTools,
+    allowDangerouslySkipPermissions,
+    canUseTool,
+  } = resolvePermissions(phaseStub);
   const effort = resolveEffort(config.routingProfile);
   const thinking = resolveThinking(config.routingProfile);
   const budgetUsd = config.budgetUsd ?? (config.phaseType === "team" ? 10 : 5);
@@ -264,6 +269,7 @@ async function main(): Promise<void> {
     permissionMode,
     ...(disallowedTools ? { disallowedTools } : {}),
     ...(allowDangerouslySkipPermissions ? { allowDangerouslySkipPermissions } : {}),
+    ...(canUseTool ? { canUseTool } : {}),
     effort,
     thinking,
     ...(additionalDirs.length > 0 ? { additionalDirectories: additionalDirs } : {}),

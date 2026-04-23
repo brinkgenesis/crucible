@@ -3,6 +3,7 @@ defmodule Crucible.Router.Providers.MiniMax do
 
   @behaviour Crucible.Router.Provider
 
+  alias Crucible.Secrets
   alias Crucible.Router.Providers.OpenAICompat
 
   @default_base_url "https://api.minimax.io/v1"
@@ -24,7 +25,7 @@ defmodule Crucible.Router.Providers.MiniMax do
     do: match?({:ok, _}, request("MiniMax-M2", %{prompt: "ping", max_tokens: 1}))
 
   defp api_key,
-    do: System.get_env("MINIMAX_API_KEY") || Application.get_env(:crucible, :minimax_api_key, "")
+    do: Secrets.get("MINIMAX_API_KEY") || Application.get_env(:crucible, :minimax_api_key, "")
 
   defp base_url,
     do:

@@ -183,7 +183,7 @@ defmodule Crucible.MixProject do
         "compile --warnings-as-errors",
         "sobelow --config",
         "dialyzer --halt-exit-status",
-        "test"
+        "cmd env MIX_ENV=test mix test"
       ],
       "test.coverage": ["coveralls.html"]
     ]

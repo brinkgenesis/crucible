@@ -193,7 +193,7 @@ defmodule Crucible.ElixirSdk.Compactor do
   end
 
   defp summarise(middle_msgs, opts) do
-    api_key = Keyword.get(opts, :api_key) || System.get_env("ANTHROPIC_API_KEY")
+    api_key = Keyword.get(opts, :api_key) || Crucible.Secrets.get("ANTHROPIC_API_KEY")
 
     if is_binary(api_key) and api_key != "" do
       condensed = encode_for_summary(middle_msgs)

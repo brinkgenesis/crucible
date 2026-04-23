@@ -2,8 +2,8 @@ defmodule Crucible.Sandbox.Manager do
   @moduledoc """
   Manages a pool of pre-warmed sandbox containers for API workflow execution.
 
-  Containers are acquired per-phase and released on completion. If Docker is
-  unavailable (circuit breaker open), falls back to LocalProvider transparently.
+  Containers are acquired per-phase and released on completion. When Docker
+  isolation is requested, acquisition fails closed if Docker is unavailable.
 
   ## Configuration
 
@@ -204,8 +204,11 @@ defmodule Crucible.Sandbox.Manager do
         end
 
       {:blocked, reason} ->
-        Logger.warning("Sandbox.Manager: Docker circuit open (#{reason}), falling back to local")
-        start_sandbox_local(workspace_path, state)
+        Logger.error(
+          "Sandbox.Manager: Docker circuit open (#{reason}), refusing unsandboxed fallback"
+        )
+
+        {:error, {:docker_unavailable, reason}}
     end
   end
 

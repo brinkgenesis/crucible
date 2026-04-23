@@ -64,3 +64,6 @@ config :opentelemetry, traces_exporter: :none
 
 # Sandbox off in tests — Docker-dependent cases opt in via @tag :docker.
 config :crucible, :feature_flags, sandbox_enabled: false
+
+config :crucible, :control_session, reconnect_orphaned_sessions: false
+config :crucible, :agent_job_manager, async_launch: false

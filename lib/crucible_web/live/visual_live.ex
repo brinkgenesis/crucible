@@ -209,13 +209,12 @@ defmodule CrucibleWeb.VisualLive do
       phx-hook="VisualCanvas"
       phx-update="ignore"
       data-events={Jason.encode!(@canvas_events)}
-      class="bg-[#131313] border border-[#494847]/20 p-4 relative"
-      style="min-height: 200px;"
+      class="bg-[#131313] border border-[#494847]/20 p-4 relative min-h-[200px]"
     >
       <div class="text-[10px] text-[#777575] font-mono uppercase tracking-widest mb-3">
         TIMELINE
       </div>
-      <canvas id="visual-canvas" class="w-full" style="height: 400px;"></canvas>
+      <canvas id="visual-canvas" class="w-full h-[400px]"></canvas>
     </div>
 
     <!-- Event legend -->

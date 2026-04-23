@@ -122,7 +122,11 @@ defmodule Crucible.RemoteSessionTracker do
               :exit_status,
               :stderr_to_stdout,
               args: args,
-              cd: String.to_charlist(cwd)
+              cd: String.to_charlist(cwd),
+              env:
+                Crucible.Secrets.subprocess_env_overrides(
+                  keep: Crucible.Secrets.claude_auth_keys()
+                )
             ])
 
           started_at = DateTime.utc_now() |> DateTime.to_iso8601()

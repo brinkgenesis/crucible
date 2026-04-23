@@ -44,7 +44,7 @@ defmodule CrucibleWeb.SettingsLive do
 
   @env_keys ~w(
     ANTHROPIC_API_KEY GOOGLE_API_KEY OPENAI_API_KEY MINIMAX_API_KEY
-    OBSIDIAN_VAULT_NAME DAILY_BUDGET_LIMIT_USD AGENT_BUDGET_LIMIT_USD
+    OBSIDIAN_VAULT_NAME DAILY_BUDGET_LIMIT_USD AGENT_BUDGET_LIMIT_USD TASK_BUDGET_LIMIT_USD
   )
 
   @doc """
@@ -122,11 +122,13 @@ defmodule CrucibleWeb.SettingsLive do
   # ---------------------------------------------------------------------------
 
   defp build_config do
+    orchestrator = Application.get_env(:crucible, :orchestrator, [])
+
     %{
       api_key_set: Application.get_env(:crucible, :api_key) != nil,
-      daily_budget: Application.get_env(:crucible, :daily_budget_limit, 100.0),
-      agent_budget: Application.get_env(:crucible, :agent_budget_limit, 10.0),
-      task_budget: Application.get_env(:crucible, :task_budget_limit, 50.0),
+      daily_budget: Keyword.get(orchestrator, :daily_budget_usd, 100.0),
+      agent_budget: Keyword.get(orchestrator, :agent_budget_usd, 10.0),
+      task_budget: Keyword.get(orchestrator, :task_budget_usd, 50.0),
       cors_origins: Application.get_env(:crucible, :cors_origins, "localhost"),
       vault_path:
         Application.get_env(:crucible, :vault_path) ||
@@ -151,7 +153,7 @@ defmodule CrucibleWeb.SettingsLive do
 
     env_keys =
       Enum.map(@env_keys, fn key ->
-        %{name: key, set: System.get_env(key) != nil}
+        %{name: key, set: (Crucible.Secrets.get(key) || System.get_env(key)) != nil}
       end)
 
     hooks = load_hooks()
