@@ -42,7 +42,8 @@ defmodule Crucible.Router.Strategy do
     "9-10" => %{
       model_id: "claude-opus-4-7",
       provider: "anthropic",
-      reason: "Architecture/reasoning: Opus 4.7 provides the highest quality for complex decisions"
+      reason:
+        "Architecture/reasoning: Opus 4.7 provides the highest quality for complex decisions"
     }
   }
 

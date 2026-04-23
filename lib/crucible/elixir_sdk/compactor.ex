@@ -156,30 +156,38 @@ defmodule Crucible.ElixirSdk.Compactor do
 
   defp pull_leading_user_to_middle(middle, []), do: {middle, []}
 
-  defp append_text_to_last_user(messages, text) do
+  @doc false
+  def append_text_to_last_user(messages, text) do
     block = %{"type" => "text", "text" => text}
 
     case Enum.reverse(messages) do
-      [%{role: "user"} = last | rev_rest] ->
-        content = Map.get(last, :content) || Map.get(last, "content")
+      [last | rev_rest] when is_map(last) ->
+        role = Map.get(last, :role) || Map.get(last, "role")
 
-        merged =
-          case content do
-            blocks when is_list(blocks) ->
-              blocks ++ [block]
+        if role == "user" do
+          content_key = if Map.has_key?(last, :content), do: :content, else: "content"
+          existing = Map.get(last, content_key)
 
-            existing when is_binary(existing) ->
-              [%{"type" => "text", "text" => existing}, block]
+          merged =
+            case existing do
+              blocks when is_list(blocks) ->
+                blocks ++ [block]
 
-            _ ->
-              [block]
-          end
+              str when is_binary(str) ->
+                [%{"type" => "text", "text" => str}, block]
 
-        Enum.reverse([%{last | content: merged} | rev_rest])
+              _ ->
+                [block]
+            end
+
+          Enum.reverse([Map.put(last, content_key, merged) | rev_rest])
+        else
+          # Prefix doesn't end on user — append a fresh user turn carrying the
+          # summary. Unusual: callers normally ensure a user-tailed prefix.
+          messages ++ [%{role: "user", content: [block]}]
+        end
 
       _ ->
-        # Prefix doesn't end with a user message (unusual) — append a fresh
-        # user message carrying the summary.
         messages ++ [%{role: "user", content: [block]}]
     end
   end

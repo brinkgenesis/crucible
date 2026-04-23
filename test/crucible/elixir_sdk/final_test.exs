@@ -94,7 +94,11 @@ defmodule Crucible.ElixirSdk.FinalTest do
       inject_user_with_prompt = %{
         role: "user",
         content: [
-          %{"type" => "tool_result", "tool_use_id" => "inject_plan_abc", "content" => "[plan]\n..."},
+          %{
+            "type" => "tool_result",
+            "tool_use_id" => "inject_plan_abc",
+            "content" => "[plan]\n..."
+          },
           %{"type" => "text", "text" => "the real prompt"}
         ]
       }
@@ -102,7 +106,10 @@ defmodule Crucible.ElixirSdk.FinalTest do
       turn = fn id ->
         [
           %{role: "assistant", content: [%{"type" => "tool_use", "id" => id, "name" => "Read"}]},
-          %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]}
+          %{
+            role: "user",
+            content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]
+          }
         ]
       end
 
@@ -126,9 +133,15 @@ defmodule Crucible.ElixirSdk.FinalTest do
 
     test "falls back to first-message prefix when no prompt text is present" do
       messages = [
-        %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => "x", "content" => "ok"}]},
+        %{
+          role: "user",
+          content: [%{"type" => "tool_result", "tool_use_id" => "x", "content" => "ok"}]
+        },
         %{role: "assistant", content: [%{"type" => "tool_use", "id" => "a", "name" => "Read"}]},
-        %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => "a", "content" => "ok"}]}
+        %{
+          role: "user",
+          content: [%{"type" => "tool_result", "tool_use_id" => "a", "content" => "ok"}]
+        }
       ]
 
       {prefix, _middle, _suffix} = Compactor.split_for_compaction(messages, 2)
@@ -144,7 +157,10 @@ defmodule Crucible.ElixirSdk.FinalTest do
       turn = fn id ->
         [
           %{role: "assistant", content: [%{"type" => "tool_use", "id" => id, "name" => "Read"}]},
-          %{role: "user", content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]}
+          %{
+            role: "user",
+            content: [%{"type" => "tool_result", "tool_use_id" => id, "content" => "ok"}]
+          }
         ]
       end
 
@@ -156,6 +172,63 @@ defmodule Crucible.ElixirSdk.FinalTest do
 
       assert hd(suffix).role == "assistant"
     end
+  end
+
+  describe "Compactor.compact/2 summary folding" do
+    # Drive compact/2 directly with no API key so the summariser branch errors
+    # out and we never hit the network. We only need to observe prefix shape.
+    test "appends summary to atom-keyed last user message" do
+      prefix = [
+        %{role: "user", content: [%{"type" => "text", "text" => "prompt"}]}
+      ]
+
+      merged = apply_append(prefix, "SUMMARY")
+      [last] = merged
+      assert last.role == "user"
+      assert Enum.any?(last.content, &match?(%{"type" => "text", "text" => "SUMMARY"}, &1))
+    end
+
+    test "appends summary to string-keyed last user message (regression)" do
+      prefix = [
+        %{"role" => "user", "content" => [%{"type" => "text", "text" => "prompt"}]}
+      ]
+
+      merged = apply_append(prefix, "SUMMARY")
+      [last] = merged
+      # Must not introduce a second user message — that breaks Anthropic's
+      # strict alternation and was the original bug this PR fixes.
+      assert length(merged) == 1
+      assert Map.get(last, "role") == "user"
+      content = Map.get(last, "content")
+      assert Enum.any?(content, &match?(%{"type" => "text", "text" => "SUMMARY"}, &1))
+    end
+
+    test "appends summary to user message whose content is a bare string" do
+      prefix = [%{"role" => "user", "content" => "original prompt"}]
+
+      merged = apply_append(prefix, "SUMMARY")
+      [last] = merged
+      assert length(merged) == 1
+      content = Map.get(last, "content")
+      assert is_list(content)
+      assert Enum.any?(content, &match?(%{"type" => "text", "text" => "original prompt"}, &1))
+      assert Enum.any?(content, &match?(%{"type" => "text", "text" => "SUMMARY"}, &1))
+    end
+
+    test "falls back to new user message when prefix ends on assistant" do
+      prefix = [
+        %{role: "user", content: [%{"type" => "text", "text" => "prompt"}]},
+        %{role: "assistant", content: [%{"type" => "text", "text" => "reply"}]}
+      ]
+
+      merged = apply_append(prefix, "SUMMARY")
+      assert length(merged) == 3
+      last = List.last(merged)
+      assert last.role == "user"
+    end
+
+    defp apply_append(messages, text),
+      do: Compactor.append_text_to_last_user(messages, text)
   end
 
   # ── ToolRegistry MCP prefix routing ────────────────────────────────────
