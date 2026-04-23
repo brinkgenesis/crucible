@@ -55,7 +55,17 @@ defmodule Crucible.Pipeline.PipelineSupervisor do
   @doc """
   Returns the registered name for the OutputProducer of a session.
   """
-  def producer_name(session_name), do: :"producer_#{session_name}"
+  def producer_name(session_name), do: component_name(:producer, session_name)
+
+  @doc """
+  Returns the registered name for the CostConsumer of a session.
+  """
+  def cost_consumer_name(session_name), do: component_name(:cost_consumer, session_name)
+
+  @doc """
+  Returns the registered name for the DriftConsumer of a session.
+  """
+  def drift_consumer_name(session_name), do: component_name(:drift_consumer, session_name)
 
   @doc """
   Looks up the pipeline supervisor pid for a session.
@@ -78,6 +88,10 @@ defmodule Crucible.Pipeline.PipelineSupervisor do
     {:via, Registry, {@registry, {:pipeline, session_name}}}
   end
 
+  defp component_name(component, session_name) do
+    {:via, Registry, {@registry, {:pipeline_component, component, session_name}}}
+  end
+
   # --- Supervisor callbacks ---
 
   @impl true
@@ -98,7 +112,7 @@ defmodule Crucible.Pipeline.PipelineSupervisor do
        ]},
       {CostConsumer,
        [
-         name: :"cost_consumer_#{session_name}",
+         name: cost_consumer_name(session_name),
          producer: producer_name,
          session_id: session_name,
          run_id: run_id,
@@ -107,7 +121,7 @@ defmodule Crucible.Pipeline.PipelineSupervisor do
        ]},
       {DriftConsumer,
        [
-         name: :"drift_consumer_#{session_name}",
+         name: drift_consumer_name(session_name),
          producer: producer_name,
          session_id: session_name,
          run_id: run_id,

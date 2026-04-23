@@ -92,7 +92,7 @@ defmodule Crucible.ElixirSdk.Tools.WebFetch do
   defp maybe_summarize(body, prompt) when is_binary(prompt) do
     # Best-effort summarization via a short Query invocation on Haiku.
     # Kept synchronous so the calling tool still returns a string.
-    api_key = System.get_env("ANTHROPIC_API_KEY")
+    api_key = Crucible.Secrets.get("ANTHROPIC_API_KEY")
 
     if is_binary(api_key) and api_key != "" do
       case Crucible.ElixirSdk.Client.stream(

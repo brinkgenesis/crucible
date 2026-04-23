@@ -4,6 +4,8 @@ defmodule Crucible.ConfigValidator do
   Called at the top of Application.start/2 in prod to fail fast on misconfiguration.
   """
 
+  alias Crucible.Secrets
+
   require Logger
 
   @doc """
@@ -27,7 +29,7 @@ defmodule Crucible.ConfigValidator do
   defp validate_required! do
     missing =
       ~w(DATABASE_URL SECRET_KEY_BASE)
-      |> Enum.reject(&System.get_env/1)
+      |> Enum.reject(&(is_binary(Secrets.get(&1)) and Secrets.get(&1) != ""))
 
     unless missing == [] do
       raise """
@@ -40,7 +42,7 @@ defmodule Crucible.ConfigValidator do
   end
 
   defp validate_database_url! do
-    url = System.get_env("DATABASE_URL", "")
+    url = Secrets.get("DATABASE_URL") || ""
 
     unless String.starts_with?(url, "ecto://") or String.starts_with?(url, "postgresql://") do
       raise "DATABASE_URL must begin with ecto:// or postgresql://"

@@ -15,11 +15,19 @@ defmodule Crucible.ElixirSdk.Tool do
   respect the permission mode.
   """
 
-  @type schema :: %{
+  @type local_schema :: %{
           required(:name) => String.t(),
           required(:description) => String.t(),
           required(:input_schema) => map()
         }
+
+  @type server_schema :: %{
+          required(:name) => String.t(),
+          required(:type) => String.t(),
+          optional(:max_uses) => pos_integer()
+        }
+
+  @type schema :: local_schema() | server_schema()
 
   @type ctx :: %{cwd: String.t(), permission_mode: atom()}
 

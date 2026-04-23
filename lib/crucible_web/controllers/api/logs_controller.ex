@@ -65,8 +65,14 @@ defmodule CrucibleWeb.Api.LogsController do
     {:ok, lines} = get_int(params, "lines", 100)
 
     path = Path.join(@logs_dir, file)
+    expanded_path = Path.expand(path)
+    expanded_logs_dir = Path.expand(@logs_dir)
 
-    if File.exists?(path) and String.starts_with?(Path.expand(path), Path.expand(@logs_dir)) do
+    inside_logs_dir? =
+      expanded_path == expanded_logs_dir or
+        String.starts_with?(expanded_path, expanded_logs_dir <> "/")
+
+    if File.exists?(path) and inside_logs_dir? do
       content =
         path
         |> File.stream!()

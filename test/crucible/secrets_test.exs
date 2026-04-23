@@ -90,6 +90,32 @@ defmodule Crucible.SecretsTest do
     end
   end
 
+  describe "sensitive_key?/1" do
+    test "treats managed secrets as sensitive" do
+      assert Secrets.sensitive_key?("DATABASE_URL")
+      assert Secrets.sensitive_key?("GOOGLE_OAUTH_CLIENT_SECRET")
+    end
+
+    test "treats generic secret-like names as sensitive" do
+      assert Secrets.sensitive_key?("CUSTOM_PASSWORD")
+      refute Secrets.sensitive_key?("PHX_HOST")
+    end
+  end
+
+  describe "subprocess_env_overrides/1" do
+    test "unsets app secrets for child processes" do
+      overrides = Secrets.subprocess_env_overrides()
+      assert {~c"DATABASE_URL", false} in overrides
+      assert {~c"SECRET_KEY_BASE", false} in overrides
+      assert {~c"CLAUDECODE", false} in overrides
+    end
+
+    test "keeps explicitly allowed auth vars" do
+      overrides = Secrets.subprocess_env_overrides(keep: Secrets.claude_auth_keys())
+      refute {~c"ANTHROPIC_API_KEY", false} in overrides
+    end
+  end
+
   describe "provider_module/0" do
     test "defaults to EnvProvider" do
       System.delete_env("SECRETS_PROVIDER")

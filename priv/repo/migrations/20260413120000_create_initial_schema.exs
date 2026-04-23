@@ -191,7 +191,7 @@ defmodule Crucible.Repo.Migrations.CreateInitialSchema do
       email text NOT NULL,
       name text NOT NULL DEFAULT '',
       picture_url text,
-      role text NOT NULL DEFAULT 'analyst',
+      role text NOT NULL DEFAULT 'viewer',
       created_at timestamp with time zone NOT NULL,
       updated_at timestamp with time zone NOT NULL,
       CONSTRAINT users_email_format CHECK (email ~* '^[^\\s]+@[^\\s]+$')

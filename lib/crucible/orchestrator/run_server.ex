@@ -546,7 +546,7 @@ defmodule Crucible.Orchestrator.RunServer do
     Logger.debug("RunServer: synced run #{run_id} status=#{status} to DB")
   rescue
     e ->
-      Logger.warning("RunServer: DB sync failed for #{run_id}: #{Exception.message(e)}")
+      Repo.log_db_error("RunServer: DB sync failed for #{run_id}", e)
   end
 
   # Move the card's kanban column based on the run's terminal status.

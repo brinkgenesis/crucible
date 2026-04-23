@@ -120,11 +120,15 @@ end
 defmodule CrucibleWeb.Router do
   use CrucibleWeb, :router
 
+  @script_src (if Mix.env() == :dev do
+                 "script-src 'self' 'unsafe-eval'; "
+               else
+                 "script-src 'self'; "
+               end)
+
   # Shared secure-browser headers applied to every browser request.
-  # `content-security-policy` values: LiveView needs inline script/style and
-  # `ws:`/`wss:` connect for its socket; dev LiveReload + esbuild inline
-  # sourcemaps need the same. Tighten per-route via a custom plug if a scope
-  # doesn't need them.
+  # LiveView needs `ws:`/`wss:` connect for its socket. Dev keeps
+  # `unsafe-eval` for source maps; production does not.
   @secure_browser_headers %{
     "x-frame-options" => "DENY",
     "x-content-type-options" => "nosniff",
@@ -133,8 +137,8 @@ defmodule CrucibleWeb.Router do
     "permissions-policy" => "camera=(), microphone=(), geolocation=()",
     "content-security-policy" =>
       "default-src 'self'; " <>
-        "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " <>
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " <>
+        @script_src <>
+        "style-src 'self' https://fonts.googleapis.com; " <>
         "img-src 'self' data: blob:; " <>
         "font-src 'self' data: https://fonts.gstatic.com; " <>
         "connect-src 'self' ws: wss:; " <>

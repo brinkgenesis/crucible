@@ -258,6 +258,8 @@ For production workloads use `SANDBOX_MODE=docker`. See [Sandbox not isolating](
 
 ### Optional — dashboard auth
 
+If you leave `DASHBOARD_AUTH=false`, treat the UI as a localhost or private-network operator surface only. Do not expose it directly to the public internet without putting auth in front of it.
+
 | Var | Purpose |
 |---|---|
 | `DASHBOARD_AUTH` | Set `true` to require Google OAuth on the UI |
@@ -266,7 +268,7 @@ For production workloads use `SANDBOX_MODE=docker`. See [Sandbox not isolating](
 
 ### Optional — budgets, alerting, observability
 
-`DAILY_BUDGET_LIMIT_USD`, `RUN_BUDGET_LIMIT_USD`, `ALERT_WEBHOOK_URL`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `SENTRY_DSN`. Full list in [`.env.example`](.env.example).
+`DAILY_BUDGET_LIMIT_USD`, `AGENT_BUDGET_LIMIT_USD`, `TASK_BUDGET_LIMIT_USD`, `ALERT_WEBHOOK_URL`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `SENTRY_DSN`. Full list in [`.env.example`](.env.example).
 
 ---
 
@@ -334,7 +336,7 @@ With the defaults, the sandbox code path runs but uses `LocalProvider` — which
 ```bash
 SANDBOX_MODE=docker mix phx.server
 ```
-Requires a reachable Docker daemon. The `ExternalCircuitBreaker` wraps `docker run`; if Docker disappears mid-run, the breaker opens after 5 failures and the manager automatically falls back to `LocalProvider` (with a warning log).
+Requires a reachable Docker daemon. The `ExternalCircuitBreaker` wraps `docker run`; if Docker becomes unavailable, Docker-mode acquisitions fail closed until the daemon recovers.
 
 **Disable entirely:**
 ```bash
@@ -383,7 +385,7 @@ Then mark the card as failed on the kanban board to unblock the queue.
 | `GITHUB_TOKEN` | Branch push + PR creation |
 | `SECRET_KEY_BASE` | Phoenix session signing |
 
-**AWS fallback:** If `AWS_SECRETS_ARN` is set, `Crucible.Secrets` fetches the JSON bundle from AWS Secrets Manager at boot and injects values into the process env. If that call fails and no local env vars are present, the app will log the error and exit rather than start with missing credentials.
+**AWS fallback:** If `SECRETS_PROVIDER=aws` and `AWS_SECRET_NAME` are set, `Crucible.Secrets` fetches the JSON bundle from AWS Secrets Manager at boot and serves reads from its in-memory cache. If that call fails and no local env vars are present, the app exits rather than starting with missing credentials.
 
 **Fix:** Either set the vars directly in `.env` / your deployment environment, or verify the EC2 instance role has `secretsmanager:GetSecretValue` on the ARN.
 

@@ -154,9 +154,6 @@ defmodule Crucible.AgentRunner do
               # Post-phase: sync phase statuses to card metadata
               sync_phase_to_card(run, phase, "completed")
 
-              # Post-phase: flush trace events to DB for dashboard/KPI visibility
-              flush_traces_to_db(run)
-
               # Post-phase: create PR after createBranch phase completes
               run = maybe_create_pr(run, phase)
 
@@ -183,7 +180,6 @@ defmodule Crucible.AgentRunner do
 
               update_manifest_phase_status(run, phase, "failed")
               sync_phase_to_card(run, phase, "failed")
-              flush_traces_to_db(run)
               notify(orchestrator_pid, run.id, :phase_failed, %{phase_id: phase.id})
               Events.broadcast_phase_event(run.id, phase.id, :failed)
               error
@@ -428,57 +424,6 @@ defmodule Crucible.AgentRunner do
     end
   rescue
     e -> Logger.warning("AgentRunner: phase card sync failed: #{Exception.message(e)}")
-  end
-
-  # --- Trace DB flush ---
-
-  defp flush_traces_to_db(run) do
-    config = Application.get_env(:crucible, :orchestrator, [])
-    repo_root = Keyword.get(config, :repo_root, File.cwd!())
-    trace_path = Path.join(repo_root, ".claude-flow/logs/traces/#{run.id}.jsonl")
-
-    if File.exists?(trace_path) do
-      alias Crucible.{Repo, Schema.TraceEvent}
-
-      trace_path
-      |> File.stream!()
-      |> Stream.each(fn line ->
-        with {:ok, event} <- Jason.decode(line) do
-          attrs = %{
-            trace_id:
-              event["traceId"] || "#{event["runId"]}-#{:erlang.unique_integer([:positive])}",
-            run_id: event["runId"],
-            phase_id: event["phaseId"],
-            session_id: event["sessionId"],
-            agent_id: event["agentId"],
-            event_type: event["eventType"],
-            tool: event["tool"],
-            detail: event["detail"],
-            metadata: event["metadata"],
-            client_id: event["clientId"],
-            timestamp: parse_trace_timestamp(event["timestamp"])
-          }
-
-          %TraceEvent{}
-          |> TraceEvent.changeset(attrs)
-          |> Repo.insert(on_conflict: :nothing)
-        end
-      end)
-      |> Stream.run()
-
-      Logger.debug("AgentRunner: flushed traces to DB for run #{run.id}")
-    end
-  rescue
-    e -> Logger.warning("AgentRunner: trace flush failed for #{run.id}: #{Exception.message(e)}")
-  end
-
-  defp parse_trace_timestamp(nil), do: DateTime.utc_now() |> DateTime.truncate(:second)
-
-  defp parse_trace_timestamp(ts) when is_binary(ts) do
-    case DateTime.from_iso8601(ts) do
-      {:ok, dt, _} -> DateTime.truncate(dt, :second)
-      _ -> DateTime.utc_now() |> DateTime.truncate(:second)
-    end
   end
 
   # --- Post-run cleanup ---

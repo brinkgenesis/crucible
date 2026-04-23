@@ -4,6 +4,7 @@ defmodule Crucible.Router.Providers.Google do
   @behaviour Crucible.Router.Provider
 
   alias Crucible.Router.CostTable
+  alias Crucible.Secrets
 
   @default_timeout_ms 120_000
   @default_base_url "https://generativelanguage.googleapis.com"
@@ -47,7 +48,7 @@ defmodule Crucible.Router.Providers.Google do
   # ── helpers ─────────────────────────────────────────────────────────────
 
   defp api_key do
-    System.get_env("GOOGLE_API_KEY") ||
+    Secrets.get("GOOGLE_API_KEY") ||
       Application.get_env(:crucible, :google_api_key) ||
       ""
   end

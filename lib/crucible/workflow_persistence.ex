@@ -82,7 +82,7 @@ defmodule Crucible.WorkflowPersistence do
     end
   rescue
     e ->
-      Logger.warning("WorkflowPersistence: upsert_run failed: #{inspect(e)}")
+      Repo.log_db_error("WorkflowPersistence: upsert_run failed", e)
       {:error, e}
   end
 
@@ -98,7 +98,7 @@ defmodule Crucible.WorkflowPersistence do
     end
   rescue
     e ->
-      Logger.warning("WorkflowPersistence: load_run failed: #{inspect(e)}")
+      Repo.log_db_error("WorkflowPersistence: load_run failed", e)
       {:error, e}
   end
 

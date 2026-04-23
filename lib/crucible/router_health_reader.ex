@@ -3,6 +3,8 @@ defmodule Crucible.RouterHealthReader do
   Native provider health probes aligned with the TypeScript dashboard router checks.
   """
 
+  alias Crucible.Secrets
+
   @cache_table :crucible_router_health_cache
   @cache_key :provider_health
   @cache_ttl_ms 30_000
@@ -33,7 +35,7 @@ defmodule Crucible.RouterHealthReader do
   end
 
   defp anthropic_health? do
-    with key when is_binary(key) and key != "" <- System.get_env("ANTHROPIC_API_KEY"),
+    with key when is_binary(key) and key != "" <- Secrets.get("ANTHROPIC_API_KEY"),
          {:ok, %{status: status}} when status in 200..299 <-
            Req.post(anthropic_url(),
              headers: [
@@ -56,7 +58,7 @@ defmodule Crucible.RouterHealthReader do
   end
 
   defp google_health? do
-    with key when is_binary(key) and key != "" <- System.get_env("GOOGLE_API_KEY"),
+    with key when is_binary(key) and key != "" <- Secrets.get("GOOGLE_API_KEY"),
          {:ok, %{status: status}} when status in 200..299 <-
            Req.post(google_url(key),
              json: %{
@@ -74,7 +76,7 @@ defmodule Crucible.RouterHealthReader do
   end
 
   defp minimax_health? do
-    with key when is_binary(key) and key != "" <- System.get_env("MINIMAX_API_KEY"),
+    with key when is_binary(key) and key != "" <- Secrets.get("MINIMAX_API_KEY"),
          {:ok, %{status: status}} when status in 200..299 <-
            Req.post(minimax_url(),
              auth: {:bearer, key},

@@ -78,7 +78,7 @@ defmodule Crucible.Auth do
           email: profile.email,
           name: profile.name || "",
           picture_url: profile.picture_url,
-          role: "analyst"
+          role: "viewer"
         })
         |> Repo.insert!()
 

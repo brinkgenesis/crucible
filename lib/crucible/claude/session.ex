@@ -117,8 +117,8 @@ defmodule Crucible.Claude.Session do
 
     if Code.ensure_loaded?(supervisor) and function_exported?(supervisor, :running?, 1) and
          supervisor.running?(session_name) do
-      cost_name = :"cost_consumer_#{session_name}"
-      drift_name = :"drift_consumer_#{session_name}"
+      cost_name = supervisor.cost_consumer_name(session_name)
+      drift_name = supervisor.drift_consumer_name(session_name)
 
       cost_mod = Module.concat(Crucible.Pipeline, CostConsumer)
       drift_mod = Module.concat(Crucible.Pipeline, DriftConsumer)
@@ -370,9 +370,15 @@ defmodule Crucible.Claude.Session do
         teams_flag = if is_team, do: "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 ", else: ""
         run_id_flag = if run_id != "", do: "INFRA_RUN_ID=#{run_id} ", else: ""
         client_id_flag = if client_id != "", do: "INFRA_CLIENT_ID=#{client_id} ", else: ""
+        env_prefix = Crucible.Secrets.shell_env_prefix(keep: Crucible.Secrets.claude_auth_keys())
 
         cmd =
-          "CLAUDECODE= #{teams_flag}#{run_id_flag}#{client_id_flag}claude --permission-mode bypassPermissions"
+          [
+            env_prefix,
+            "CLAUDECODE= #{teams_flag}#{run_id_flag}#{client_id_flag}claude --permission-mode bypassPermissions"
+          ]
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.join(" ")
 
         # Send the command to start Claude
         case System.cmd("tmux", ["send-keys", "-t", session_name, cmd, "Enter"],
@@ -871,17 +877,6 @@ defmodule Crucible.Claude.Session do
   """
   @spec clean_env() :: [{charlist(), charlist() | false}]
   def clean_env do
-    # Unset CLAUDECODE to prevent "nested session" detection
-    unset = [{~c"CLAUDECODE", false}]
-
-    # Unset MIX_* and ERL_* vars that leak BEAM internals to child
-    mix_erl_unsets =
-      System.get_env()
-      |> Enum.filter(fn {k, _} ->
-        String.starts_with?(k, "MIX_") or String.starts_with?(k, "ERL_")
-      end)
-      |> Enum.map(fn {k, _} -> {String.to_charlist(k), false} end)
-
-    unset ++ mix_erl_unsets
+    Crucible.Secrets.subprocess_env_overrides(keep: Crucible.Secrets.claude_auth_keys())
   end
 end

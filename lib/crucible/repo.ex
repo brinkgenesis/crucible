@@ -26,15 +26,36 @@ defmodule Crucible.Repo do
     fun.()
   rescue
     e in [DBConnection.ConnectionError, DBConnection.OwnershipError] ->
-      Logger.warning("[Repo.safe_query] connection error: #{Exception.message(e)}")
+      log_db_error("[Repo.safe_query] connection error", e)
       default
 
     e in [Postgrex.Error] ->
-      Logger.warning("[Repo.safe_query] Postgrex error: #{Exception.message(e)}")
+      log_db_error("[Repo.safe_query] Postgrex error", e)
       default
 
     e in [Ecto.QueryError] ->
-      Logger.warning("[Repo.safe_query] query error: #{Exception.message(e)}")
+      log_db_error("[Repo.safe_query] query error", e)
       default
   end
+
+  @doc false
+  @spec log_db_error(String.t(), Exception.t()) :: :ok
+  def log_db_error(context, exception) do
+    message = "#{context}: #{Exception.message(exception)}"
+
+    if expected_test_db_error?(exception) do
+      Logger.debug(message)
+    else
+      Logger.warning(message)
+    end
+  end
+
+  defp expected_test_db_error?(%DBConnection.OwnershipError{}), do: Mix.env() == :test
+
+  defp expected_test_db_error?(%DBConnection.ConnectionError{message: message})
+       when is_binary(message) do
+    Mix.env() == :test and String.contains?(message, "ownership process")
+  end
+
+  defp expected_test_db_error?(_exception), do: false
 end

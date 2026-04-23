@@ -26,9 +26,12 @@ defmodule Crucible.ControlSession.TmuxManager do
         )
 
         model_flag = if model && model != "", do: " --model #{model}", else: ""
+        env_prefix = Crucible.Secrets.shell_env_prefix(keep: Crucible.Secrets.claude_auth_keys())
 
         cmd =
-          "unset ANTHROPIC_API_KEY; CLAUDECODE= claude --permission-mode bypassPermissions#{model_flag}"
+          [env_prefix, "CLAUDECODE= claude --permission-mode bypassPermissions#{model_flag}"]
+          |> Enum.reject(&(&1 == ""))
+          |> Enum.join(" ")
 
         case System.cmd("tmux", ["send-keys", "-t", session_name, cmd, "Enter"],
                stderr_to_stdout: true

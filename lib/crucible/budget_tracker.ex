@@ -23,6 +23,13 @@ defmodule Crucible.BudgetTracker do
   @refresh_interval 10_000
   @table :budget_costs
 
+  @type dashboard_status :: %{
+          daily_spent: float(),
+          daily_limit: float(),
+          daily_remaining: float(),
+          is_over_budget: boolean()
+        }
+
   # --- Client API ---
 
   def start_link(opts \\ []) do
@@ -107,7 +114,7 @@ defmodule Crucible.BudgetTracker do
   end
 
   @doc "Returns budget status in dashboard-friendly format."
-  @spec status() :: map()
+  @spec status() :: dashboard_status()
   def status do
     ds = daily_status()
 

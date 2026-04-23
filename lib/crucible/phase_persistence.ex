@@ -70,7 +70,16 @@ defmodule Crucible.PhasePersistence do
     )
     |> Repo.all()
   rescue
-    _ -> []
+    e ->
+      Repo.log_db_error("PhasePersistence: failed to find crashed runs for #{node_name}", e)
+      []
+  catch
+    :exit, _ ->
+      log_db_unavailable(
+        "PhasePersistence: DB unavailable while finding crashed runs for #{node_name}"
+      )
+
+      []
   end
 
   @doc "Mark crashed runs as failed so they can be retried by the orchestrator."
@@ -94,7 +103,14 @@ defmodule Crucible.PhasePersistence do
     count
   rescue
     e ->
-      Logger.warning("PhasePersistence: failed to mark crashed runs: #{Exception.message(e)}")
+      Repo.log_db_error("PhasePersistence: failed to mark crashed runs for #{node_name}", e)
+      0
+  catch
+    :exit, _ ->
+      log_db_unavailable(
+        "PhasePersistence: DB unavailable while marking crashed runs for #{node_name}"
+      )
+
       0
   end
 
@@ -124,11 +140,19 @@ defmodule Crucible.PhasePersistence do
     end
   rescue
     e ->
-      Logger.warning("PhasePersistence: DB error for #{run_id}: #{Exception.message(e)}")
+      Repo.log_db_error("PhasePersistence: DB error for #{run_id}", e)
       :ok
   catch
     :exit, _ ->
-      Logger.warning("PhasePersistence: DB unavailable for #{run_id}")
+      log_db_unavailable("PhasePersistence: DB unavailable for #{run_id}")
       :ok
+  end
+
+  defp log_db_unavailable(message) do
+    if Mix.env() == :test do
+      Logger.debug(message)
+    else
+      Logger.warning(message)
+    end
   end
 end

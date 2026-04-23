@@ -39,11 +39,7 @@ defmodule Crucible.AgentJobManager do
 
     case Repo.insert(changeset) do
       {:ok, job} ->
-        # Start execution asynchronously
-        Task.Supervisor.start_child(
-          Crucible.TaskSupervisor,
-          fn -> execute_job(job) end
-        )
+        maybe_start_execution(job)
 
         Logger.info("AgentJobManager: launched job #{job.id} for run #{job.run_id}")
         AuditLog.log("agent_job", job.id, "created", %{run_id: job.run_id})
@@ -206,5 +202,42 @@ defmodule Crucible.AgentJobManager do
         completed_at: DateTime.utc_now()
       })
       |> Repo.update()
+  end
+
+  defp maybe_start_execution(job) do
+    if async_launch_enabled?() do
+      {:ok, task_pid} =
+        Task.Supervisor.start_child(
+          Crucible.TaskSupervisor,
+          fn -> execute_job(job) end
+        )
+
+      allow_repo_access(task_pid)
+    else
+      :ok
+    end
+  end
+
+  defp async_launch_enabled? do
+    Application.get_env(:crucible, :agent_job_manager, [])
+    |> Keyword.get(:async_launch, true)
+  end
+
+  defp allow_repo_access(task_pid) when is_pid(task_pid) do
+    case Process.whereis(Crucible.Repo) do
+      nil ->
+        :ok
+
+      _repo_pid ->
+        case Ecto.Adapters.SQL.Sandbox.allow(Crucible.Repo, self(), task_pid) do
+          :ok -> :ok
+          {:already, :owner} -> :ok
+          {:already, :allowed} -> :ok
+          {:error, _reason} -> :ok
+          _ -> :ok
+        end
+    end
+  rescue
+    UndefinedFunctionError -> :ok
   end
 end

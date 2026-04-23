@@ -15,7 +15,7 @@ Crucible.Secrets.init!()
 # `mix run` scripts (and iex) land on the same database the user has in `.env`
 # instead of the `infra:infra` compile-time fallback.
 if config_env() == :dev do
-  if database_url = System.get_env("DATABASE_URL") do
+  if database_url = Crucible.Secrets.get("DATABASE_URL") do
     config :crucible, Crucible.Repo, url: database_url
   end
 
@@ -23,7 +23,7 @@ if config_env() == :dev do
   # so it can't warn spuriously before `.env` has loaded. Resolve the real
   # value now that DotenvLoader has hydrated the environment, and warn only if
   # it's still missing — the ephemeral placeholder stays so the server boots.
-  case System.get_env("SECRET_KEY_BASE") do
+  case Crucible.Secrets.get("SECRET_KEY_BASE") do
     value when value in [nil, ""] ->
       IO.warn("""
       SECRET_KEY_BASE is not set — using an ephemeral dev secret.
@@ -71,6 +71,43 @@ port =
   end
 
 config :crucible, CrucibleWeb.Endpoint, http: [port: port]
+
+parse_float = fn raw, default ->
+  case Float.parse(to_string(raw || "")) do
+    {value, ""} when value > 0 -> value
+    _ -> default
+  end
+end
+
+agent_budget_source =
+  case {System.get_env("AGENT_BUDGET_LIMIT_USD"), System.get_env("RUN_BUDGET_LIMIT_USD")} do
+    {value, _legacy} when is_binary(value) and value != "" ->
+      value
+
+    {nil, legacy} when is_binary(legacy) and legacy != "" ->
+      IO.warn("RUN_BUDGET_LIMIT_USD is deprecated. Use AGENT_BUDGET_LIMIT_USD instead.")
+      legacy
+
+    {blank, legacy} when blank in ["", nil] and is_binary(legacy) and legacy != "" ->
+      IO.warn("RUN_BUDGET_LIMIT_USD is deprecated. Use AGENT_BUDGET_LIMIT_USD instead.")
+      legacy
+
+    _ ->
+      nil
+  end
+
+config :crucible,
+       :orchestrator,
+       Application.get_env(:crucible, :orchestrator, [])
+       |> Keyword.put(
+         :daily_budget_usd,
+         parse_float.(System.get_env("DAILY_BUDGET_LIMIT_USD"), 100.0)
+       )
+       |> Keyword.put(:agent_budget_usd, parse_float.(agent_budget_source, 10.0))
+       |> Keyword.put(
+         :task_budget_usd,
+         parse_float.(System.get_env("TASK_BUDGET_LIMIT_USD"), 50.0)
+       )
 
 # -- Dashboard auth --
 config :crucible, :dashboard_auth, System.get_env("DASHBOARD_AUTH", "false") == "true"
@@ -238,8 +275,8 @@ end
 if cluster_strategy == :k8s do
   config :crucible,
     cluster_k8s_namespace: System.get_env("CLUSTER_K8S_NAMESPACE", "default"),
-    cluster_k8s_service: System.get_env("CLUSTER_K8S_SERVICE", "infra-orchestrator"),
-    cluster_k8s_app_name: System.get_env("CLUSTER_K8S_APP_NAME", "infra-orchestrator")
+    cluster_k8s_service: System.get_env("CLUSTER_K8S_SERVICE", "crucible"),
+    cluster_k8s_app_name: System.get_env("CLUSTER_K8S_APP_NAME", "crucible")
 end
 
 # -- Backups --

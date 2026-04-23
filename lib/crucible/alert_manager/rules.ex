@@ -10,7 +10,25 @@ defmodule Crucible.AlertManager.Rules do
   - `:message` — template string with `{key}` placeholders
   """
 
-  @spec default_rules() :: [map()]
+  @type event_name ::
+          :run_failed
+          | :run_exhausted
+          | :budget_exceeded
+          | :budget_paused
+          | :circuit_breaker_open
+          | :sandbox_pool_exhausted
+
+  @type severity :: :critical | :warning
+
+  @type rule :: %{
+          name: event_name(),
+          event_type: event_name(),
+          severity: severity(),
+          cooldown_ms: pos_integer(),
+          message: String.t()
+        }
+
+  @spec default_rules() :: [rule()]
   def default_rules do
     [
       %{

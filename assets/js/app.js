@@ -92,14 +92,34 @@ const MobileSidebar = {
       }
     }
 
+    this.toggleClickHandler = (event) => {
+      event.preventDefault()
+      this.toggleHandler()
+    }
+
+    this.overlayClickHandler = (event) => {
+      event.preventDefault()
+      this.close()
+    }
+
+    this.pageLoadingHandler = () => this.close()
+
+    toggle?.addEventListener("click", this.toggleClickHandler)
+    overlay?.addEventListener("click", this.overlayClickHandler)
     window.addEventListener("toggle-sidebar", this.toggleHandler)
 
     // Close on LiveView navigation
-    window.addEventListener("phx:page-loading-start", () => this.close())
+    window.addEventListener("phx:page-loading-start", this.pageLoadingHandler)
   },
 
   destroyed() {
+    const overlay = document.getElementById("sidebar-overlay")
+    const toggle = document.getElementById("sidebar-toggle")
+
+    toggle?.removeEventListener("click", this.toggleClickHandler)
+    overlay?.removeEventListener("click", this.overlayClickHandler)
     window.removeEventListener("toggle-sidebar", this.toggleHandler)
+    window.removeEventListener("phx:page-loading-start", this.pageLoadingHandler)
   }
 }
 

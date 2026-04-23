@@ -10,6 +10,7 @@ defmodule Crucible.Router.Providers.Anthropic do
   @behaviour Crucible.Router.Provider
 
   alias Crucible.Router.CostTable
+  alias Crucible.Secrets
 
   @api_version "2023-06-01"
   @default_timeout_ms 120_000
@@ -53,7 +54,7 @@ defmodule Crucible.Router.Providers.Anthropic do
   # ── helpers ─────────────────────────────────────────────────────────────
 
   defp api_key do
-    System.get_env("ANTHROPIC_API_KEY") ||
+    Secrets.get("ANTHROPIC_API_KEY") ||
       Application.get_env(:crucible, :anthropic_api_key) ||
       ""
   end
