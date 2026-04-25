@@ -60,17 +60,25 @@ end
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if System.get_env("PHX_SERVER") do
-  config :crucible, CrucibleWeb.Endpoint, server: true
-end
-
-port =
-  case Integer.parse(System.get_env("PORT", "4801")) do
-    {n, ""} when n > 0 -> n
-    _ -> 4801
+# Endpoint server flag and port are env-driven for dev / prod, but must
+# be left alone in :test — test.exs pins server: false on port 4002 so
+# the suite never binds. Without this guard, an agent invoking
+# `MIX_ENV=test mix test` from a shell where `.env` has already exported
+# PHX_SERVER=true / PORT=4802 would inherit those, override test's
+# server:false, and collide with the running dev server.
+if config_env() != :test do
+  if System.get_env("PHX_SERVER") do
+    config :crucible, CrucibleWeb.Endpoint, server: true
   end
 
-config :crucible, CrucibleWeb.Endpoint, http: [port: port]
+  port =
+    case Integer.parse(System.get_env("PORT", "4801")) do
+      {n, ""} when n > 0 -> n
+      _ -> 4801
+    end
+
+  config :crucible, CrucibleWeb.Endpoint, http: [port: port]
+end
 
 parse_float = fn raw, default ->
   case Float.parse(to_string(raw || "")) do
