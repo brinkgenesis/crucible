@@ -14,7 +14,10 @@ defmodule CrucibleWeb.WorkspacesLive do
        workspaces: WorkspaceProfiles.list_workspaces(),
        show_form: false,
        editing: nil,
-       form: new_form()
+       form: new_form(),
+       browser_open: false,
+       browser_cwd: nil,
+       browser_entries: []
      )}
   end
 
@@ -80,6 +83,28 @@ defmodule CrucibleWeb.WorkspacesLive do
             {:noreply, assign(socket, form: to_form(changeset.changes))}
         end
     end
+  end
+
+  def handle_event("open_browser", _params, socket) do
+    start = browser_start_dir(socket.assigns.form[:repo_path].value)
+    {:noreply, open_browser(socket, start)}
+  end
+
+  def handle_event("close_browser", _params, socket) do
+    {:noreply, assign(socket, browser_open: false, browser_entries: [])}
+  end
+
+  def handle_event("browse_to", %{"path" => path}, socket) do
+    {:noreply, open_browser(socket, path)}
+  end
+
+  def handle_event("select_dir", %{"path" => path}, socket) do
+    form =
+      socket.assigns.form
+      |> form_with(:repo_path, path)
+
+    {:noreply,
+     assign(socket, form: form, browser_open: false, browser_entries: [], browser_cwd: nil)}
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
@@ -160,14 +185,23 @@ defmodule CrucibleWeb.WorkspacesLive do
                 <label class="block text-[9px] text-[#b0b0b0] font-label uppercase tracking-widest mb-1">
                   REPO_PATH
                 </label>
-                <input
-                  type="text"
-                  name="repo_path"
-                  value={@form[:repo_path].value}
-                  required
-                  class="w-full bg-[#1a1a1a] border border-[#494847]/30 text-[#e0e0e0] text-xs px-3 py-2 focus:border-[#ffa44c]/50 focus:outline-none"
-                  placeholder="/path/to/your/repo"
-                />
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    name="repo_path"
+                    value={@form[:repo_path].value}
+                    required
+                    class="flex-1 bg-[#1a1a1a] border border-[#494847]/30 text-[#e0e0e0] text-xs px-3 py-2 focus:border-[#ffa44c]/50 focus:outline-none"
+                    placeholder="/path/to/your/repo"
+                  />
+                  <button
+                    type="button"
+                    phx-click="open_browser"
+                    class="px-3 py-2 border border-[#ffa44c]/30 text-[#ffa44c] font-label text-[10px] uppercase tracking-widest hover:bg-[#ffa44c]/10 transition-all"
+                  >
+                    BROWSE
+                  </button>
+                </div>
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -271,10 +305,124 @@ defmodule CrucibleWeb.WorkspacesLive do
               <p class="text-[10px] mt-2">CLICK_NEW_WORKSPACE_TO_ADD_PROFILE</p>
             </div>
           </div>
+
+          <%!-- Directory browser modal --%>
+          <div
+            :if={@browser_open}
+            class="fixed inset-0 z-[120] flex items-center justify-center p-8 backdrop-blur-md bg-black/60"
+            phx-window-keydown="close_browser"
+            phx-key="Escape"
+          >
+            <div
+              class="w-full max-w-2xl bg-[#0a0a0a] border border-[#ffa44c]/30 flex flex-col max-h-[80vh]"
+              phx-click-away="close_browser"
+            >
+              <div class="flex items-center justify-between px-4 py-3 border-b border-[#494847]/30 bg-[#111]">
+                <div class="text-[10px] font-headline text-[#ffa44c] tracking-[0.3em] uppercase">
+                  PICK_DIRECTORY
+                </div>
+                <button
+                  type="button"
+                  phx-click="close_browser"
+                  class="text-[#ffa44c]/60 hover:text-[#ffa44c] text-xs font-label uppercase tracking-widest"
+                >
+                  CLOSE
+                </button>
+              </div>
+
+              <%!-- Breadcrumb --%>
+              <div class="px-4 py-2 border-b border-[#494847]/20 flex items-center gap-1 flex-wrap text-[11px] font-mono">
+                <button
+                  type="button"
+                  phx-click="browse_to"
+                  phx-value-path="/"
+                  class="text-[#00eefc] hover:text-white transition-colors"
+                >
+                  /
+                </button>
+                <span :for={crumb <- breadcrumbs(@browser_cwd)} class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    phx-click="browse_to"
+                    phx-value-path={crumb.path}
+                    class="text-[#00eefc] hover:text-white transition-colors"
+                  >
+                    {crumb.name}
+                  </button>
+                  <span class="text-[#494847]">/</span>
+                </span>
+              </div>
+
+              <%!-- Entry list --%>
+              <div class="flex-1 overflow-y-auto">
+                <button
+                  :if={@browser_cwd && @browser_cwd != "/"}
+                  type="button"
+                  phx-click="browse_to"
+                  phx-value-path={Path.dirname(@browser_cwd)}
+                  class="w-full flex items-center gap-3 px-4 py-2 text-left border-b border-[#494847]/10 hover:bg-[#ffa44c]/5 transition-all"
+                >
+                  <span class="material-symbols-outlined text-[#777] text-base">arrow_upward</span>
+                  <span class="text-xs font-mono text-[#adaaaa]">..</span>
+                </button>
+
+                <button
+                  :for={entry <- @browser_entries}
+                  type="button"
+                  phx-click="browse_to"
+                  phx-value-path={entry.full}
+                  class="w-full flex items-center gap-3 px-4 py-2 text-left border-b border-[#494847]/10 hover:bg-[#ffa44c]/5 transition-all"
+                >
+                  <span class="material-symbols-outlined text-[#ffa44c]/60 text-base">folder</span>
+                  <span class="text-xs font-mono text-[#e0e0e0]">{entry.name}</span>
+                </button>
+
+                <div
+                  :if={@browser_entries == [] && @browser_cwd}
+                  class="px-4 py-6 text-center text-[10px] font-label text-[#494847] uppercase tracking-widest"
+                >
+                  EMPTY_OR_UNREADABLE
+                </div>
+              </div>
+
+              <%!-- Footer with current path + select --%>
+              <div class="px-4 py-3 border-t border-[#494847]/30 bg-[#111] flex items-center gap-3">
+                <span class="text-[10px] font-label text-[#b0b0b0] uppercase tracking-widest">
+                  SELECTED:
+                </span>
+                <span class="flex-1 text-[11px] font-mono text-[#00eefc] truncate">
+                  {@browser_cwd}
+                </span>
+                <button
+                  type="button"
+                  phx-click="select_dir"
+                  phx-value-path={@browser_cwd}
+                  class="px-4 py-2 bg-[#00FF41] text-black font-label text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all"
+                >
+                  USE_THIS
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Layouts.app>
     """
+  end
+
+  # Build breadcrumb segments for the browser modal — pure list of
+  # %{name, path} entries from root to the current dir.
+  defp breadcrumbs(nil), do: []
+
+  defp breadcrumbs(path) do
+    path
+    |> String.trim_leading("/")
+    |> String.split("/", trim: true)
+    |> Enum.reduce({[], "/"}, fn part, {acc, prefix} ->
+      next = Path.join(prefix, part)
+      {acc ++ [%{name: part, path: next}], next}
+    end)
+    |> elem(0)
   end
 
   defp new_form do
@@ -286,6 +434,69 @@ defmodule CrucibleWeb.WorkspacesLive do
       "default_workflow" => "coding-sprint",
       "default_branch" => "main"
     }
+    |> to_form()
+  end
+
+  # Open the directory browser at `path`, snapping to a real directory if
+  # the requested one is missing or unreadable.
+  defp open_browser(socket, path) do
+    cwd = resolve_dir(path)
+
+    assign(socket,
+      browser_open: true,
+      browser_cwd: cwd,
+      browser_entries: list_subdirs(cwd)
+    )
+  end
+
+  defp browser_start_dir(""), do: System.user_home!() || "/"
+  defp browser_start_dir(nil), do: System.user_home!() || "/"
+  defp browser_start_dir(path) when is_binary(path), do: path
+
+  defp resolve_dir(nil), do: System.user_home!() || "/"
+
+  defp resolve_dir(path) when is_binary(path) do
+    expanded = Path.expand(path)
+
+    cond do
+      File.dir?(expanded) -> expanded
+      File.dir?(Path.dirname(expanded)) -> Path.dirname(expanded)
+      true -> System.user_home!() || "/"
+    end
+  end
+
+  # Return a stable list of subdirectories for the given path. Hides dotfiles
+  # so the picker isn't drowned in `.git`/`.cache` etc.
+  defp list_subdirs(path) do
+    case File.ls(path) do
+      {:ok, names} ->
+        names
+        |> Enum.reject(&String.starts_with?(&1, "."))
+        |> Enum.map(fn name ->
+          full = Path.join(path, name)
+          %{name: name, full: full, is_dir: File.dir?(full)}
+        end)
+        |> Enum.filter(& &1.is_dir)
+        |> Enum.sort_by(&String.downcase(&1.name))
+
+      _ ->
+        []
+    end
+  end
+
+  # Rebuild the form keeping existing values for every other field.
+  # We don't lean on `form.params` here — accessing `form[:k].value` works
+  # whether the form was built from a map or a changeset.
+  defp form_with(form, key, value) do
+    %{
+      "name" => form[:name].value || "",
+      "slug" => form[:slug].value || "",
+      "repo_path" => form[:repo_path].value || "",
+      "tech_context" => form[:tech_context].value || "",
+      "default_workflow" => form[:default_workflow].value || "coding-sprint",
+      "default_branch" => form[:default_branch].value || "main"
+    }
+    |> Map.put(to_string(key), value)
     |> to_form()
   end
 end
