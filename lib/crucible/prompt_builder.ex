@@ -459,7 +459,10 @@ defmodule Crucible.PromptBuilder do
     4. **Verify locally** — run tests and type-check:
        - Check out the branch: `git fetch origin && git checkout <branch>`
        - Run `tsc --noEmit` and/or `mix compile --warnings-as-errors`
-       - Run test suite
+       - Run test suite — invoke directly (`mix test`, `npx vitest run`).
+         **Do not wrap commands in `timeout` / `gtimeout`** — macOS does
+         not ship GNU coreutils, and this phase already has a BEAM-level
+         watchdog. A `timeout` wrapper will fail with `command not found`.
        - If issues found: fix directly on the branch, commit, push
 
     5. **Poll CI** — `gh pr checks` to confirm CI status
