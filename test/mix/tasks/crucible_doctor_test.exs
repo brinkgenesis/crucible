@@ -119,6 +119,7 @@ defmodule Mix.Tasks.Crucible.DoctorTest do
       {:ok, decoded} = Jason.decode(output)
 
       any_fail = Enum.any?(decoded["checks"], &(&1["status"] == "fail"))
+
       if any_fail do
         assert decoded["status"] == "error"
       end
@@ -129,6 +130,7 @@ defmodule Mix.Tasks.Crucible.DoctorTest do
       {:ok, decoded} = Jason.decode(output)
 
       any_fail = Enum.any?(decoded["checks"], &(&1["status"] == "fail"))
+
       unless any_fail do
         assert decoded["status"] == "ok"
       end
