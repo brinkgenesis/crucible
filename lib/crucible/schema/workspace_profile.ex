@@ -42,6 +42,7 @@ defmodule Crucible.Schema.WorkspaceProfile do
     field :allowed_models, {:array, :string}, default: []
     field :cost_limit_usd, :decimal
     field :approval_threshold, :integer
+    field :last_run_started_at, :utc_datetime
 
     has_many :cards, Crucible.Schema.Card, foreign_key: :workspace_id
 
