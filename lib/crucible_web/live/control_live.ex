@@ -501,13 +501,9 @@ defmodule CrucibleWeb.ControlLive do
             </select>
           </div>
           <div class="flex items-end">
-            <button
-              phx-click="stop_session"
-              phx-value-slot={@slot.id}
-              class="w-full h-9 border border-[#ff725e]/40 text-[#ff725e] hover:bg-[#ff725e] hover:text-black transition-all font-label text-[10px] font-bold uppercase tracking-widest"
-            >
+            <.tactical_button variant="danger" phx-click="stop_session" phx-value-slot={@slot.id} class="w-full h-9">
               STOP_PROCESS
-            </button>
+            </.tactical_button>
           </div>
         </div>
 
@@ -654,12 +650,9 @@ defmodule CrucibleWeb.ControlLive do
                   </button>
                 </div>
 
-                <button
-                  phx-click="browse_select"
-                  class="w-full bg-[#ffa44c] text-black font-headline font-black py-3 text-xs tracking-widest uppercase hover:bg-[#00eefc] transition-all"
-                >
+                <.tactical_button phx-click="browse_select" class="w-full py-3">
                   SELECT_PATH
-                </button>
+                </.tactical_button>
               </div>
             <% else %>
               <div class="space-y-1 max-h-[200px] overflow-y-auto">
@@ -678,24 +671,17 @@ defmodule CrucibleWeb.ControlLive do
               </div>
 
               <div class="border-t border-[#ffa44c]/10 pt-3 mt-3">
-                <button
-                  phx-click="open_browser"
-                  class="w-full border border-[#ffa44c]/30 text-[#ffa44c] font-label text-[10px] uppercase tracking-widest py-2 hover:bg-[#ffa44c]/10 transition-colors"
-                >
+                <.tactical_button variant="ghost" phx-click="open_browser" class="w-full py-2">
                   <span class="material-symbols-outlined text-sm align-middle mr-1">folder_open</span>
                   BROWSE_FOLDERS
-                </button>
+                </.tactical_button>
               </div>
             <% end %>
           </div>
 
-          <button
-            :if={!@browse_mode}
-            phx-click="close_spawn_modal"
-            class="w-full bg-[#ffa44c] text-black font-headline font-black py-3 text-xs tracking-widest uppercase hover:bg-[#00eefc] transition-all"
-          >
+          <.tactical_button :if={!@browse_mode} phx-click="close_spawn_modal" class="w-full py-3">
             INITIATE_SPAWN
-          </button>
+          </.tactical_button>
         </div>
       </div>
     </div>

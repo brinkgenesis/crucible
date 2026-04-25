@@ -592,22 +592,22 @@ defmodule CrucibleWeb.KanbanLive do
             </p>
           </div>
           <div class="flex gap-3">
-            <button
+            <.tactical_button
               :if={MapSet.size(@selected_cards) > 0}
               type="button"
               phx-click="execute_selected"
-              class="px-4 py-2 bg-[#00eefc] text-black font-label text-[10px] font-bold uppercase tracking-widest hover:bg-[#00eefc]/80 flex items-center gap-2"
+              class="flex items-center gap-2"
             >
               <.mat_icon name="play_arrow" class="text-sm" /> EXECUTE ({MapSet.size(@selected_cards)})
-            </button>
-            <button
+            </.tactical_button>
+            <.tactical_button
               :if={MapSet.size(@selected_cards) > 0}
+              variant="ghost"
               type="button"
               phx-click="clear_selection"
-              class="px-3 py-2 border border-[#494847] text-[#adaaaa] font-label text-[10px] uppercase tracking-widest hover:bg-surface-container-high"
             >
               CLEAR
-            </button>
+            </.tactical_button>
             <.tactical_button phx-click="toggle_add_form">
               <span class="flex items-center gap-2">
                 <.mat_icon name="add_box" class="text-sm" /> NEW_TASK
@@ -652,19 +652,12 @@ defmodule CrucibleWeb.KanbanLive do
               />
             </div>
             <div class="flex gap-3">
-              <button
-                type="button"
-                phx-click="toggle_add_form"
-                class="flex-1 py-2 border border-[#494847] text-[#adaaaa] font-label text-[10px] uppercase tracking-widest hover:bg-surface-container-high"
-              >
+              <.tactical_button variant="ghost" type="button" phx-click="toggle_add_form" class="flex-1 py-2">
                 CANCEL
-              </button>
-              <button
-                type="submit"
-                class="flex-1 py-2 bg-[#ffa44c] text-black font-label text-[10px] font-bold uppercase tracking-widest"
-              >
+              </.tactical_button>
+              <.tactical_button type="submit" class="flex-1 py-2">
                 DEPLOY
-              </button>
+              </.tactical_button>
             </div>
           </form>
         </div>
@@ -1016,13 +1009,9 @@ defmodule CrucibleWeb.KanbanLive do
               >
                 <span class="material-symbols-outlined text-4xl">history</span>
                 <p class="font-label text-[10px] uppercase tracking-widest">NO_HISTORY_LOADED</p>
-                <button
-                  phx-click="load_card_history"
-                  phx-value-id={@card.id}
-                  class="border border-[#ffa44c]/30 text-[#ffa44c] px-4 py-2 font-label text-[10px] uppercase tracking-widest hover:bg-[#ffa44c]/10 transition-all"
-                >
+                <.tactical_button variant="ghost" phx-click="load_card_history" phx-value-id={@card.id}>
                   LOAD_HISTORY
-                </button>
+                </.tactical_button>
               </div>
               <div :if={@card_history != []} class="space-y-1">
                 <div
